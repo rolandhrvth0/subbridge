@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "0.1.1-release",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Megjelent a SubBridge 0.1.1",
+        "en": "SubBridge 0.1.1 is out"
+      },
+      "body": {
+        "hu": "Pontosabb takarás (közbeszólásnál sem látszik az angol), stabil betűméret, javított szlengfordítás, animált játékbeállító és automatikus frissítés.",
+        "en": "Better covering (no English when someone cuts in), steady text size, improved slang, animated game setup and automatic updates."
+      }
+    },
+    {
       "id": "2026-11-22-beallitas",
       "date": "2026-11-22",
       "title": {
@@ -78,11 +90,21 @@
     }
   },
   "latest": {
-    "version": "0.1.0",
+    "version": "0.1.1",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Első nyilvános kiadás: Linux (.deb) és Android (.apk).",
-      "en": "First public release: Linux (.deb) and Android (.apk)."
+      "hu": "Pontosabb takarás (közbeszólásnál sem látszik az angol), stabil betűméret, javított szlengfordítás, animált játékbeállító és automatikus frissítés.",
+      "en": "Better covering (no English when someone cuts in), steady text size, improved slang, animated game setup and automatic updates."
+    },
+    "files": {
+      "windows": {
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.1-windows-setup.exe",
+        "sha256": "b96434d78e34c46668f07721bfcf3a970ca0516cba0d42fd2f7e1191fe51eff3"
+      },
+      "linux-deb": {
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.1_amd64.deb",
+        "sha256": "ec0663e2aeaa358ca4f6c8261698a97de5968c68c25c6a74e8e16d770e358c15"
+      }
     }
   }
 }
