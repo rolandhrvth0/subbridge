@@ -53,6 +53,11 @@ gdi32.BitBlt.argtypes = [wt.HDC, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctype
 gdi32.GetDIBits.argtypes = [wt.HDC, wt.HBITMAP, wt.UINT, wt.UINT, ctypes.c_void_p, ctypes.c_void_p, wt.UINT]
 user32.ClientToScreen.argtypes = [wt.HWND, ctypes.POINTER(wt.POINT)]
 user32.GetForegroundWindow.restype = wt.HWND
+user32.WindowFromPoint.argtypes = [wt.POINT]
+user32.WindowFromPoint.restype = wt.HWND
+user32.GetAncestor.argtypes = [wt.HWND, wt.UINT]
+user32.GetAncestor.restype = wt.HWND
+user32.IsWindowVisible.argtypes = [wt.HWND]
 kernel32.OpenProcess.restype = wt.HANDLE
 kernel32.OpenProcess.argtypes = [wt.DWORD, wt.BOOL, wt.DWORD]
 kernel32.QueryFullProcessImageNameW.argtypes = [wt.HANDLE, wt.DWORD, wt.LPWSTR, ctypes.POINTER(wt.DWORD)]
@@ -195,7 +200,29 @@ class WindowsCapture(CaptureSource):
         a, b = wt.DWORD(), wt.DWORD()
         user32.GetWindowThreadProcessId(fg, ctypes.byref(a))
         user32.GetWindowThreadProcessId(int(ident), ctypes.byref(b))
-        return a.value != 0 and a.value == b.value
+        if a.value != 0 and a.value == b.value:
+            return True
+        return self._on_top(int(ident), b.value)
+
+    def _on_top(self, hwnd: int, pid: int) -> bool:
+        """The game's picture is what one sees: the window under the middle of the game window belongs to
+        the game's program (so it works without clicking into it, e.g. in F11 fullscreen) – but another
+        program covering it (a browser after Alt+Tab) gets nothing drawn over it."""
+        if not pid or not user32.IsWindowVisible(hwnd) or user32.IsIconic(hwnd):
+            return False
+        rc = wt.RECT()
+        user32.GetClientRect(hwnd, ctypes.byref(rc))
+        pt = wt.POINT((rc.right - rc.left) // 2, (rc.bottom - rc.top) // 3)   # upper middle: never our subtitle
+        user32.ClientToScreen(hwnd, ctypes.byref(pt))
+        top = user32.WindowFromPoint(pt)
+        if not top:
+            return False
+        root = user32.GetAncestor(top, 2) or top                               # GA_ROOT
+        if int(root) == hwnd:
+            return True
+        q = wt.DWORD()
+        user32.GetWindowThreadProcessId(root, ctypes.byref(q))
+        return q.value == pid
 
     # ------------------------------------------------------------------ grabbing
     @staticmethod

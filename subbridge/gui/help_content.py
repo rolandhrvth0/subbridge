@@ -13,6 +13,7 @@ HELP = {
 <p><b>Ajánlott beállítás a játékban</b> (Beállítások › UI › Subtitles &amp; Captions, vagy hasonló menü):</p><ul><li><b>Subtitles (Felirat):</b> On – a legteljesebb fokozat (3/3): így a járókelők és NPC-k beszéde is feliratot kap, és azt is fordítja</li><li><b>Closed Captions:</b> Off</li><li><b>Size (Méret):</b> Medium</li><li><b>Speaker Names (Beszélőnevek):</b> On</li><li><b>Background (Háttér):</b> Solid – egyszínű doboz, ezt takarja le pontosan</li></ul>
 """),
 ("chiaki", "PS5 Remote Play beállítása (chiaki-ng)", """
+<p><b>Windowson:</b> a chiaki-ng-t F11-es teljes képernyőn használd.</p>
 <p>A {app} nem tartalmaz Remote Play klienst – a képet egy külön program adja. PS5-höz a nyílt forráskódú <b>chiaki-ng</b> ajánlott (külön telepítendő, AGPL licenc).</p>
 <ol>
 <li>Telepítés: Linuxon Flatpakkal (<code>flatpak install flathub io.github.streetpea.Chiaki4deck</code>), Windowson a projekt GitHub-oldaláról: <code>github.com/streetpea/chiaki-ng</code>.</li>
@@ -89,6 +90,7 @@ HELP = {
 <p><b>Recommended in-game settings</b> (Settings › UI › Subtitles &amp; Captions, or similar):</p><ul><li><b>Subtitles:</b> On – the fullest level (3/3): ambient and NPC speech get subtitles too, so they are translated as well</li><li><b>Closed Captions:</b> Off</li><li><b>Size:</b> Medium</li><li><b>Speaker Names:</b> On</li><li><b>Background:</b> Solid – a plain box, covered exactly</li></ul>
 """),
 ("chiaki", "PS5 Remote Play setup (chiaki-ng)", """
+<p><b>On Windows:</b> use chiaki-ng in F11 fullscreen.</p>
 <p>{app} does not include a Remote Play client. For PS5 we recommend the open-source <b>chiaki-ng</b> (installed separately, AGPL licence).</p>
 <ol>
 <li>Install: on Linux via Flatpak (<code>flatpak install flathub io.github.streetpea.Chiaki4deck</code>), on Windows from <code>github.com/streetpea/chiaki-ng</code>.</li>

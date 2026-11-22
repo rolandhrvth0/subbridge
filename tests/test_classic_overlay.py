@@ -79,3 +79,30 @@ def test_stats_line_is_logged(overlay, caplog):
         ov._stat_tick()
     assert any("overlay:" in r.getMessage() for r in caplog.records)
     assert ov.stats["ticks"] == 0
+
+
+def test_overlay_maps_box_to_its_monitor(monkeypatch):
+    from subbridge.gui import overlay as ov
+
+    class G:
+        def __init__(s, x, y, w, h): s._r = (x, y, w, h)
+        def x(s): return s._r[0]
+        def y(s): return s._r[1]
+        def width(s): return s._r[2]
+        def height(s): return s._r[3]
+
+    class Sc:
+        def __init__(s, g, d): s._g, s._d = g, d
+        def geometry(s): return s._g
+        def devicePixelRatio(s): return s._d
+
+    left = Sc(G(0, 0, 1920, 1080), 1.0)                   # 100 % monitor
+    right = Sc(G(1920, 0, 2560, 1440), 1.5)               # 150 % monitor, native 3840x2160
+    monkeypatch.setattr(ov.QGuiApplication, "screens", staticmethod(lambda: [left, right]))
+    monkeypatch.setattr(ov.QGuiApplication, "primaryScreen", staticmethod(lambda: left))
+    b, d = ov._to_screen({"rect": (1920 + 1500, 1800, 1920 + 2300, 1900), "px": 45})
+    assert d == 1.5
+    x0 = b["rect"][0] / d                                    # what show_box will use (logical)
+    assert abs(x0 - (1920 + 1000)) < 1                      # 1500 native px into the 150 % monitor = 1000 logical
+    b2, d2 = ov._to_screen({"rect": (100, 900, 600, 960), "px": 30})
+    assert d2 == 1.0 and b2["rect"] == (100, 900, 600, 960)

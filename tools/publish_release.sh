@@ -42,8 +42,8 @@ open(p, 'w').write(s)
 p = 'site/feed/index.json'; d = json.load(open(p))
 base = "https://rolandhrvth.hu/subbridge/dl/"
 d["latest"] = {"version": v, "url": "https://rolandhrvth.hu/subbridge/#download",
-               "notes": {"hu": "Stabilabb felirat a gépen: egy váratlan hiba már nem állítja le, és a naplóból látszik, ha valami nem működik (Windows-javítás).",
-                         "en": "More robust on-screen subtitles: an unexpected error no longer stops them, and the log shows what went wrong (Windows fix)."},
+               "notes": {"hu": "Windows: a magyar felirat kattintás nélkül megjelenik (F11 teljes képernyőn is), több monitornál is a helyén van, és a felirat-réteg egy váratlan hibától sem áll le.",
+                         "en": "Windows: translations show without clicking into the game (also in F11 fullscreen), land on the right spot with several monitors, and the overlay no longer stops on an unexpected error."},
                "files": {"windows": {"url": base + f"SubBridge-{v}-windows-setup.exe", "sha256": sw},
                          "linux-deb": {"url": base + f"subbridge_{v}_amd64.deb", "sha256": sd}}}
 d["news"].insert(0, {"id": f"{v}-release", "date": "2026-11-22",

@@ -167,6 +167,36 @@ class OverlayBox(QWidget):
             self.setWindowOpacity(1.0)
 
 
+def _screen_of(x: float, y: float):
+    """(logical top-left, scale) of the monitor that holds this physical pixel. Qt keeps a monitor's
+    top-left at its native position and scales only the size."""
+    screens = QGuiApplication.screens() or []
+    for sc in screens:
+        g, d = sc.geometry(), sc.devicePixelRatio() or 1.0
+        if g.x() <= x < g.x() + g.width() * d and g.y() <= y < g.y() + g.height() * d:
+            return g.x(), g.y(), d
+    sc = QGuiApplication.primaryScreen()
+    if sc is None:
+        return 0, 0, 1.0
+    g = sc.geometry()
+    return g.x(), g.y(), sc.devicePixelRatio() or 1.0
+
+
+def _to_screen(box: dict):
+    """Box in physical pixels -> the same box expressed so that show_box (which divides by the scale)
+    lands on the right spot of the right monitor."""
+    x0, y0, x1, y1 = box["rect"]
+    ox, oy, d = _screen_of((x0 + x1) / 2, (y0 + y1) / 2)
+    if d == 1.0 and not (ox or oy):
+        return box, 1.0
+    # logical = origin + (physical - origin) / d   ->   show_box gets logical * d
+    lx = lambda v: (ox + (v - ox) / d) * d
+    ly = lambda v: (oy + (v - oy) / d) * d
+    b = dict(box)
+    b["rect"] = (lx(x0), ly(y0), lx(x1), ly(y1))
+    return b, d
+
+
 class OverlayManager:
     def __init__(self):
         self.pool: list[OverlayBox] = []
@@ -184,7 +214,7 @@ class OverlayManager:
     def _update(self, boxes: list[dict]):
         if not self.enabled:
             boxes = []
-        dpr = QGuiApplication.primaryScreen().devicePixelRatio() if QGuiApplication.primaryScreen() else 1.0
+        # several monitors with different scaling: map every box with the monitor it is on
         # every box keeps its own window ("slot"): with several speakers nothing swaps or jumps
         want = {}
         for i, b in enumerate(boxes):
@@ -195,6 +225,7 @@ class OverlayManager:
         for i, w in enumerate(self.pool):
             b = want.get(i)
             if b is not None:
+                b, dpr = _to_screen(b)
                 w.show_box(b, b.get("max_w", self.max_w), self.scale, dpr)
             else:
                 w.hide_box()
