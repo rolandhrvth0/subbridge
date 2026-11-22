@@ -91,6 +91,18 @@ def selftest(out_path: str | None) -> int:
             return f"{e.lang_tag}: {got!r} {ms:.0f} ms"
         step("winocr", winocr)
     step("translate", lambda: __import__("ctranslate2").__version__)
+    def framegen():
+        import numpy as np
+        from .framegen import Interpolator, available
+        if not available():
+            raise RuntimeError("OpenCV missing")
+        rng = np.random.default_rng(0)
+        a = (rng.random((1080, 1920, 3)) * 255).astype(np.uint8)
+        ip = Interpolator()
+        ip.mid(a, np.roll(a, 8, axis=1))
+        ip.mid(a, np.roll(a, 8, axis=1))
+        return f"{ip.last_ms:.0f} ms / 1080p frame"
+    step("framegen", framegen)
     def server():
         from .server.server import SubtitleServer
         srv = SubtitleServer(18765, "123456", "t")

@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from html import escape
 
-from PySide6.QtCore import QRectF, QSizeF, Qt, QTimer
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+import threading
+
+import numpy as np
+from PySide6.QtCore import QRectF, QSizeF, Qt, QThread, QTimer, Signal
+from PySide6.QtGui import QBrush, QColor, QFont, QImage, QPainter, QPen, QPixmap
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
-from PySide6.QtWidgets import (QGraphicsRectItem, QGraphicsScene, QGraphicsTextItem, QGraphicsView, QLabel,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QGraphicsPixmapItem, QGraphicsRectItem, QGraphicsScene, QGraphicsTextItem,
+                               QGraphicsView, QLabel, QVBoxLayout, QWidget)
 
 from ..branding import APP_NAME
 from ..i18n import tr
@@ -24,6 +27,57 @@ class _SubBox(QGraphicsRectItem):
         self.text.setDefaultTextColor(QColor("#ffffff"))
         self.setZValue(10)
         self.key = None
+
+
+def _to_np(img: QImage) -> np.ndarray:
+    w, h, bpl = img.width(), img.height(), img.bytesPerLine()
+    return np.frombuffer(img.constBits(), np.uint8, h * bpl).reshape(h, bpl)[:, : w * 3].reshape(h, w, 3)
+
+
+def _to_qimage(a: np.ndarray) -> QImage:
+    a = np.ascontiguousarray(a)
+    h, w = a.shape[:2]
+    return QImage(a.data, w, h, w * 3, QImage.Format_RGB888).copy()
+
+
+class _FrameGenWorker(QThread):
+    """Takes the newest captured frame, returns the frames to show (see framegen.FrameGen)."""
+    ready = Signal(list)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        from ..framegen import FrameGen
+        self.fg = FrameGen()
+        self._cv = threading.Condition()
+        self._q: list[QImage] = []
+        self._stop = False
+
+    def put(self, img: QImage):
+        with self._cv:
+            self._q.append(img)
+            del self._q[:-2]                 # never fall behind: keep the two newest
+            self._cv.notify()
+
+    def stop(self):
+        with self._cv:
+            self._stop = True
+            self._cv.notify()
+        self.wait(1000)
+
+    def run(self):
+        while True:
+            with self._cv:
+                while not self._q and not self._stop:
+                    self._cv.wait(0.5)
+                if self._stop:
+                    return
+                img = self._q.pop(0)
+            try:
+                out = self.fg.push(_to_np(img).copy())
+            except Exception:  # noqa: BLE001  – never take the picture down
+                out = [_to_np(img).copy()]
+            if out:
+                self.ready.emit([_to_qimage(f) for f in out])
 
 
 class GameView(QWidget):
@@ -57,6 +111,72 @@ class GameView(QWidget):
         self.view.setMouseTracking(True)
         self._cursor = QTimer(self, singleShot=True, interval=2000, timeout=lambda: self.setCursor(Qt.BlankCursor))
         session.attach_view(self.video.videoSink())
+        # frame generation (30 fps game -> 60 fps picture); a picture item above the video, below the boxes
+        self.fg_item = QGraphicsPixmapItem(self.video)
+        self.fg_item.setZValue(1)
+        self.fg_item.setTransformationMode(Qt.SmoothTransformation)
+        self.fg_item.hide()
+        self.fg_worker = None
+        self._fg_next = None
+        self._fg_timer = QTimer(self, singleShot=True, timeout=self._fg_show_next)
+        self._fg_badge = QLabel(self)
+        self._fg_badge.setStyleSheet("background:rgba(0,0,0,150); color:#cfd6e4; padding:4px 10px; "
+                                     "border-radius:6px; font-size:12px;")
+        self._fg_badge.hide()
+        self._fg_badge_t = QTimer(self, interval=1000, timeout=self._fg_badge_update)
+        from ..framegen import available
+        if getattr(session, "framegen_wanted", True) and available() and hasattr(session, "set_frame_callback"):
+            self.set_framegen(True)
+
+    # ------------------------------------------------------------------ frame generation
+    def set_framegen(self, on: bool):
+        from ..framegen import available
+        on = on and available()
+        if on and self.fg_worker is None:
+            self.fg_worker = _FrameGenWorker(self)
+            self.fg_worker.ready.connect(self._fg_frames)
+            self.fg_worker.start()
+            self.session.set_frame_callback(self.fg_worker.put)
+            self._fg_badge_t.start()
+        elif not on and self.fg_worker is not None:
+            self.session.set_frame_callback(None)
+            self.fg_worker.stop()
+            self.fg_worker = None
+            self.fg_item.hide()
+            self._fg_badge.hide()
+            self._fg_badge_t.stop()
+        self.session.framegen_wanted = on
+
+    def _fg_frames(self, frames: list):
+        self._fg_set(frames[0])
+        if len(frames) > 1:                    # true 30 Hz source: real frame half an interval later
+            self._fg_next = frames[1]
+            self._fg_timer.start(16)
+
+    def _fg_show_next(self):
+        if self._fg_next is not None:
+            self._fg_set(self._fg_next)
+            self._fg_next = None
+
+    def _fg_set(self, img: QImage):
+        self.fg_item.setPixmap(QPixmap.fromImage(img))
+        fs = self._frame_size()
+        if img.width() and abs(img.width() - fs.width()) > 1:
+            self.fg_item.setScale(fs.width() / img.width())
+        self.fg_item.show()
+
+    def _fg_badge_update(self):
+        w = self.fg_worker
+        if w is None:
+            return
+        mode = w.fg.mode
+        text = {"dup": tr("fg_on"), "30": tr("fg_on"), "pass": tr("fg_native"), "auto": tr("fg_learning")}[mode]
+        if mode in ("dup", "30"):
+            text += f"  ·  {w.fg.stats['ms']:.0f} ms"
+        self._fg_badge.setText(text)
+        self._fg_badge.adjustSize()
+        self._fg_badge.move(self.width() - self._fg_badge.width() - 16, 16)
+        self._fg_badge.setVisible(not self.isFullScreen() or self.hint.isVisible())
 
     # ------------------------------------------------------------------ layout
     def _frame_size(self) -> QSizeF:
@@ -123,6 +243,13 @@ class GameView(QWidget):
     def keyPressEvent(self, e):
         if e.key() in (Qt.Key_F11, Qt.Key_F):
             self.toggle_full()
+        elif e.key() == Qt.Key_G:
+            self.set_framegen(self.fg_worker is None)
+            self._fg_badge.setText(tr("fg_on") if self.fg_worker else tr("fg_off"))
+            self._fg_badge.adjustSize()
+            self._fg_badge.move(self.width() - self._fg_badge.width() - 16, 16)
+            self._fg_badge.show()
+            QTimer.singleShot(2500, self._fg_badge_update)
         elif e.key() == Qt.Key_Escape and self.isFullScreen():
             self.showNormal()
         else:
@@ -140,6 +267,10 @@ class GameView(QWidget):
         self.showNormal() if self.isFullScreen() else self.showFullScreen()
 
     def closeEvent(self, e):
+        if self.fg_worker is not None:
+            self.session.set_frame_callback(None)
+            self.fg_worker.stop()
+            self.fg_worker = None
         self.session.attach_view(None)
         if self.on_close:
             self.on_close()

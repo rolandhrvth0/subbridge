@@ -127,6 +127,7 @@ class DeviceSession(QObject):
         self.sink = QVideoSink()
         self.session.setVideoSink(self.sink)
         self._extra_sink = None
+        self._fg_cb = None
         self.sink.videoFrameChanged.connect(self._on_frame)
         self._lock = threading.Lock()
         self._img: QImage | None = None
@@ -161,12 +162,27 @@ class DeviceSession(QObject):
         that crash when read back for OCR."""
         self._extra_sink = video_item_sink
 
+    def set_frame_callback(self, cb):
+        """Frame generation: every frame as an RGB QImage (converted here, while the buffer is valid)."""
+        self._fg_cb = cb
+
     def _on_frame(self, frame: QVideoFrame):
         if not frame.isValid():
             return
         if self._extra_sink is not None:
             self._extra_sink.setVideoFrame(frame)
         now = time.time()
+        if self._fg_cb is not None:
+            img = frame.toImage()
+            if not img.isNull():
+                img = img.convertToFormat(QImage.Format_RGB888)
+                self._fg_cb(img)
+                if now - self._t >= 0.09:
+                    with self._lock:
+                        self._img, self._t = img, now
+                        self._size = (img.width(), img.height())
+                self.frame_ready.emit()
+                return
         # Convert right here, while the driver buffer is guaranteed valid, at most ~10×/s (OCR needs 4–8):
         # reading a kept QVideoFrame later from another moment/thread can crash on recycled V4L2 buffers.
         if now - self._t >= 0.09:

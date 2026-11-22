@@ -90,12 +90,22 @@ class WindowsEngine(OcrEngine):
         return SoftwareBitmap.create_copy_from_buffer(dw.detach_buffer(), BitmapPixelFormat.BGRA8, w, h,
                                                       BitmapAlphaMode.PREMULTIPLIED)
 
+    def _max_dim(self) -> int:
+        if not hasattr(self, "_mx"):
+            self._mx = 2600
+            try:                                     # a static property of the OcrEngine class
+                from winrt.windows.media.ocr import OcrEngine as WE
+                self._mx = int(WE.max_image_dimension) or 2600
+            except Exception:  # noqa: BLE001
+                pass
+        return self._mx
+
     def recognize(self, img) -> list[OcrLine]:
         if self._engine is None:
             return []
         a = np.asarray(img)
         h, w = a.shape[:2]
-        mx = int(self._engine.max_image_dimension or 2600)
+        mx = self._max_dim()
         if max(h, w) > mx:                           # Windows OCR refuses larger images
             from PIL import Image
             k = mx / max(h, w)
