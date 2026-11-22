@@ -4,7 +4,10 @@ announcements reach every installation without an app update.
   {FEED}/index.json = {
     "news":   [{"id", "date", "title": {"hu","en"}, "body": {"hu","en"}, "link"?}],
     "packs":  {"slang-en": {"version": 3, "url": "packs/slang-en.json"}, …},
-    "latest": {"version": "0.2.0", "url": "https://…", "notes": {"hu","en"}}
+    "latest": {"version": "0.2.0", "url": "https://…", "notes": {"hu","en"},
+               "rollout": {"start": <epoch>, "hours": 24, "from": 20},   # staged: 20 % at once, all after 24 h
+               "paused": false,                                         # stop a bad release mid-rollout
+               "replaces": ["0.2.1"]}                                   # rollback: these versions go back here
   }
 Packs land in <data>/packs/<name>.json and are picked up by translate.textprep.
 Only these public files are requested; nothing about the user or the game is sent."""
@@ -12,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import secrets
 import threading
 import time
 import urllib.request
@@ -69,8 +73,34 @@ class Remote:
         self._state["seen"] = [n.get("id") for n in self.news]
         self._save_state()
 
-    def update_available(self) -> bool:
-        return bool(self.latest) and _ver(self.latest.get("version", "0")) > _ver(VERSION)
+    @property
+    def bucket(self) -> int:
+        """Stable random 0–99 for this install (decides when a staged update reaches it)."""
+        b = self._state.get("bucket")
+        if not isinstance(b, int) or not 0 <= b < 100:
+            b = secrets.randbelow(100)
+            self._state["bucket"] = b
+            self._save_state()
+        return b
+
+    def update_available(self, now: float | None = None) -> bool:
+        lt = self.latest
+        if not lt:
+            return False
+        v = str(lt.get("version", "0"))
+        if VERSION in (lt.get("replaces") or []) and v != VERSION:
+            return True                                    # rollback of a bad release: right away, for everyone
+        if _ver(v) <= _ver(VERSION) or lt.get("paused"):
+            return False
+        ro = lt.get("rollout") or {}
+        try:
+            start, hours, first = float(ro["start"]), float(ro.get("hours", 24)), float(ro.get("from", 20))
+        except (KeyError, TypeError, ValueError):
+            return True                                    # no rollout info: everyone
+        if hours <= 0:
+            return True
+        k = min(1.0, max(0.0, ((now or time.time()) - start) / (hours * 3600)))
+        return self.bucket < first + (100 - first) * k
 
     def start(self, every_hours: float = 6.0):
         def loop():
@@ -107,8 +137,11 @@ class Remote:
             self.latest = latest
             self._state["latest"] = latest
             changed = True
+        ua = self.update_available()                       # a staged update may reach us without a feed change
         if changed:
             self._save_state()
             from .translate.textprep import textprep
             textprep().reload()
+        if changed or ua != getattr(self, "_last_ua", None):
             self.on_change()
+        self._last_ua = ua

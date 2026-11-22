@@ -163,6 +163,8 @@ class ClassicOverlay:
         self._stat_t0 = time.time()
         self._last_err_log = 0.0
         self._last_box_t = time.time()       # last time a subtitle box was found
+        # for the live status in the main window: when each state was last seen (0 = never)
+        self._t = dict(no_window=0.0, not_front=0.0, front=0.0, box=0.0, cover=0.0, error=0.0)
         self._relearn = None                 # box colour being re-learnt (kept once a subtitle is read)
         from concurrent.futures import ThreadPoolExecutor
         self.pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ovtr")   # never queues behind others
@@ -202,9 +204,12 @@ class ClassicOverlay:
                 try:
                     ident = eng.resolve_window() if kind == "window" else (p.device_id if kind == "device" else p.screen_index)
                     if ident is None or not eng.capture.is_foreground(kind, ident):
-                        self.stats["not_front" if ident is not None else "no_window"] += 1
+                        key = "not_front" if ident is not None else "no_window"
+                        self.stats[key] += 1
+                        self._t[key] = now
                         self.clear()
                         continue
+                    self._t["front"] = now
                     sw, sh = eng.capture.source_size(kind, ident)
                     _fx, fy, _fw, fh = p.region
                     band = (0, int(fy * sh), sw, max(8, int(fh * sh)))           # full width: never cut a subtitle
@@ -237,6 +242,7 @@ class ClassicOverlay:
                 self.process(rgb, origin, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
             except Exception:  # noqa: BLE001  – never let the overlay thread die silently
                 self.stats["errors"] += 1
+                self._t["error"] = time.time()
                 if time.time() - self._last_err_log > 30:
                     self._last_err_log = time.time()
                     log.exception("overlay loop error")
@@ -297,6 +303,7 @@ class ClassicOverlay:
         self.stats["boxes"] += len(boxes)
         if boxes:
             self._last_box_t = now
+            self._t["box"] = now
         for box in boxes:
             sig = _sig(rgb, box)
             # same picture as a known box (it only moved, e.g. pushed up by a new speaker): carry it over
@@ -450,6 +457,20 @@ class ClassicOverlay:
             self.stats = dict.fromkeys(self.stats, 0)
             self._stat_t0 = time.time()
 
+    def health(self) -> str:
+        """One word for the live status line: what the overlay is doing right now."""
+        now, t = time.time(), self._t
+        recent = lambda k, s=3.0: now - t[k] < s          # noqa: E731
+        if recent("error", 5) and not recent("cover", 5):
+            return "error"
+        if not recent("front"):
+            return "no_window" if recent("no_window") else "covered" if recent("not_front") else "idle"
+        if recent("cover", 4):
+            return "ok"
+        if recent("box", 4):
+            return "reading"
+        return "no_subtitle"
+
     def clear(self):
         if self.entries:
             self.entries = []
@@ -597,6 +618,8 @@ class ClassicOverlay:
                         # the game wraps long subtitles: about half the picture width at most
                         "max_w": int(source_w * 0.5 / 0.62)})
         self.stats["emits"] += 1
+        if any(t for o in out for _sp, t in o["lines"]):
+            self._t["cover"] = time.time()
         self.emit_cb(out)
 
 

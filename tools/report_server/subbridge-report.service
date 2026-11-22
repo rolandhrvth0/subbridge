@@ -1,0 +1,16 @@
+[Unit]
+Description=SubBridge bug-report receiver
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/subbridge-report/report_server.py
+Environment=PORT=3310 REPORT_DIR=/var/lib/subbridge-reports
+Restart=always
+DynamicUser=no
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/subbridge-reports
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -567,6 +567,7 @@ class Engine:
             from .classic_overlay import ClassicOverlay
             self._classic = ClassicOverlay(self, self._set_classic)
             threading.Thread(target=self._classic.run, name="overlay", daemon=True).start()
+        ov_live = self._classic if overlay_ok else None     # for the live status line
         overlay_ok = False          # the per-track overlay below is replaced by ClassicOverlay
         while not self._stop.is_set():
             t0 = time.time()
@@ -651,7 +652,8 @@ class Engine:
                 last_preview = now
             frames += 1
             if now - t_stat > 2:
-                self.cb.stats({"fps": frames / (now - t_stat), "ocr_ms": ocr_ms / max(frames, 1)})
+                self.cb.stats({"fps": frames / (now - t_stat), "ocr_ms": ocr_ms / max(frames, 1),
+                               "overlay": ov_live.health() if ov_live is not None else None})
                 frames, t_stat, ocr_ms = 0, now, 0.0
             self._stop.wait(max(0.0, tick - (time.time() - t0)))
         if classic:

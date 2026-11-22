@@ -134,9 +134,10 @@ class MainWindow(QMainWindow):
         self.btn_theme = QToolButton()
         self.btn_settings = QToolButton(toolTip=tr("settings"))
         self.btn_help = QToolButton(toolTip=tr("help"))
+        self.btn_report = QToolButton(toolTip=tr("report"))
         self.btn_news = QToolButton(toolTip=tr("news"))
         self.btn_news.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        for b in (self.btn_lang, self.btn_theme, self.btn_news, self.btn_settings, self.btn_help):
+        for b in (self.btn_lang, self.btn_theme, self.btn_news, self.btn_settings, self.btn_report, self.btn_help):
             b.setCursor(Qt.PointingHandCursor)
             head.addWidget(b)
         self.btn_start = QPushButton(tr("start"), objectName="primary")
@@ -203,6 +204,9 @@ class MainWindow(QMainWindow):
         src.lay.addWidget(self.preview, 1)
         self.lbl_stats = QLabel(objectName="small")
         src.lay.addWidget(self.lbl_stats)
+        self.lbl_ovstate = QLabel(objectName="small", wordWrap=True, textFormat=Qt.RichText)
+        self.lbl_ovstate.hide()
+        src.lay.addWidget(self.lbl_ovstate)
         orow = QHBoxLayout()
         self.chk_overlay = QCheckBox(tr("overlay_on"), toolTip=tr("overlay_tip"))
         self.lbl_overlay = QLabel(objectName="small", wordWrap=True)
@@ -312,12 +316,14 @@ class MainWindow(QMainWindow):
         self.btn_theme.clicked.connect(self.toggle_theme)
         self.btn_lang.clicked.connect(self.toggle_language)
         self.btn_help.clicked.connect(lambda: HelpDialog(self).exec())
+        self.btn_report.clicked.connect(self.open_report)
         self.btn_settings.clicked.connect(lambda: self.open_settings())
         self.btn_news.clicked.connect(self.open_news)
         b.feed.connect(self._on_feed)
         self.cmb_profile.activated.connect(lambda i: self.switch_profile(self.cmb_profile.itemText(i)))
         self.lbl_langs.linkActivated.connect(lambda _: self.open_settings("translate"))
         self.alert_help.clicked.connect(lambda: self.install_update() if self._alert_topic == "update_install"
+                                        else self.open_report() if self._alert_topic == "report"
                                         else self.open_news() if self._alert_topic == "update"
                                         else HelpDialog(self, self._alert_topic).exec())
         self.cmb_engine.currentIndexChanged.connect(self._on_engine_changed)
@@ -337,6 +343,7 @@ class MainWindow(QMainWindow):
         m = c["muted"]
         self.btn_theme.setIcon(icon("moon" if self.settings.theme == "light" else "sun", m))
         self.btn_help.setIcon(icon("help", m))
+        self.btn_report.setIcon(icon("flag", m))
         self.btn_settings.setIcon(icon("settings", m))
         self.btn_news.setIcon(icon("bell", c["accent"] if getattr(self, "remote", None) and self.remote.unread else m))
         self.btn_profile.setIcon(icon("more", m))
@@ -946,6 +953,7 @@ class MainWindow(QMainWindow):
     def _show_alert(self, text, topic=""):
         self._alert_topic = topic
         self.alert_text.setText(text)
+        self.alert_help.setText(tr("report") if topic == "report" else tr("help"))
         self.alert.show()
 
     def _fetch_ocr_data(self):
@@ -983,6 +991,8 @@ class MainWindow(QMainWindow):
         self.status_pill.style().polish(self.status_pill)
         if message:
             self._show_alert(self._err_text(code, message), code)
+        if state == "stopped":
+            self.lbl_ovstate.hide()
         elif state in ("running", "stopped"):
             self.alert.hide()
         self.server.publish({"type": "status", "state": state, "message": self._err_text(code, message) if message else ""})
@@ -1029,8 +1039,27 @@ class MainWindow(QMainWindow):
         dark = self.settings.theme == "dark"
         return QColor.fromHsl(hues[k], int(255 * (0.75 if dark else 0.65)), int(255 * (0.66 if dark else 0.38))).name()
 
+    OV_COLORS = {"ok": "#3fb950", "reading": "#3fb950", "no_subtitle": "#d29922", "covered": "#d29922",
+                 "no_window": "#f85149", "error": "#f85149"}
+
     def _on_stats(self, d):
         self.lbl_stats.setText(f"{d['fps']:.1f} {tr('fps')} · {tr('ocr_time')} {d['ocr_ms']:.0f} ms")
+        self._show_ov_state(d.get("overlay"))
+
+    def _show_ov_state(self, h):
+        """Live line under the preview: does the overlay see a subtitle – and if not, why."""
+        if h not in self.OV_COLORS:
+            self.lbl_ovstate.hide()
+            return
+        self.lbl_ovstate.setText(f'<span style="color:{self.OV_COLORS[h]}">&#9679;</span>&nbsp; {tr("ov_" + h)}')
+        self.lbl_ovstate.show()
+        if h == "error" and not getattr(self, "_report_offered", False) and not self.alert.isVisible():
+            self._report_offered = True                  # once per session: offer a one-click report
+            self._show_alert(tr("report_offer"), "report")
+
+    def open_report(self, note: str = ""):
+        from .report_dialog import ReportDialog
+        ReportDialog(self, note if isinstance(note, str) else "").exec()
 
     # ------------------------------------------------------------------ lifecycle
     def closeEvent(self, e):

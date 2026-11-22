@@ -29,9 +29,11 @@ for f in SubBridge-$V-windows-setup.exe subbridge_${V}_amd64.deb; do
   curl -sf "https://rolandhrvth.hu/subbridge/dl/$f" | sha256sum | cut -d' ' -f1 > /tmp/srv.sha
   grep -q "$(cat /tmp/srv.sha)" <(echo "$SW $SD") || { echo "STOP: server copy of $f differs"; exit 1; }
 done
-python3 - "$V" "$SW" "$SD" <<'PY'
-import json, re, sys
-v, sw, sd = sys.argv[1:4]
+# staged rollout: auto-updates reach 20 % of installs at once, everyone after ROLLOUT_HOURS (default 24;
+# 0 = everyone now, for urgent fixes). tools/rollout.sh pauses it or rolls back.
+python3 - "$V" "$SW" "$SD" "${ROLLOUT_HOURS:-24}" <<'PY'
+import json, re, sys, time
+v, sw, sd, hours = sys.argv[1:5]
 p = 'site/index.html'; s = open(p).read()
 s = re.sub(r'dl/SubBridge-[0-9.]+-windows-setup\.exe", note: "\.exe · (\d+) MB · v[0-9.]+',
            lambda m: f'dl/SubBridge-{v}-windows-setup.exe", note: ".exe · {m.group(1)} MB · v{v}', s)
@@ -42,11 +44,12 @@ open(p, 'w').write(s)
 p = 'site/feed/index.json'; d = json.load(open(p))
 base = "https://rolandhrvth.hu/subbridge/dl/"
 d["latest"] = {"version": v, "url": "https://rolandhrvth.hu/subbridge/#download",
-               "notes": {"hu": "Ultrawide monitoron (16:9-es kép fekete sávokkal) pontosabb a felirat elhelyezése és tördelése, és gyorsabban dolgozik a doboz nélküli feliratoknál.",
-                         "en": "On ultrawide monitors (16:9 picture with black bars) on-screen translations are placed and wrapped more accurately; box-less subtitles are processed faster."},
+               "notes": {"hu": "Új: Hibajelentés gomb (zászló) – egy kattintással elküldheted a gondot a fejlesztőnek. Az előnézet alatt élőben látod, felismeri-e a feliratot, és ha nem, miért. A frissítések ezentúl fokozatosan érkeznek, hiba esetén automatikusan visszaállnak.",
+                         "en": "New: Bug report button (flag) – send a problem to the developer in one click. Under the preview you can see live whether the subtitle is found, and if not, why. Updates now roll out gradually and roll back automatically if something is wrong."},
                "files": {"windows": {"url": base + f"SubBridge-{v}-windows-setup.exe", "sha256": sw},
-                         "linux-deb": {"url": base + f"subbridge_{v}_amd64.deb", "sha256": sd}}}
-d["news"].insert(0, {"id": f"{v}-release", "date": "2026-11-22",
+                         "linux-deb": {"url": base + f"subbridge_{v}_amd64.deb", "sha256": sd}},
+               "rollout": {"start": int(time.time()), "hours": float(hours), "from": 20}}
+d["news"].insert(0, {"id": f"{v}-release", "date": time.strftime("%Y-%m-%d"),
     "title": {"hu": f"Megjelent a SubBridge {v}", "en": f"SubBridge {v} is out"},
     "body": d["latest"]["notes"]})
 json.dump(d, open(p, 'w'), ensure_ascii=False, indent=2)

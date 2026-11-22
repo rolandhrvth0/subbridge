@@ -24,3 +24,17 @@ Szleng- és szerepfordítás javítása **appfrissítés nélkül**: `site/feed/
    „claimed”/slot logika.
 3. Fordítási hibák (szleng, pl. „X-ass … type shit”): `feed/packs/slang-en.json` bővítése – app-frissítés nélkül.
 4. Windows: valódi gépen még nem próbálta senki (csak a CI önteszt) – első visszajelzéseket figyelni.
+
+## Bug reports (since 0.1.8)
+- Users send reports from the app (flag button) -> POST https://rolandhrvth.hu/subbridge/api/report ->
+  VPS service `subbridge-report` (/opt/subbridge-report/report_server.py, port 3310, nginx location in
+  /etc/nginx/sites-enabled/rolandhrvth) -> /var/lib/subbridge-reports/<time>-<id>/ (report.json, strip.jpg, frame.jpg).
+- `tools/reports.sh` pulls them to build/reports/ (private, never commit) and lists the new ones.
+  Check at the start of every session; fix what is real, answer via the contact the user left.
+
+## Staged rollout / rollback (apps 0.1.8+)
+- publish_release.sh writes `rollout: {start, hours: 24, from: 20}`: 20 % of installs get the auto-update at
+  once, everyone by 24 h. `ROLLOUT_HOURS=0 tools/publish_release.sh …` = everyone now (urgent fixes).
+- `tools/rollout.sh status|pause|resume|full|rollback <ver>`. Rollback puts the old version in `latest`
+  with `replaces: [bad]` -> installs of the bad version go back immediately (old files stay on the server).
+- Before 0.1.8 apps ignore these fields (they update to anything newer at once).

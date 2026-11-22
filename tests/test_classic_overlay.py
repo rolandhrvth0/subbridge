@@ -1,3 +1,4 @@
+import time
 """Regression: a subtitle box that grows (another speaker cuts in, longer line) must be covered in full
 at once – even when the first OCR of the new box fails – so the English never shows around the old cover."""
 import numpy as np
@@ -190,3 +191,18 @@ def test_ultrawide_wrap_width(overlay):
 
 def test_black_frame_has_no_bars():
     assert co._bars_w(np.zeros((100, 1400, 3), np.uint8)) == 0
+
+
+def test_health_states(overlay):
+    ov, _out, _mp = overlay
+    now = time.time()
+    ov._t = dict.fromkeys(ov._t, 0.0)
+    assert ov.health() == "idle"
+    ov._t["not_front"] = now
+    assert ov.health() == "covered"
+    ov._t["front"] = now
+    assert ov.health() == "no_subtitle"
+    ov._t["box"] = now
+    assert ov.health() == "reading"
+    ov._t["cover"] = now
+    assert ov.health() == "ok"
