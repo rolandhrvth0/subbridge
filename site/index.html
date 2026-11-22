@@ -71,6 +71,8 @@ section .sub { color: var(--muted); max-width: 680px; margin: 0 0 40px; font-siz
 .card .ic { width: 40px; height: 40px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 14%, var(--surface2));
   display: grid; place-items: center; margin-bottom: 14px; }
 .card .ic svg { width: 21px; height: 21px; stroke: var(--accent); fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tut { margin-top: 22px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+.tut video { display: block; width: 100%; aspect-ratio: 16 / 9; }
 .qa { margin-top: 28px; border-top: 1px solid var(--line); }
 .qa details { border-bottom: 1px solid var(--line); }
 .qa summary { cursor: pointer; list-style: none; padding: 18px 36px 18px 2px; font-weight: 600; font-size: 16.5px; position: relative; }
@@ -118,6 +120,7 @@ html[lang="en"] [data-en] { display: revert; }
     <a href="#how"><span data-hu>Hogyan</span><span data-en>How it works</span></a>
     <a href="#features"><span data-hu>Funkciók</span><span data-en>Features</span></a>
     <a href="#setups"><span data-hu>Felállások</span><span data-en>Setups</span></a>
+    <a href="#tutorial"><span data-hu>Útmutató</span><span data-en>Guide</span></a>
     <a href="#faq"><span data-hu>GYIK</span><span data-en>FAQ</span></a>
     <a href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a>
   </div>
@@ -222,6 +225,13 @@ html[lang="en"] [data-en] { display: revert; }
       <p data-hu>HDMI-rögzítővel bármilyen konzolhoz. Passthrough nélküli kártyánál a beépített Játéknézetben játszol, hanggal. (Tévé + telefon HDMI-elosztóval elvben megoldható, de ezt még nem teszteltük.)</p>
       <p data-en>An HDMI capture device works with any console. Without passthrough you play in the built-in Game View, with sound. (TV + phone via an HDMI splitter should work but is not tested yet.)</p></div>
   </div>
+</div></section>
+
+<section id="tutorial"><div class="wrap">
+  <h2 data-hu>Így indítsd el – 1 perc</h2><h2 data-en>How to start – 1 minute</h2>
+  <p class="lead" data-hu>Videós útmutató a valódi programmal: játékbeállítás, Remote Play ablak kiválasztása, feliratterület, telefon. A végén valódi felvétel hanggal.</p>
+  <p class="lead" data-en>Video guide with the real app: game settings, picking the Remote Play window, subtitle area, phone. Real footage with sound at the end.</p>
+  <div class="tut"><video src="img/tutorial.mp4" poster="img/tutorial-poster.jpg" controls playsinline preload="none"></video></div>
 </div></section>
 
 <section id="faq"><div class="wrap">
