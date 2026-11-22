@@ -81,6 +81,9 @@ section .sub { color: var(--muted); max-width: 680px; margin: 0 0 40px; font-siz
 .qa summary:hover { color: var(--accent); }
 .qa p { margin: 0 0 18px; color: var(--muted); font-size: 15px; max-width: 760px; }
 .qa a { color: var(--accent); }
+.qa .set { margin: 0 0 18px; padding-left: 20px; color: var(--muted); font-size: 15px; }
+.qa .set li { margin: 3px 0; }
+.qa .set b { color: var(--text); font-weight: 600; }
 .card h3 { margin: 0 0 6px; font-size: 17px; }
 .card p { margin: 0; color: var(--muted); font-size: 15px; }
 .steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -235,6 +238,8 @@ html[lang="en"] [data-en] { display: revert; }
       <p data-en>Any game that shows subtitles. Boxed subtitles work best (the box is covered exactly); with outlined subtitles the translation is reliable on the phone.</p></div>
   </div>
   <div class="qa">
+    <details open><summary><span data-hu>Hogyan állítsam be a feliratot a játékban?</span><span data-en>How should I set up subtitles in the game?</span></summary>
+      <div data-hu><p>Beállítások › UI › Subtitles &amp; Captions (vagy hasonló menü):</p><ul class="set"><li><b>Subtitles (Felirat):</b> On – a legteljesebb fokozat (3/3): így a járókelők és NPC-k beszéde is feliratot kap, és azt is fordítja</li><li><b>Closed Captions:</b> Off</li><li><b>Size (Méret):</b> Medium</li><li><b>Speaker Names (Beszélőnevek):</b> On</li><li><b>Background (Háttér):</b> Solid – egyszínű doboz, ezt takarja le pontosan</li></ul></div><div data-en><p>Settings › UI › Subtitles &amp; Captions (or similar):</p><ul class="set"><li><b>Subtitles:</b> On – the fullest level (3/3): ambient and NPC speech get subtitles too, so they are translated as well</li><li><b>Closed Captions:</b> Off</li><li><b>Size:</b> Medium</li><li><b>Speaker Names:</b> On</li><li><b>Background:</b> Solid – a plain box, covered exactly</li></ul></div></details>
     <details><summary><span data-hu>Ingyenes?</span><span data-en>Is it free?</span></summary>
       <p data-hu>Igen, teljesen. Nyílt forráskódú (MIT), nincs reklám, nincs előfizetés, nincs fiók. Ha a DeepL fordítót szeretnéd, ahhoz saját (ingyenes DeepL Free) kulcs kell – de alapból offline, ingyen fordít.</p><p data-en>Yes. Open source (MIT), no ads, no subscription, no account. DeepL is optional with your own (free DeepL Free) key – by default it translates offline for free.</p></details>
     <details><summary><span data-hu>Kitilthatnak miatta? Biztonságos?</span><span data-en>Can I get banned? Is it safe?</span></summary>

@@ -1,15 +1,27 @@
 {
   "news": [
     {
+      "id": "2026-11-22-beallitas",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Így állítsd be a feliratot a játékban",
+        "en": "Set up the subtitles in the game like this"
+      },
+      "body": {
+        "hu": "Beállítások › UI › Subtitles & Captions: Subtitles = On (a legteljesebb, 3/3 – így az NPC-k és járókelők beszédét is fordítja), Closed Captions = Off, Size = Medium, Speaker Names = On, Background = Solid. Ezzel a legpontosabb és ezzel takarja le szépen az eredetit.",
+        "en": "Settings › UI › Subtitles & Captions: Subtitles = On (the fullest, 3/3 – NPC and ambient speech get translated too), Closed Captions = Off, Size = Medium, Speaker Names = On, Background = Solid. This gives the most accurate reading and a clean cover."
+      }
+    },
+    {
       "id": "2026-11-22-kiadas",
       "date": "2026-11-22",
       "title": {
-        "hu": "Letölthető: SubBridge 0.1.0",
-        "en": "Download: SubBridge 0.1.0"
+        "hu": "Letölthető: SubBridge 0.1.0 – Windows, Linux, Android",
+        "en": "Download: SubBridge 0.1.0 – Windows, Linux, Android"
       },
       "body": {
-        "hu": "Megjelent az első nyilvános kiadás Linuxra (.deb) és Androidra (.apk). A Windows-változat hamarosan jön.",
-        "en": "The first public release for Linux (.deb) and Android (.apk) is out. Windows is coming soon."
+        "hu": "Megjelent az első nyilvános kiadás Windowsra, Linuxra (.deb) és Androidra (.apk).",
+        "en": "The first public release for Windows, Linux (.deb) and Android (.apk) is out."
       },
       "link": "https://rolandhrvth.hu/subbridge/#download"
     },

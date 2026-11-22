@@ -10,7 +10,7 @@ HELP = {
 <li><b>Telefon:</b> olvasd be a QR-kódot a telefon kamerájával. A telefonnak ugyanazon a Wi-Fi-hálózaton kell lennie, mint a számítógépnek.</li>
 <li>Nyomd meg az <b>Indítás</b> gombot.</li>
 </ol>
-<p><b>Tipp a játékban:</b> kapcsold be a feliratot, állítsd <b>nagyobb méretre</b>, és ha lehet, kapcsold be a <b>feliratháttért</b> (sötét doboz a szöveg mögött). Így sokkal pontosabb a felismerés.</p>
+<p><b>Ajánlott beállítás a játékban</b> (Beállítások › UI › Subtitles &amp; Captions, vagy hasonló menü):</p><ul><li><b>Subtitles (Felirat):</b> On – a legteljesebb fokozat (3/3): így a járókelők és NPC-k beszéde is feliratot kap, és azt is fordítja</li><li><b>Closed Captions:</b> Off</li><li><b>Size (Méret):</b> Medium</li><li><b>Speaker Names (Beszélőnevek):</b> On</li><li><b>Background (Háttér):</b> Solid – egyszínű doboz, ezt takarja le pontosan</li></ul>
 """),
 ("chiaki", "PS5 Remote Play beállítása (chiaki-ng)", """
 <p>A {app} nem tartalmaz Remote Play klienst – a képet egy külön program adja. PS5-höz a nyílt forráskódú <b>chiaki-ng</b> ajánlott (külön telepítendő, AGPL licenc).</p>
@@ -86,7 +86,7 @@ HELP = {
 <li><b>Phone:</b> scan the QR code with the phone camera. Phone and computer must be on the same Wi-Fi.</li>
 <li>Press <b>Start</b>.</li>
 </ol>
-<p><b>In-game tip:</b> enable subtitles, make them <b>larger</b>, and turn on the <b>subtitle background</b> if available. Recognition becomes much more accurate.</p>
+<p><b>Recommended in-game settings</b> (Settings › UI › Subtitles &amp; Captions, or similar):</p><ul><li><b>Subtitles:</b> On – the fullest level (3/3): ambient and NPC speech get subtitles too, so they are translated as well</li><li><b>Closed Captions:</b> Off</li><li><b>Size:</b> Medium</li><li><b>Speaker Names:</b> On</li><li><b>Background:</b> Solid – a plain box, covered exactly</li></ul>
 """),
 ("chiaki", "PS5 Remote Play setup (chiaki-ng)", """
 <p>{app} does not include a Remote Play client. For PS5 we recommend the open-source <b>chiaki-ng</b> (installed separately, AGPL licence).</p>

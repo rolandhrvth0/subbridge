@@ -58,6 +58,11 @@ Töltsd le a legfrissebb kiadást a [Releases](../../releases) oldalról:
 Első indításkor egy háromlépéses varázsló végigvezet: forrás kiválasztása, feliratterület kijelölése, telefon
 csatlakoztatása.
 
+### Ajánlott beállítás a játékban
+
+Beállítások › UI › Subtitles & Captions (vagy hasonló): **Subtitles: On** (a legteljesebb fokozat – így az NPC-k
+beszédét is fordítja), **Closed Captions: Off**, **Size: Medium**, **Speaker Names: On**, **Background: Solid**.
+
 ### Képforrás
 
 | Forrás | Mikor |
