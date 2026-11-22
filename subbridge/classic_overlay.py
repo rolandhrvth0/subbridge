@@ -52,6 +52,12 @@ def _has_box(strip: np.ndarray, color) -> bool:
     return best >= need
 
 
+def _grown(box, rect, tol: int = 6) -> bool:
+    """True if box reaches past rect on any side (by more than tol px)."""
+    return (box[0] < rect[0] - tol or box[2] > rect[2] + tol
+            or box[1] < rect[1] - tol or box[3] > rect[3] + tol)
+
+
 def _sig_diff(a, b) -> float:
     if a is None or b is None or a.shape != b.shape:
         return 255.0
@@ -193,7 +199,10 @@ class ClassicOverlay:
             e = self._match(box, used | pending)
             if e is not None:
                 young = e.en and now - e.shown_at < YOUNG and now - e.last_ocr > YOUNG_EVERY
-                if _sig_diff(sig, e.sig) < 7 and e.en and not young:
+                # the box grew (longer line, another speaker cut in): never "the same box" – the old,
+                # smaller cover would leave the new English around it visible
+                grown = _grown(box, e.rect)
+                if _sig_diff(sig, e.sig) < 7 and e.en and not young and not grown:
                     used.add(id(e))                     # same box, same content: no OCR
                     e.last_seen = now
                     if abs(box[1] - e.rect[1]) > 4 or abs(box[3] - e.rect[3]) > 4:
@@ -204,6 +213,12 @@ class ClassicOverlay:
                 if e.hu and _sig_diff(sig, e.sig) >= 22:       # clearly new text, not video noise
                     e.hu = []                       # new text in this box: the old translation goes at once
                     e.requested = -1
+                    changed = True
+                if grown:                           # cover the whole new box NOW, before the OCR
+                    e.rect = box
+                    if e.hu:
+                        e.hu = []
+                        e.requested = -1
                     changed = True
             todo.append((e, box, sig))
 
@@ -227,6 +242,10 @@ class ClassicOverlay:
             if not lines and ti in prov:                 # nothing readable after all
                 self.entries.remove(prov.pop(ti))
                 changed = True
+                continue
+            if not lines and e is not None and id(e) not in used:
+                used.add(id(e))                          # unreadable this frame: the box stays covered
+                e.last_seen = now
                 continue
             if lines and self.color is None:
                 self.color = color          # learn the box colour only from a box that held a subtitle
