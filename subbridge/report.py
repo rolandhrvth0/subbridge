@@ -60,6 +60,17 @@ def log_tail(lines: int = 400) -> str:
         return ""
 
 
+def crash_tail(limit: int = 60_000) -> str:
+    """Python stacks written by faulthandler when the app crashed (empty if it never did)."""
+    try:
+        with open(config_dir() / "crash.log", "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, fh.tell() - limit))
+            return _mask(fh.read().decode("utf-8", "replace"))
+    except OSError:
+        return ""
+
+
 def overlay_state(engine) -> dict:
     ov = getattr(engine, "_classic", None)
     if ov is None:
@@ -102,7 +113,7 @@ def build(settings, engine, note: str, contact: str = "", screens=None, source=N
         "screens": screens or [], "source": _scrub(source or {}),
         "settings": st, "overlay": overlay_state(engine),
         "running": bool(getattr(engine, "running", False)),
-        "log": log_tail(), "image": image, "frame": frame,
+        "log": log_tail(), "crash": crash_tail(), "image": image, "frame": frame,
     }
 
 

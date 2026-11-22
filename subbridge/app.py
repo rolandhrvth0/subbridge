@@ -98,6 +98,34 @@ def selftest(out_path: str | None) -> int:
     return 0 if ok else 1
 
 
+def _crash_safety(app):
+    """Two guards against hard crashes (seen as a segfault inside Shiboken's deferred deletion):
+    * Python's cyclic garbage collector may run in ANY thread (OCR, capture, network). When it frees a Qt
+      object there, PySide postpones the C++ delete to some later moment of the GUI thread – possibly while
+      that object is in the middle of its own timer or paint event. Automatic collection is switched off and
+      done by a GUI-thread timer instead, at a safe point between events.
+    * faulthandler writes the Python stacks of all threads to crash.log if the process still dies, so a bug
+      report shows where."""
+    import faulthandler
+    import gc
+    try:
+        f = open(config_dir() / "crash.log", "a", encoding="utf-8")       # noqa: SIM115 (kept open for the handler)
+        faulthandler.enable(file=f, all_threads=True)
+        app._crash_log = f
+    except OSError:
+        pass
+    gc.disable()
+    n = {"i": 0}
+
+    def collect():
+        n["i"] += 1
+        gc.collect(2 if n["i"] % 20 == 0 else 1)      # young objects every second, everything every 20 s
+    t = QTimer(app)
+    t.timeout.connect(collect)
+    t.start(1000)
+    app._gc_timer = t
+
+
 def main(argv=None):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         handlers=[logging.FileHandler(config_dir() / "subbridge.log", encoding="utf-8"),
@@ -110,6 +138,7 @@ def main(argv=None):
     # cheap MJPEG capture cards spam "Corrupt JPEG data" for harmless padding bytes
     os.environ.setdefault("QT_LOGGING_RULES", "qt.gui.imageio.jpeg=false;qt.multimedia.ffmpeg=false")
     app = QApplication(argv or sys.argv)
+    _crash_safety(app)
     app.setApplicationName(APP_NAME)
     app.setDesktopFileName(APP_ID)
     app.setWindowIcon(QIcon(str(resource_dir() / "server" / "web" / "icon-512.png")))
