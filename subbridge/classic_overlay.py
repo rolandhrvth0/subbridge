@@ -91,6 +91,7 @@ class ClassicOverlay:
         self._geo = (0, 0, 1, 1, 1)          # origin x/y of the region, region w, source w, …
         self.color = self._load_color()
         self.line_hs: list[int] = []         # heights of one-line subtitle boxes seen (font size reference)
+        self.px_hist: list[int] = []         # font sizes used recently (keeps the size steady)
         from concurrent.futures import ThreadPoolExecutor
         self.pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ovtr")   # never queues behind others
 
@@ -294,7 +295,7 @@ class ClassicOverlay:
             e.en, e.lines, e.shown_at = text, lines, time.time()
             e.name_rgb = name_color(crop)
             one = float(np.percentile(self.line_hs, 25)) if self.line_hs else None
-            e.px = self._px(y1 - y0, one)
+            e.px = self._steady_px(self._px(y1 - y0, one))
             e.gen += 1
             e.hu = []                               # the old translation must not sit on the new text
             changed = True
@@ -431,6 +432,16 @@ class ClassicOverlay:
             pass
 
     # ------------------------------------------------------------------ output
+    def _steady_px(self, px: int) -> int:
+        """The game uses one subtitle size: a box measured badly (cut off, two lines read as one) must not
+        give giant or tiny text. Keep within ±20 % of the recent median."""
+        hist = self.px_hist
+        if len(hist) >= 3:
+            med = float(np.median(hist))
+            px = int(min(max(px, med * 0.8), med * 1.2))
+        self.px_hist = (hist + [px])[-12:]
+        return px
+
     @staticmethod
     def _px(box_h: int, one_line_h: float | None) -> int:
         line_h = one_line_h or 62.0

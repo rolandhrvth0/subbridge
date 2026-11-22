@@ -135,7 +135,7 @@ STRINGS = {
         "phone_translated": "Telefon – fordítás",
         "news": "Hírek", "news_sub": "Újdonságok, tippek és frissített szlengszótárak – a program magától letölti őket.",
         "news_empty": "Még nincs hír. Ha lesz, itt jelenik meg.", "news_more": "Bővebben", "close": "Bezárás",
-        "update_title": "Új verzió: {v}", "update_get": "Letöltés", "update_banner": "Elérhető a SubBridge {v} – nézd meg a Hírekben.",
+        "update_title": "Új verzió: {v}", "update_get": "Letöltés", "update_banner": "Elérhető a SubBridge {v} – nézd meg a Hírekben.", "update_ready": "A SubBridge {v} letöltve és ellenőrizve – kattints a telepítéshez (Windowson bezáráskor magától is feltelepül).", "update_failed": "A frissítés nem sikerült: {e}",
         "s_feed": "Hírek és szótárfrissítések letöltése", "s_feed_hint": "A rolandhrvth.hu-ról tölti le a híreket, a szleng- és szerepnév-csomagokat. Rólad semmit nem küld el.",
         "source_waiting": "{name} – indításra vár",
         "s_card": "Capture card",
@@ -308,7 +308,7 @@ STRINGS = {
         "phone_translated": "Phone – translated",
         "news": "News", "news_sub": "What's new, tips and updated slang dictionaries – downloaded automatically.",
         "news_empty": "No news yet. It will show up here.", "news_more": "Read more", "close": "Close",
-        "update_title": "New version: {v}", "update_get": "Download", "update_banner": "SubBridge {v} is available – see News.",
+        "update_title": "New version: {v}", "update_get": "Download", "update_banner": "SubBridge {v} is available – see News.", "update_ready": "SubBridge {v} is downloaded and verified – click to install (on Windows it also installs when you close the app).", "update_failed": "Update failed: {e}",
         "s_feed": "Download news and dictionary updates", "s_feed_hint": "Fetches news, slang and speaker-role packs from rolandhrvth.hu. Nothing about you is sent.",
         "source_waiting": "{name} – waiting for it to start",
         "s_card": "Capture card",
@@ -354,6 +354,10 @@ STRINGS = {
 def set_language(lang: str) -> None:
     global _lang
     _lang = lang if lang in STRINGS else "en"
+
+
+def current_language() -> str:
+    return _lang
 
 
 def tr(key: str, **kw) -> str:

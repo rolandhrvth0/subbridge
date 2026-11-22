@@ -67,6 +67,7 @@ class AppSettings:
     libre_url: str = ""
     libre_key: str = ""
     first_run_done: bool = False
+    game_setup_done: bool = False        # confirmed the recommended in-game subtitle settings
     online_feed: bool = True             # news, slang/role packs and update notice from the project site
     theme: str = "light"
     profiles: list[dict] = field(default_factory=lambda: [asdict(Profile())])

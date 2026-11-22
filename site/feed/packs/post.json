@@ -1,6 +1,48 @@
 {
-  "version": 1,
-  "about": "Post-translation fixes per target language (regex, replacement).",
-  "rules": {"hu": [["\\bHé, ember\\b", "Hé, haver"], ["\\bhé, ember\\b", "hé, haver"], ["\\bTesó\\b(?=!)", "Tesó"],
-                   ["\\bTesvér\\b", "Testvér"], ["\\bszent szar\\b", "a francba"], ["\\bSzent szar\\b", "A francba"]]}
+ "version": 2,
+ "about": "Post-translation fixes per target language (regex, replacement).",
+ "rules": {
+  "hu": [
+   [
+    "\\b[Nn]igg(?:er|a)\\w*",
+    "haver"
+   ],
+   [
+    "\\b[Nn]éger\\w*",
+    "haver"
+   ],
+   [
+    "\\bmotorháztetőm\\b",
+    "környékem"
+   ],
+   [
+    "\\bmotorháztetőn\\b",
+    "környéken"
+   ],
+   [
+    "\\bHé, ember\\b",
+    "Hé, haver"
+   ],
+   [
+    "\\bhé, ember\\b",
+    "hé, haver"
+   ],
+   [
+    "\\bTesó\\b(?=!)",
+    "Tesó"
+   ],
+   [
+    "\\bTesvér\\b",
+    "Testvér"
+   ],
+   [
+    "\\bszent szar\\b",
+    "a francba"
+   ],
+   [
+    "\\bSzent szar\\b",
+    "A francba"
+   ]
+  ]
+ }
 }

@@ -65,7 +65,7 @@
   ],
   "packs": {
     "slang-en": {
-      "version": 1,
+      "version": 2,
       "url": "packs/slang-en.json"
     },
     "roles": {
@@ -73,7 +73,7 @@
       "url": "packs/roles.json"
     },
     "post": {
-      "version": 1,
+      "version": 2,
       "url": "packs/post.json"
     }
   },

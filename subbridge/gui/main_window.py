@@ -80,6 +80,8 @@ class MainWindow(QMainWindow):
         self._update_phone()
         from ..remote import Remote
         self.remote = Remote(on_change=lambda: self.bridge.feed.emit())
+        from ..updater import Updater
+        self.updater = Updater(self.remote, on_ready=lambda: self.bridge.feed.emit())
         if settings.online_feed:
             self.remote.start()
         self._on_feed()
@@ -315,7 +317,8 @@ class MainWindow(QMainWindow):
         b.feed.connect(self._on_feed)
         self.cmb_profile.activated.connect(lambda i: self.switch_profile(self.cmb_profile.itemText(i)))
         self.lbl_langs.linkActivated.connect(lambda _: self.open_settings("translate"))
-        self.alert_help.clicked.connect(lambda: self.open_news() if self._alert_topic == "update"
+        self.alert_help.clicked.connect(lambda: self.install_update() if self._alert_topic == "update_install"
+                                        else self.open_news() if self._alert_topic == "update"
                                         else HelpDialog(self, self._alert_topic).exec())
         self.cmb_engine.currentIndexChanged.connect(self._on_engine_changed)
         self.ed_key.editingFinished.connect(self._on_key_changed)
@@ -801,8 +804,26 @@ class MainWindow(QMainWindow):
         self.btn_news.setText(f" {n}" if n else "")
         self.btn_news.setIcon(icon("bell", self.colors()["accent"] if n or self.remote.update_available()
                                    else self.colors()["muted"]))
-        if self.remote.update_available() and not self.alert.isVisible():
-            self._show_alert(tr("update_banner", v=self.remote.latest.get("version", "")), "update")
+        if self.remote.update_available():
+            v = self.remote.latest.get("version", "")
+            if self.updater.supported():                 # installed app: download + verify in the background
+                if self.updater.ready_path and self.updater.ready_version == v:
+                    self._show_alert(tr("update_ready", v=v), "update_install")
+                else:
+                    self.updater.start_download()
+            elif not self.alert.isVisible():
+                self._show_alert(tr("update_banner", v=v), "update")
+
+    def install_update(self):
+        if self.engine.running:
+            self.engine.stop()
+            self._update_start_button()
+        if self.updater.install(restart=True):
+            self._update_on_close = False
+            self.close()
+            QApplication.instance().quit()
+        elif self.updater.error:
+            self._show_alert(tr("update_failed", e=self.updater.error), "update")
 
     def open_news(self):
         from .news import NewsDialog
@@ -887,11 +908,26 @@ class MainWindow(QMainWindow):
         if self.engine.running:
             self.engine.stop()
         else:
+            if not self.ensure_game_setup():
+                return
             self._save_profile()
             s = self.current_source()
             self.engine.start(s["ident"] if s and s["kind"] == "window" else None)
             self._on_status("running", "", "")
         self._update_start_button()
+
+    def ensure_game_setup(self) -> bool:
+        """Before the first start: the animated 'set up the subtitles in the game' step (must be confirmed)."""
+        if self.settings.game_setup_done:
+            return True
+        from .game_setup import GameSetupDialog
+        self.showNormal()
+        self.raise_()
+        if not GameSetupDialog(self, self.colors()["accent"]).exec():
+            return False
+        self.settings.game_setup_done = True
+        self.settings.save()
+        return True
 
     def _update_start_button(self):
         run = self.engine.running
@@ -998,6 +1034,9 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------ lifecycle
     def closeEvent(self, e):
+        from ..updater import platform_key
+        if getattr(self, "_update_on_close", True) and platform_key() == "windows" and self.updater.ready_path:
+            self.updater.install(restart=False)          # Windows: install silently once the app is closed
         self.overlay.clear()
         self.phone_panel.close()
         if self.gameview:

@@ -49,3 +49,11 @@ def test_same_box_keeps_translation(overlay):
     e.shown_at -= 5
     _frame(ov, mp, [(451, 100, 549, 140)], [("Dre'Quan", "Yeah.")])   # detection wobble only
     assert ov.entries[0].hu == [("Dre'Quan", "Ja.")]
+
+
+def test_font_size_stays_steady(overlay):
+    ov, _out, _mp = overlay
+    for px in (30, 31, 30):
+        assert ov._steady_px(px) == px
+    assert ov._steady_px(80) <= 31 * 1.2          # a two-line box read as one line: no giant text
+    assert ov._steady_px(10) >= 30 * 0.8          # a cut-off box: no tiny text
