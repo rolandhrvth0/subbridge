@@ -42,8 +42,8 @@ open(p, 'w').write(s)
 p = 'site/feed/index.json'; d = json.load(open(p))
 base = "https://rolandhrvth.hu/subbridge/dl/"
 d["latest"] = {"version": v, "url": "https://rolandhrvth.hu/subbridge/#download",
-               "notes": {"hu": "Pontosabb takarás (közbeszólásnál sem látszik az angol), stabil betűméret, javított szlengfordítás, animált játékbeállító és automatikus frissítés.",
-                         "en": "Better covering (no English when someone cuts in), steady text size, improved slang, animated game setup and automatic updates."},
+               "notes": {"hu": "Windows: a magyar felirat akkor is megjelenik, ha a Remote Play a streamet külön ablakban mutatja. Plusz minden 0.1.1-es javítás.",
+                         "en": "Windows: the translation now also shows when the Remote Play app streams in a separate window. Plus all 0.1.1 fixes."},
                "files": {"windows": {"url": base + f"SubBridge-{v}-windows-setup.exe", "sha256": sw},
                          "linux-deb": {"url": base + f"subbridge_{v}_amd64.deb", "sha256": sd}}}
 d["news"].insert(0, {"id": f"{v}-release", "date": "2026-11-22",

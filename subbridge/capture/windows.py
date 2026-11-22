@@ -183,7 +183,19 @@ class WindowsCapture(CaptureSource):
         return pt.x, pt.y
 
     def is_foreground(self, kind, ident):
-        return kind != "window" or int(user32.GetForegroundWindow() or 0) == int(ident)
+        """The game is in front when the active window is the chosen one – or any other window of the
+        same program (Remote Play apps often show the stream in a separate window from the one listed)."""
+        if kind != "window":
+            return True
+        fg = int(user32.GetForegroundWindow() or 0)
+        if not fg:
+            return False
+        if fg == int(ident):
+            return True
+        a, b = wt.DWORD(), wt.DWORD()
+        user32.GetWindowThreadProcessId(fg, ctypes.byref(a))
+        user32.GetWindowThreadProcessId(int(ident), ctypes.byref(b))
+        return a.value != 0 and a.value == b.value
 
     # ------------------------------------------------------------------ grabbing
     @staticmethod

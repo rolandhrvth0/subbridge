@@ -51,7 +51,9 @@ def selftest(out_path: str | None) -> int:
     def capture():
         from .capture import create_backend
         c = create_backend()
-        return f"{type(c).__name__}: {len(c.list_screens())} screen(s)"
+        wins = c.list_windows()
+        fg = [c.is_foreground("window", w.id) for w in wins[:5]]        # exercises the platform calls
+        return f"{type(c).__name__}: {len(c.list_screens())} screen(s), {len(wins)} window(s), fg={fg}"
     step("capture", capture)
     def ocr():
         from PIL import Image, ImageDraw, ImageFont
