@@ -45,8 +45,8 @@
         "en": "Welcome to SubBridge!"
       },
       "body": {
-        "hu": "Játssz a tévén, olvasd a fordítást a telefonodon – vagy a gépen, az eredeti felirat helyén. Remote Play ablakkal és capture carddal is működik.",
-        "en": "Play on the TV and read the translation on your phone – or on the PC in place of the original subtitle. Works with a Remote Play window or a capture card."
+        "hu": "Magyar felirat a játék képén, az eredeti helyén – és közben a telefonodon is. Remote Play ablakkal (PS5, Linux) kipróbálva, capture carddal is működik.",
+        "en": "Translated subtitles on the game picture, in place of the original – and on your phone too. Tested with Remote Play (PS5, Linux); capture cards work as well."
       },
       "link": "https://rolandhrvth.hu/subbridge/"
     }

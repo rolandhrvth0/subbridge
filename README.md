@@ -24,9 +24,9 @@ feliratot jelenít meg.
 
 - **Felirat a játék képén.** A fordítás pontosan az angol feliratdoboz helyére kerül, ugyanolyan dobozban, a
   beszélő nevének eredeti színével. Csak akkor látszik, ha a játékablak van elöl.
-- **Játssz a tévén, olvasd a telefonon.** Ha nem szeretsz a gépen (Remote Playjel) játszani, játssz a tévén a
-  konzollal: a SubBridge a háttérben olvas, a fordítás a monitor alá vagy az asztalra tett telefonodon jelenik meg.
-  A program **csak olvassa** a képet – a játékban és a Remote Playben az eredeti felirat ugyanúgy megmarad.
+- **A telefonodon is.** A fordítás a monitor alá vagy az asztalra tett telefonodon is megjelenik, beszélgetésnézetben.
+  (Tévén, Remote Play nélkül ez nem működik; capture card + HDMI-elosztó elvben igen, de még nem teszteltük.)
+- **Csak olvas.** A program **csak olvassa** a képet – a játékban és a Remote Playben az eredeti felirat ugyanúgy megmarad.
 - **Beszélgetésnézet a telefonon.** Minden beszélőnek saját színe van, a legújabb sor nagy, a még látható sorok
   kiemelve, felolvasás (TTS) is kérhető.
 - **Játékbeli telefon fordítása.** Üzenetek, chatek, közösségi posztok, hírek és válaszgombok – a játékban elővett
@@ -88,8 +88,9 @@ Real footage (Linux · Remote Play (chiaki-ng) · PS5): see the pictures above a
 
 - **Subtitles on the game picture** – the translation covers the original subtitle box, same style, speaker name
   in its original colour. Shown only while the game window is in front.
-- **Play on the TV, read on your phone** – SubBridge reads in the background (Remote Play window or capture card)
-  and your phone shows the translation. It only *reads* the picture: the original subtitles stay untouched.
+- **On your phone too** – the translation also shows on a phone next to the monitor. (Playing on the TV is not
+  supported with Remote Play; a capture card + HDMI splitter should work but is not tested yet.)
+- **Read-only** – it only *reads* the picture: the game and the Remote Play app stay untouched.
 - **Conversation view on the phone** – a colour per speaker, newest line large, lines still on screen highlighted,
   optional read-aloud.
 - **In-game phone translation** – messages, chats, social posts, news and reply buttons.
