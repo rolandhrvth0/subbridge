@@ -1,0 +1,8 @@
+build/
+dist/
+packaging/bundle/
+*.pyc
+__pycache__/
+.pytest_cache/
+*.spec.bak
+.venv/

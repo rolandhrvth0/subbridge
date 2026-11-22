@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tagline">Játékfeliratok, élőben fordítva</string>
+    <string name="searching">Számítógépek keresése a Wi-Fi-n…</string>
+    <string name="found">Talált számítógépek</string>
+    <string name="none_found">Még nem találok gépet. Indítsd el a SubBridge-et a számítógépen – ugyanazon a Wi-Fin.</string>
+    <string name="scan_qr">QR-kód beolvasása</string>
+    <string name="manual">Cím megadása</string>
+    <string name="address_hint">pl. 192.168.1.20:8765</string>
+    <string name="pin">PIN</string>
+    <string name="pin_hint">A számítógépen látható 6 jegyű PIN</string>
+    <string name="connect">Csatlakozás</string>
+    <string name="cancel">Mégse</string>
+    <string name="connecting">Csatlakozás…</string>
+    <string name="connected">Csatlakozva</string>
+    <string name="reconnecting">Újracsatlakozás…</string>
+    <string name="bad_pin">Hibás PIN. Nézd meg a számot a gépen.</string>
+    <string name="locked">Túl sok próbálkozás. Várj egy percet.</string>
+    <string name="cant_reach">Nem érem el a gépet. Ugyanazon a Wi-Fin vagy? Tűzfal?</string>
+    <string name="waiting_sub">Várakozás a feliratokra…</string>
+    <string name="waiting_sub_hint">Indítsd el a fordítást a gépen, és játssz egy feliratos jelenetet.</string>
+    <string name="paused">A fordítás áll a számítógépen.</string>
+    <string name="in_game_phone">Telefon a játékban</string>
+    <string name="settings">Beállítások</string>
+    <string name="text_size">Betűméret</string>
+    <string name="show_original">Eredeti szöveg mutatása</string>
+    <string name="read_aloud">Felolvasás</string>
+    <string name="speak_names">Beszélő nevének felolvasása</string>
+    <string name="speech_rate">Beszédsebesség</string>
+    <string name="keep_on">Képernyő ébren tartása</string>
+    <string name="theme_dark">Sötét téma</string>
+    <string name="disconnect">Leválasztás</string>
+    <string name="forget">Gép elfelejtése</string>
+    <string name="new_subtitle">Új felirat</string>
+    <string name="zone_help">Súgó</string>
+    <string name="zone_objective">Feladat</string>
+    <string name="zone_notice">Értesítés</string>
+    <string name="zone_other">Szöveg</string>
+    <string name="cert_changed">A gép biztonsági tanúsítványa megváltozott. Párosítsd újra a QR-kóddal.</string>
+    <string name="privacy">Minden a hálózatodon marad – az app csak a saját gépeddel beszél.</string>
+</resources>

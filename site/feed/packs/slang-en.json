@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "about": "Extra English street talk / texting rules (regex, replacement). Extends the built-in list.",
+  "rules": [
+    ["\\bgon'\\b", "going to"], ["\\bfinna\\b", "about to"], ["\\btryna\\b", "trying to"], ["\\bboutta\\b", "about to"],
+    ["\\bnuff\\b", "enough"], ["\\bprolly\\b", "probably"], ["\\bdefo\\b", "definitely"], ["\\bdeffo\\b", "definitely"],
+    ["\\bbet\\b(?=[.!])", "okay"], ["\\bmy bad\\b", "sorry"], ["\\bmy dude\\b", "my friend"], ["\\bmy man\\b", "my friend"],
+    ["\\bhomegirl\\b", "girlfriend"], ["\\bshorty\\b", "girl"], ["\\bbooty\\b", "butt"], ["\\bhella\\b", "very"],
+    ["\\bmad\\b(?= \\w+ing\\b)", "very"], ["\\bfoo\\b", "fool"], ["\\bese\\b", "buddy"], ["\\bholmes\\b", "buddy"],
+    ["\\bstrapped up\\b", "armed"], ["\\bsmoke\\b(?= you| him| her| them)", "kill"], ["\\bdip\\b(?=[.!,])", "leave"],
+    ["\\bbounce\\b(?=[.!,])", "leave"], ["\\bwe out\\b", "we're leaving"], ["\\bpeace out\\b", "goodbye"],
+    ["\\bon sight\\b", "immediately"], ["\\bhit me up\\b", "contact me"], ["\\bhmu\\b", "contact me"],
+    ["\\bion\\b", "I don't"], ["\\bidc\\b", "I don't care"], ["\\bfyi\\b", "for your information"],
+    ["\\bxoxo\\b", "hugs and kisses"], ["\\bxo\\b", "hugs"], ["\\bbff\\b", "best friend"], ["\\bomw\\b", "on my way"],
+    ["\\bdm\\b", "message"], ["\\bdms\\b", "messages"], ["\\bpic\\b", "picture"], ["\\bpics\\b", "pictures"],
+    ["\\bselfie\\b", "photo of myself"], ["\\bvibe\\b", "feeling"], ["\\bvibes\\b", "feelings"]
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "about": "Generic speaker roles shown translated (real names stay as they are).",
+  "roles": {"hu": {"cashier": "Pénztáros", "gas station attendant": "Kutas", "street racer": "Utcai versenyző",
+                   "racer": "Versenyző", "store clerk": "Eladó", "hostage": "Túsz", "robber": "Rabló",
+                   "bank teller": "Banki ügyintéző", "valet": "Parkolófiú", "tow truck driver": "Autómentős",
+                   "salesman": "Üzletkötő", "news anchor": "Hírolvasó", "radio host": "Rádiós műsorvezető"}}
+}

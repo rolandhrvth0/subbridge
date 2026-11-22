@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/subbridge/">
+<title>SubBridge – játékfeliratok élő fordítása</title>
+<meta name="description" content="A SubBridge élőben lefordítja a játékok feliratát: a játék képén, a telefonodon vagy mindkettőn. Remote Play, capture card, offline és ingyenes.">
+<meta property="og:title" content="SubBridge – játékfeliratok élő fordítása">
+<meta property="og:description" content="Játssz a tévén, olvasd a fordítást a telefonodon. Vagy a gépen, az eredeti felirat helyén.">
+<meta property="og:image" content="https://rolandhrvth.hu/subbridge/img/real-3.jpg">
+<link rel="canonical" href="https://rolandhrvth.hu/subbridge/">
+<meta name="theme-color" content="#0f1115">
+<link rel="icon" href="img/icon-192.png">
+<style>
+@font-face { font-family: Inter; src: url(img/inter-latin.woff2) format("woff2"); font-weight: 100 900; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Inter; src: url(img/inter-latin-ext.woff2) format("woff2"); font-weight: 100 900; unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+:root { --bg: #0f1115; --surface: #171a20; --surface2: #1f232a; --line: #2a2f38; --text: #eceef2; --muted: #969eac;
+  --accent: #f5b83d; --accent-ink: #1a1405; --blue: #2f6df6; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration: none; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
+nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line); }
+nav .wrap { display: flex; align-items: center; gap: 14px; height: 62px; }
+nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--text); }
+nav .brand img { width: 30px; height: 30px; border-radius: 8px; }
+nav .links { margin-left: auto; display: flex; gap: 22px; font-size: 14.5px; }
+nav .links a { color: var(--muted); }
+nav .links a:hover { color: var(--text); }
+.lang { border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; font-size: 13px; color: var(--muted); cursor: pointer; background: none; font: inherit; }
+.btn { display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; border-radius: 12px; font-weight: 650; font-size: 15.5px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { border: 1px solid var(--line); color: var(--text); }
+.btn:hover { filter: brightness(1.07); }
+header.hero { padding: 84px 0 40px; text-align: center; }
+.eyebrow { display: inline-block; font-size: 12.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); padding: 5px 12px; border-radius: 99px; }
+h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.06; letter-spacing: -.02em; margin: 22px auto 16px; max-width: 880px; }
+h1 em { font-style: normal; color: var(--accent); }
+.lead { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 720px; margin: 0 auto 30px; }
+.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.shot { margin: 54px auto 0; max-width: 980px; border-radius: 16px; border: 1px solid var(--line); overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0,0,0,.55); }
+.shot img { display: block; width: 100%; }
+section { padding: 84px 0; }
+section h2 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -.015em; margin: 0 0 12px; }
+section .sub { color: var(--muted); max-width: 680px; margin: 0 0 40px; font-size: 17px; }
+.split { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
+.ba { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+.ba img { display: block; width: 100%; }
+.ba .after { position: absolute; inset: 0; clip-path: inset(0 0 0 50%); }
+.ba input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; }
+.ba .bar { position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: var(--accent); pointer-events: none; }
+.ba .lbl { position: absolute; top: 12px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 6px; background: rgba(0,0,0,.55); }
+.ba .lbl.l { left: 12px; } .ba .lbl.r { right: 12px; }
+.video { margin: 0 0 18px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #000;
+  box-shadow: 0 30px 90px rgba(0,0,0,.5); }
+.video video { display: block; width: 100%; aspect-ratio: 16 / 9; }
+.video figcaption, .gallery figcaption { font-size: 13px; color: var(--muted); padding: 8px 12px; }
+.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.gallery figure { margin: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+.gallery img, .gallery video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+@media (max-width: 860px) { .gallery { grid-template-columns: 1fr; } }
+.phones { display: flex; gap: 22px; justify-content: center; }
+.phones img { width: 46%; max-width: 240px; border-radius: 26px; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.card .ic { width: 40px; height: 40px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 14%, var(--surface2));
+  display: grid; place-items: center; margin-bottom: 14px; }
+.card .ic svg { width: 21px; height: 21px; stroke: var(--accent); fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.card h3 { margin: 0 0 6px; font-size: 17px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.steps .card { position: relative; padding-top: 56px; }
+.steps .card::before { counter-increment: s; content: counter(s); position: absolute; top: 20px; left: 22px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 14px; display: grid; place-items: center; }
+.setups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.setups .card ul { margin: 10px 0 0; padding-left: 18px; color: var(--muted); font-size: 14.5px; }
+.dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.dl .card { display: flex; flex-direction: column; gap: 10px; }
+.dl .card .btn { margin-top: auto; justify-content: center; }
+.dl .soon { color: var(--muted); font-size: 13.5px; }
+.privacy { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface)); }
+footer { border-top: 1px solid var(--line); padding: 30px 0 50px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; gap: 18px; flex-wrap: wrap; }
+footer .r { margin-left: auto; }
+[data-en] { display: none; }
+html[lang="en"] [data-hu] { display: none; }
+html[lang="en"] [data-en] { display: revert; }
+@media (max-width: 860px) {
+  .split, .grid, .steps, .setups, .dl { grid-template-columns: 1fr; }
+  nav .links { display: none; }
+  header.hero { padding-top: 56px; }
+  section { padding: 60px 0; }
+}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="brand" href="#"><img src="img/icon-192.png" alt="">SubBridge</a>
+  <div class="links">
+    <a href="#how"><span data-hu>Hogyan</span><span data-en>How it works</span></a>
+    <a href="#features"><span data-hu>Funkciók</span><span data-en>Features</span></a>
+    <a href="#setups"><span data-hu>Felállások</span><span data-en>Setups</span></a>
+    <a href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a>
+  </div>
+  <button class="lang" id="lang">EN</button>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="eyebrow"><span data-hu>Ingyenes · nyílt forrású · offline is</span><span data-en>Free · open source · works offline</span></span>
+  <h1 data-hu>Játssz a tévén.<br><em>Olvasd a fordítást</em> a telefonodon.</h1>
+  <h1 data-en>Play on the TV.<br><em>Read the translation</em> on your phone.</h1>
+  <p class="lead" data-hu>A SubBridge élőben lefordítja a játékok feliratát, és ott mutatja, ahol kényelmes: a játék képén az eredeti felirat helyén, a monitor alá tett telefonodon, vagy mindkettőn. Bármilyen feliratos játékkal működik.</p>
+  <p class="lead" data-en>SubBridge translates game subtitles live and shows them where it suits you: on the game picture in place of the original, on your phone under the monitor, or both. Works with any game that has subtitles.</p>
+  <div class="cta">
+    <a class="btn primary" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a>
+    <a class="btn ghost" href="#how"><span data-hu>Hogyan működik?</span><span data-en>How does it work?</span></a>
+  </div>
+  <div class="shot"><img src="img/desktop-dark.png" alt="SubBridge"></div>
+</div></header>
+
+<section id="how"><div class="wrap split">
+  <div>
+    <h2 data-hu>Az angol helyén magyar.</h2><h2 data-en>Your language, right where the original was.</h2>
+    <p class="sub" data-hu>A fordítás pontosan az eredeti feliratdobozba kerül, ugyanolyan stílusban, a beszélő nevének eredeti színével. Húzd a csúszkát! A SubBridge csak olvassa a képet: a játékhoz és a Remote Play programhoz nem nyúl.</p>
+    <p class="sub" data-en>The translation goes exactly into the original subtitle box, same style, speaker name in its original colour. Drag the slider! SubBridge only reads the picture – it never touches the game or the Remote Play app.</p>
+  </div>
+  <div class="ba" id="ba">
+    <img src="img/real-before.jpg" alt="Eredeti angol felirat">
+    <img class="after" src="img/real-after.jpg" alt="Magyar felirat a SubBridge-dzsel">
+    <div class="bar"></div>
+    <span class="lbl l">EN</span><span class="lbl r">HU</span>
+    <input type="range" min="0" max="100" value="50" aria-label="before/after">
+  </div>
+</div></section>
+
+<section id="real"><div class="wrap">
+  <h2 data-hu>Valódi felvétel, nem látványterv.</h2><h2 data-en>Real footage, not a mock-up.</h2>
+  <p class="sub" data-hu>Linux, Remote Play (chiaki-ng), PS5 – a felirat élőben, a játék közben készült. Minden kép és videó a program valódi működését mutatja.</p>
+  <p class="sub" data-en>Linux, Remote Play (chiaki-ng), PS5 – recorded live while playing. Every picture and clip shows the app actually running.</p>
+  <figure class="video">
+    <video src="img/demo.mp4" poster="img/demo-poster.jpg" autoplay muted loop playsinline preload="metadata"></video>
+    <figcaption>Valódi felvétel · Linux · Remote Play (chiaki-ng) · PS5</figcaption>
+  </figure>
+  <div class="gallery">
+    <figure><video src="img/demo2.mp4" poster="img/demo2-poster.jpg" autoplay muted loop playsinline preload="none"></video><figcaption>Valódi felvétel · Linux · Remote Play · PS5</figcaption></figure>
+    <figure><img src="img/real-1.jpg" alt="" loading="lazy"><figcaption>Linux · Remote Play · PS5</figcaption></figure>
+    <figure><img src="img/real-2.jpg" alt="" loading="lazy"><figcaption>Linux · Remote Play · PS5</figcaption></figure>
+  </div>
+</div></section>
+
+<section><div class="wrap split">
+  <div class="phones">
+    <img src="img/phone-web-chat.png" alt="">
+    <img src="img/phone-web.png" alt="">
+  </div>
+  <div>
+    <h2 data-hu>Beszélgetés a telefonodon.</h2><h2 data-en>The conversation, on your phone.</h2>
+    <p class="sub" data-hu>Minden beszélőnek saját színe van, a legújabb sor nagy, ami még látszik a játékban, az ki van emelve. Felolvasást is kérhetsz. Ha a karakter elővesz egy telefont, annak üzeneteit, posztjait és válaszgombjait is lefordítja. iPhone-on és bármilyen telefonon böngészőből fut, Androidra natív app is van.</p>
+    <p class="sub" data-en>A colour per speaker, the newest line large, lines still on screen highlighted, optional read-aloud. When the character pulls out a phone, its messages, posts and reply buttons are translated too. Runs in any phone browser (iPhone included); there is a native Android app as well.</p>
+  </div>
+</div></section>
+
+<section id="features"><div class="wrap">
+  <h2 data-hu>Minden, ami kell.</h2><h2 data-en>Everything you need.</h2>
+  <p class="sub" data-hu>Profi eszköz, amit mégis bárki egy perc alatt beállít – egy háromlépéses varázsló végigvezet.</p>
+  <p class="sub" data-en>A pro tool that anyone sets up in a minute – a three-step wizard guides you.</p>
+  <div class="grid">
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></div>
+      <h3 data-hu>Felirat a játék képén</h3><h3 data-en>Subtitles on the game</h3>
+      <p data-hu>Az eredeti doboz helyén, csak amikor a játék van elöl.</p><p data-en>In place of the original box, only while the game is in front.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 7h6M9 11h4"/></svg></div>
+      <h3 data-hu>Játékbeli telefon</h3><h3 data-en>In-game phone</h3>
+      <p data-hu>Chatek, posztok, hírek és válaszgombok fordítása.</p><p data-en>Chats, posts, news and reply buttons translated.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3"/></svg></div>
+      <h3 data-hu>Capture card</h3><h3 data-en>Capture cards</h3>
+      <p data-hu>Bármilyen USB-s HDMI-rögzítő. Játéknézet hanggal, ha nincs passthrough.</p><p data-en>Any USB HDMI capture device. Game View with sound when there is no passthrough.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+      <h3 data-hu>Fordítási zónák</h3><h3 data-en>Translation zones</h3>
+      <p data-hu>Súgódobozok, feladatok, értesítések – külön területként.</p><p data-en>Help boxes, objectives, notifications – each its own area.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></div>
+      <h3 data-hu>Offline és ingyenes</h3><h3 data-en>Offline and free</h3>
+      <p data-hu>Alapból a gépeden fordít. Kérhető DeepL, Google Cloud, LibreTranslate is.</p><p data-en>Translates on your PC by default. DeepL, Google Cloud, LibreTranslate optional.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg></div>
+      <h3 data-hu>Gyors</h3><h3 data-en>Fast</h3>
+      <p data-hu>A felirat megjelenésétől a telefonig jellemzően 0,2–0,4 másodperc.</p><p data-en>Typically 0.2–0.4 s from subtitle to phone.</p></div>
+  </div>
+</div></section>
+
+<section id="setups"><div class="wrap">
+  <h2 data-hu>Ahogy neked kényelmes.</h2><h2 data-en>Whatever suits you.</h2>
+  <p class="sub" data-hu>Három bevált felállás – a programban részletes súgó vezet végig mindegyiken.</p>
+  <p class="sub" data-en>Three proven setups – the built-in help walks you through each.</p>
+  <div class="setups">
+    <div class="card"><h3 data-hu>Tévé + telefon</h3><h3 data-en>TV + phone</h3>
+      <p data-hu>A tévén játszol a konzollal, a gépen a háttérben fut a Remote Play vagy egy capture card, a fordítást a telefonon olvasod.</p>
+      <p data-en>Play on the TV with the console; Remote Play or a capture card runs in the background on the PC; read the translation on your phone.</p></div>
+    <div class="card"><h3 data-hu>Gépen, Remote Playjel</h3><h3 data-en>On the PC with Remote Play</h3>
+      <p data-hu>A Remote Play ablakban a felirat helyén a fordítás jelenik meg. Nem kell semmi extra hardver.</p>
+      <p data-en>The translation replaces the subtitle inside the Remote Play window. No extra hardware needed.</p></div>
+    <div class="card"><h3 data-hu>Capture carddal</h3><h3 data-en>With a capture card</h3>
+      <p data-hu>HDMI-rögzítővel bármilyen konzolhoz. Passthrough nélküli kártyánál a beépített Játéknézetben játszol, hanggal.</p>
+      <p data-en>An HDMI capture device works with any console. Without passthrough you play in the built-in Game View, with sound.</p></div>
+  </div>
+</div></section>
+
+<section id="download"><div class="wrap">
+  <h2 data-hu>Letöltés</h2><h2 data-en>Download</h2>
+  <p class="sub" data-hu>Ingyenes és nyílt forrású (MIT). A telefonra nem kell app: olvasd be a QR-kódot. Ellenőrzőösszegek: <a href="dl/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
+  <p class="sub" data-en>Free and open source (MIT). Phones need no app: just scan the QR code. Checksums: <a href="dl/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
+  <div class="dl">
+    <div class="card"><h3>Windows</h3><p class="soon" data-hu>Windows 10/11, telepítő</p><p class="soon" data-en>Windows 10/11 installer</p>
+      <a class="btn primary dl-link" data-file="windows" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
+    <div class="card"><h3>Linux</h3><p class="soon" data-hu>Linux Mint, Ubuntu, Debian (.deb)</p><p class="soon" data-en>Linux Mint, Ubuntu, Debian (.deb)</p>
+      <a class="btn primary dl-link" data-file="linux" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
+    <div class="card"><h3>Android</h3><p class="soon" data-hu>Android 8+ (APK) – vagy app nélkül, böngészőből</p><p class="soon" data-en>Android 8+ (APK) – or no app, in the browser</p>
+      <a class="btn primary dl-link" data-file="android" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
+  </div>
+</div></section>
+
+<section class="privacy"><div class="wrap">
+  <h2 data-hu>Minden a gépeden marad.</h2><h2 data-en>Everything stays on your computer.</h2>
+  <p class="sub" data-hu>Nincs fiók, nincs felhő, nincs telemetria. A képernyőkép soha nem hagyja el a gépet; online fordító választásakor csak a felirat szövege megy a választott szolgáltatáshoz, a saját kulcsoddal.</p>
+  <p class="sub" data-en>No account, no cloud, no telemetry. Screen images never leave your PC; with an online translator only the subtitle text goes to that service, with your own key.</p>
+</div></section>
+
+<footer><div class="wrap">
+  <span>SubBridge · <a href="https://rolandhrvth.hu">rolandhrvth.hu</a></span>
+  <span data-hu>Független projekt, egyetlen játékkiadóhoz vagy platformhoz sem kapcsolódik.</span>
+  <span data-en>An independent project, not affiliated with any game publisher or platform holder.</span>
+  <span class="r">MIT</span>
+</div></footer>
+
+<script>
+  // Downloads are hosted on this site (dl/). Windows follows once its build is ready.
+  const DL = {
+    linux: { url: "dl/subbridge_0.1.0_amd64.deb", note: ".deb · 116 MB · v0.1.0", alt: ["dl/SubBridge-0.1.0-linux-x86_64.tar.gz", ".tar.gz (más disztribúciók)"] },
+    android: { url: "dl/SubBridge-0.1.0-android.apk", note: ".apk · 1,5 MB · v0.1.0" },
+  };
+  document.querySelectorAll(".dl-link").forEach(a => {
+    const d = DL[a.dataset.file];
+    if (!d) {
+      a.innerHTML = '<span data-hu>Hamarosan</span><span data-en>Coming soon</span>';
+      a.classList.replace("primary", "ghost");
+      a.removeAttribute("href");
+      return;
+    }
+    a.href = d.url; a.setAttribute("download", "");
+    const n = document.createElement("p"); n.className = "soon"; n.textContent = d.note;
+    a.before(n);
+    if (d.alt) {
+      const x = document.createElement("a"); x.href = d.alt[0]; x.textContent = d.alt[1]; x.className = "soon"; x.setAttribute("download", "");
+      a.after(x);
+    }
+  });
+  const ba = document.getElementById("ba"), range = ba.querySelector("input");
+  range.addEventListener("input", () => {
+    ba.querySelector(".after").style.clipPath = `inset(0 0 0 ${range.value}%)`;
+    ba.querySelector(".bar").style.left = range.value + "%";
+  });
+  const btn = document.getElementById("lang");
+  const set = l => { document.documentElement.lang = l; btn.textContent = l === "hu" ? "EN" : "HU"; try { localStorage.setItem("sb.lang", l); } catch {} };
+  btn.onclick = () => set(document.documentElement.lang === "hu" ? "en" : "hu");
+  let saved = null; try { saved = localStorage.getItem("sb.lang"); } catch {}
+  set(saved || ((navigator.language || "hu").startsWith("hu") ? "hu" : "en"));
+</script>
+</body>
+</html>

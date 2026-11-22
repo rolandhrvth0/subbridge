@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SubBridge</string>
+    <string name="tagline">Game subtitles, translated live</string>
+    <string name="searching">Looking for computers on your Wi-Fi…</string>
+    <string name="found">Computers found</string>
+    <string name="none_found">No computer found yet. Start SubBridge on your PC – same Wi-Fi.</string>
+    <string name="scan_qr">Scan QR code</string>
+    <string name="manual">Enter address</string>
+    <string name="address_hint">e.g. 192.168.1.20:8765</string>
+    <string name="pin">PIN</string>
+    <string name="pin_hint">6-digit PIN shown on the computer</string>
+    <string name="connect">Connect</string>
+    <string name="cancel">Cancel</string>
+    <string name="connecting">Connecting…</string>
+    <string name="connected">Connected</string>
+    <string name="reconnecting">Reconnecting…</string>
+    <string name="bad_pin">Wrong PIN. Check the number on the computer.</string>
+    <string name="locked">Too many attempts. Wait a minute.</string>
+    <string name="cant_reach">Can\'t reach the computer. Same Wi-Fi? Firewall?</string>
+    <string name="waiting_sub">Waiting for subtitles…</string>
+    <string name="waiting_sub_hint">Start translation on the computer and play a scene with subtitles.</string>
+    <string name="paused">Translation is paused on the computer.</string>
+    <string name="in_game_phone">In-game phone</string>
+    <string name="settings">Settings</string>
+    <string name="text_size">Text size</string>
+    <string name="show_original">Show original text</string>
+    <string name="read_aloud">Read aloud</string>
+    <string name="speak_names">Read speaker names</string>
+    <string name="speech_rate">Speech rate</string>
+    <string name="keep_on">Keep screen on</string>
+    <string name="theme_dark">Dark theme</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="forget">Forget this computer</string>
+    <string name="new_subtitle">New subtitle</string>
+    <string name="zone_help">Help</string>
+    <string name="zone_objective">Objective</string>
+    <string name="zone_notice">Notification</string>
+    <string name="zone_other">Text</string>
+    <string name="cert_changed">The computer\'s security certificate changed. Pair again with the QR code.</string>
+    <string name="privacy">Everything stays on your network – the app only talks to your computer.</string>
+</resources>

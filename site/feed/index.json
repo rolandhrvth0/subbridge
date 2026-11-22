@@ -1,0 +1,76 @@
+{
+  "news": [
+    {
+      "id": "2026-11-22-kiadas",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Letölthető: SubBridge 0.1.0",
+        "en": "Download: SubBridge 0.1.0"
+      },
+      "body": {
+        "hu": "Megjelent az első nyilvános kiadás Linuxra (.deb) és Androidra (.apk). A Windows-változat hamarosan jön.",
+        "en": "The first public release for Linux (.deb) and Android (.apk) is out. Windows is coming soon."
+      },
+      "link": "https://rolandhrvth.hu/subbridge/#download"
+    },
+    {
+      "id": "2026-11-22-klasszikus",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Új képernyő-felirat: gyorsabb, nem ugrál",
+        "en": "New on-screen subtitles: faster, no jumping"
+      },
+      "body": {
+        "hu": "Minden beszélő doboza a helyén marad, az angol az első pillanattól le van takarva, a magyar finoman beúszik. A doboz színét megjegyzi a program, így újraindítás után is azonnal takar.",
+        "en": "Every speaker's box keeps its place, the original is covered from the first moment and the translation fades in. The box colour is remembered, so it covers right after a restart too."
+      }
+    },
+    {
+      "id": "2026-11-22-szleng",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Szlengszótár és szerepnevek",
+        "en": "Slang dictionary and speaker roles"
+      },
+      "body": {
+        "hu": "A fordító előtt a szleng és az üzenetes rövidítések rendes angollá alakulnak (gonna, ain't, lmk, homie…), a magázás tegezésre vált, a szerepnevek magyarul jelennek meg (Idegen, Helybeli, Biztonsági őr). A szótár a program frissítése nélkül is bővül.",
+        "en": "Before translation, slang and texting shorthand become plain English (gonna, ain't, lmk, homie…), and generic speaker roles are translated. The dictionary grows without an app update."
+      }
+    },
+    {
+      "id": "2026-11-21-hello",
+      "date": "2026-11-21",
+      "title": {
+        "hu": "Üdv a SubBridge-ben!",
+        "en": "Welcome to SubBridge!"
+      },
+      "body": {
+        "hu": "Játssz a tévén, olvasd a fordítást a telefonodon – vagy a gépen, az eredeti felirat helyén. Remote Play ablakkal és capture carddal is működik.",
+        "en": "Play on the TV and read the translation on your phone – or on the PC in place of the original subtitle. Works with a Remote Play window or a capture card."
+      },
+      "link": "https://rolandhrvth.hu/subbridge/"
+    }
+  ],
+  "packs": {
+    "slang-en": {
+      "version": 1,
+      "url": "packs/slang-en.json"
+    },
+    "roles": {
+      "version": 1,
+      "url": "packs/roles.json"
+    },
+    "post": {
+      "version": 1,
+      "url": "packs/post.json"
+    }
+  },
+  "latest": {
+    "version": "0.1.0",
+    "url": "https://rolandhrvth.hu/subbridge/#download",
+    "notes": {
+      "hu": "Első nyilvános kiadás: Linux (.deb) és Android (.apk).",
+      "en": "First public release: Linux (.deb) and Android (.apk)."
+    }
+  }
+}
