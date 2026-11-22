@@ -17,6 +17,17 @@ MAX_BODY = 4_000_000
 PER_IP, PER_DAY = 6, 400
 _ip_hits: dict[str, deque] = defaultdict(deque)
 _day: deque = deque()
+_fix_hits: dict[str, deque] = defaultdict(deque)
+
+
+def _fix_limited(ip: str) -> bool:
+    now, q = time.time(), _fix_hits[ip]
+    while q and now - q[0] > 3600:
+        q.popleft()
+    if len(q) >= 60:
+        return True
+    q.append(now)
+    return False
 
 
 def _limited(ip: str) -> bool:
@@ -64,6 +75,8 @@ class H(BaseHTTPRequestHandler):
         if not 0 < n <= MAX_BODY:
             return self._out(413, {"ok": False, "error": "too large"})
         ip = self.headers.get("X-Real-IP") or self.client_address[0]
+        if n <= 20_000 and self.headers.get("X-Kind") == "correction":
+            return self._correction(ip, n)
         if _limited(ip):
             return self._out(429, {"ok": False, "error": "too many reports, try later"})
         try:
@@ -88,6 +101,21 @@ class H(BaseHTTPRequestHandler):
         with open(os.path.join(ROOT, "index.jsonl"), "a", encoding="utf-8") as f:
             f.write(json.dumps(line, ensure_ascii=False) + "\n")
         return self._out(200, {"ok": True, "id": rid})
+
+    def _correction(self, ip: str, n: int):
+        """A user's fixed translation (sentence + machine output + fix): collected to improve the packs."""
+        if _fix_limited(ip):
+            return self._out(429, {"ok": False, "error": "too many"})
+        try:
+            d = json.loads(self.rfile.read(n))
+            row = {k: str(d.get(k, ""))[:1000] for k in ("app", "src", "tgt", "en", "mt", "fix")}
+            assert row["en"] and row["fix"]
+        except Exception:  # noqa: BLE001
+            return self._out(400, {"ok": False, "error": "bad correction"})
+        row["t"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        with open(os.path.join(ROOT, "corrections.jsonl"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        return self._out(200, {"ok": True, "id": "fix"})
 
     def log_message(self, fmt, *args):
         pass

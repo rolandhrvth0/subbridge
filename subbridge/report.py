@@ -109,8 +109,10 @@ def build(settings, engine, note: str, contact: str = "", screens=None, source=N
 def send(report: dict, timeout: float = 25.0) -> str:
     """POST the report; returns the report id from the server."""
     body = json.dumps(report, ensure_ascii=False).encode("utf-8")
-    req = urllib.request.Request(URL, data=body, method="POST",
-                                 headers={"Content-Type": "application/json", "User-Agent": f"SubBridge/{VERSION}"})
+    headers = {"Content-Type": "application/json", "User-Agent": f"SubBridge/{VERSION}"}
+    if report.get("kind") == "correction":
+        headers["X-Kind"] = "correction"
+    req = urllib.request.Request(URL, data=body, method="POST", headers=headers)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         out = json.loads(r.read(10_000))
     if not out.get("ok"):

@@ -207,6 +207,15 @@ html[lang="en"] [data-en] { display: revert; }
     <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg></div>
       <h3 data-hu>Gyors</h3><h3 data-en>Fast</h3>
       <p data-hu>A felirat megjelenésétől a telefonig jellemzően 0,2–0,4 másodperc.</p><p data-en>Typically 0.2–0.4 s from subtitle to phone.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg></div>
+      <h3 data-hu>Pontos offline fordító</h3><h3 data-en>Precise offline translator</h3>
+      <p data-hu>Egy kattintással letölthető, sokkal pontosabb fordítómodell – továbbra is ingyen, a gépeden.</p><p data-en>A much more accurate translation model, one click to download – still free, on your PC.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+      <h3 data-hu>Feliratnapló és javítás</h3><h3 data-en>Subtitle history and fixes</h3>
+      <p data-hu>Olvasd vissza, amit lekéstél, keress benne, mentsd el. A rossz fordítást kijavíthatod – legközelebb már így jelenik meg.</p><p data-en>Read back what you missed, search, save. Fix a wrong translation – next time it shows your way.</p></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M2 6s3-2 10-2 10 2 10 2v13s-3-2-10-2-10 2-10 2Z"/><path d="M12 4v13"/></svg></div>
+      <h3 data-hu>Tanuló mód</h3><h3 data-en>Learning mode</h3>
+      <p data-hu>A magyar felirat alatt kicsiben az angol eredeti is látszik – játszva tanulsz angolul.</p><p data-en>The original shows small under the translation – learn the language while you play.</p></div>
   </div>
 </div></section>
 
@@ -278,6 +287,12 @@ html[lang="en"] [data-en] { display: revert; }
     <details><summary><span data-hu>Ultrawide (21:9) monitorom van – jó így?</span><span data-en>I have an ultrawide (21:9) monitor – does it work?</span></summary>
       <p data-hu>Igen. A konzol 16:9-es képet küld, ezt a chiaki-ng fekete sávokkal mutatja két oldalt – a SubBridge ezt magától felismeri. <b>Ne nyújtsd ki és ne nagyítsd rá a képet</b> (Stretch/Zoom), mert akkor a felirat is torzul, és pontatlanabbul olvassa.</p>
       <p data-en>Yes. The console sends a 16:9 picture, chiaki-ng shows it with black bars at the sides – SubBridge detects this on its own. <b>Don't stretch or zoom the picture</b>, it distorts the subtitles and makes reading less accurate.</p></details>
+    <details><summary><span data-hu>Lehet még pontosabb a fordítás?</span><span data-en>Can translations be more accurate?</span></summary>
+      <p data-hu>Igen. A program jobb oldalán, a Fordító résznél kattints a <b>Pontos fordító letöltése</b> gombra (kb. 200 MB, egyszer kell). Ez egy sokkal jobb offline modell, ugyanúgy ingyenes, és minden a gépeden marad. Ha egy mondat így is rossz, a <b>Feliratnaplóban</b> dupla kattintással kijavíthatod – nálad onnantól így jelenik meg, és a javítás (ha engeded) nekem is megérkezik, hogy mindenkinél jobb legyen.</p>
+      <p data-en>Yes. In the Translator panel click <b>Get precise translator</b> (about 200 MB, once). It's a much better offline model, still free, everything stays on your PC. If a sentence is still wrong, double-click it in the <b>Subtitle history</b> to fix it – it shows your way from then on, and (if you allow it) the fix reaches the developer too.</p></details>
+    <details><summary><span data-hu>Angolul is szeretnék tanulni közben – lehet?</span><span data-en>Can I learn English while playing?</span></summary>
+      <p data-hu>Igen: kapcsold be a <b>Tanuló módot</b> (az Utolsó felirat kártya alján). Ekkor a játék képén a magyar fordítás alatt kicsiben az angol eredeti is látszik.</p>
+      <p data-en>Yes: turn on <b>Learning mode</b> (bottom of the Last subtitle card). The original then shows small under the translation on the game picture.</p></details>
     <details><summary><span data-hu>Hol jelezhetek hibát?</span><span data-en>Where can I report a bug?</span></summary>
       <p data-hu><b>A legegyszerűbb az appból:</b> felül a zászló gomb (Hibajelentés). Írd le pár szóban, mi a gond, és egy kattintással elküldi a fejlesztőnek a szükséges adatokat (kulcsok és jelszavak nélkül), hogy gyorsan javítható legyen. A program alatt egy pötty mutatja, látja-e a feliratot – ha nem, azt is kiírja, miért. GitHubon is jelezheted: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a>.</p><p data-en><b>Easiest from the app:</b> the flag button at the top (Bug report). Describe the problem in a few words and one click sends the developer what's needed (without keys or passwords). A dot under the preview shows whether the subtitle is seen – and if not, why. You can also use GitHub: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a>.</p></details>
   </div>
@@ -304,7 +319,7 @@ html[lang="en"] [data-en] { display: revert; }
 </div></section>
 
 <footer><div class="wrap">
-  <span>SubBridge · <a href="https://rolandhrvth.hu">rolandhrvth.hu</a></span>
+  <span>SubBridge 1.0 · <span data-hu>Készítette</span><span data-en>Made by</span> Roland Horváth · <a href="https://rolandhrvth.hu">rolandhrvth.hu</a></span>
   <span data-hu>Független projekt, egyetlen játékkiadóhoz vagy platformhoz sem kapcsolódik.</span>
   <span data-en>An independent project, not affiliated with any game publisher or platform holder.</span>
   <span class="r">MIT</span>

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 import threading
 from html import escape
 
@@ -17,7 +18,7 @@ from ..i18n import set_language, tr
 from ..paths import resource_dir
 from ..server.net import lan_ip
 from ..server.server import SubtitleServer
-from ..translate.argos import download_model, installed_models
+from ..translate.argos import PRECISE, download_model, download_precise, installed_models, precise_installed
 from ..translate.registry import ONLINE
 from . import theme
 from .bridge import Bridge
@@ -65,8 +66,8 @@ class MainWindow(QMainWindow):
         self.sources: list[dict] = []
         self.setWindowTitle(APP_NAME)
         self.setWindowIcon(QIcon(str(resource_dir() / "server" / "web" / "icon-512.png")))
-        self.resize(1180, 860)
-        self.setMinimumSize(1000, 780)
+        self.resize(1200, 880)
+        self.setMinimumSize(1000, 800)
         self._build()
         self._connect()
         self.apply_theme()
@@ -220,12 +221,13 @@ class MainWindow(QMainWindow):
         # phone card
         ph = Card(tr("phone"))
         self.qr = QrWidget()
-        self.qr.setFixedSize(200, 200)
+        self.qr.setFixedSize(172, 172)
         qrow = QHBoxLayout()
         qrow.addStretch(1)
         qrow.addWidget(self.qr)
         qrow.addStretch(1)
         ph.lay.addLayout(qrow)
+        ph.lay.addSpacing(4)
         hint = QLabel(tr("phone_hint"), objectName="muted", wordWrap=True, alignment=Qt.AlignCenter)
         ph.lay.addWidget(hint)
         urow = QHBoxLayout()
@@ -261,12 +263,10 @@ class MainWindow(QMainWindow):
         trc.lay.addWidget(self.ed_key)
         self.lbl_langs = QLabel(objectName="small")
         trc.lay.addWidget(self.lbl_langs)
-        mrow = QHBoxLayout()
         self.lbl_model = QLabel(objectName="small", wordWrap=True)
         self.btn_model = QPushButton(tr("download_model"))
-        mrow.addWidget(self.lbl_model, 1)
-        mrow.addWidget(self.btn_model)
-        trc.lay.addLayout(mrow)
+        trc.lay.addWidget(self.lbl_model)
+        trc.lay.addWidget(self.btn_model)
         self.prog = QProgressBar(textVisible=False, maximumHeight=8)
         self.prog.hide()
         trc.lay.addWidget(self.prog)
@@ -282,8 +282,16 @@ class MainWindow(QMainWindow):
         self.lbl_log.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.lbl_meta = QLabel(objectName="small")
         last.lay.addWidget(self.lbl_log, 1)
-        last.lay.addWidget(self.lbl_meta)
+        lrow = QHBoxLayout()
+        lrow.addWidget(self.lbl_meta, 1)
+        self.btn_history = QPushButton(tr("history_open"))
+        lrow.addWidget(self.btn_history)
+        last.lay.addLayout(lrow)
+        self.chk_learn = QCheckBox(tr("learn_mode"))
+        self.chk_learn.setChecked(self.profile.learn_mode)
+        last.lay.addWidget(self.chk_learn)
         self._log: dict[int, dict] = {}
+        self.history: dict[int, dict] = {}            # every subtitle of this session (Subtitle history)
         last.setMinimumHeight(215)
         left.addWidget(last, 0)
 
@@ -317,6 +325,8 @@ class MainWindow(QMainWindow):
         self.btn_lang.clicked.connect(self.toggle_language)
         self.btn_help.clicked.connect(lambda: HelpDialog(self).exec())
         self.btn_report.clicked.connect(self.open_report)
+        self.btn_history.clicked.connect(self.open_history)
+        self.chk_learn.toggled.connect(self._on_learn)
         self.btn_settings.clicked.connect(lambda: self.open_settings())
         self.btn_news.clicked.connect(self.open_news)
         b.feed.connect(self._on_feed)
@@ -682,9 +692,19 @@ class MainWindow(QMainWindow):
         models = installed_models()
         have = (p.source_lang, p.target_lang) in models or (
             (p.source_lang, "en") in models and ("en", p.target_lang) in models)
-        self.lbl_model.setText(tr("model_ok") if have else tr("model_missing"))
+        if hasattr(self, "chk_learn"):
+            self.chk_learn.blockSignals(True)
+            self.chk_learn.setChecked(p.learn_mode)
+            self.chk_learn.blockSignals(False)
+        pair = (p.source_lang, p.target_lang)
+        precise = precise_installed(*pair)
+        can_precise = have and not precise and pair in PRECISE and p.engine == "argos"
+        self.lbl_model.setText(tr("model_precise") if precise else
+                               tr("model_std", mb=PRECISE[pair]["size_mb"]) if can_precise else
+                               tr("model_ok") if have else tr("model_missing"))
         self.lbl_model.setVisible(p.engine == "argos" or not have)
-        self.btn_model.setVisible(not have)
+        self.btn_model.setVisible(not have or can_precise)
+        self.btn_model.setText(tr("precise_get") if can_precise else tr("download_model"))
         self.btn_model.setIcon(icon("download", self.colors()["text"], 16))
         self.lbl_privacy.setText(tr("privacy_online", engine=self.cmb_engine.currentText().split(" (")[0])
                                  if p.engine in ONLINE else tr("privacy_offline"))
@@ -709,6 +729,12 @@ class MainWindow(QMainWindow):
         def run():
             try:
                 models = installed_models()
+                pair = (p.source_lang, p.target_lang)
+                if pair in models and pair in PRECISE and not precise_installed(*pair):
+                    download_precise(*pair, progress=lambda d, t: self.bridge.download.emit(d, t))
+                    self.engine._argos._models.pop(pair, None)      # use the new model from the next line on
+                    self.bridge.download_done.emit("")
+                    return
                 pairs = [(p.source_lang, p.target_lang)]
                 if p.source_lang != "en" and p.target_lang != "en":
                     pairs = [(s, t) for s, t in ((p.source_lang, "en"), ("en", p.target_lang)) if (s, t) not in models]
@@ -1002,9 +1028,34 @@ class MainWindow(QMainWindow):
         self.server.publish(msg)
         self.bridge.subtitle.emit(msg)
 
+    def _refresh_history(self):
+        self._hist_pending = False
+        if getattr(self, "_history_dlg", None) is not None:
+            self._history_dlg.refresh()
+
+    def _on_learn(self, on):
+        self.profile.learn_mode = on
+        self._save_profile()
+
+    def open_history(self):
+        from .history import HistoryDialog
+        if getattr(self, "_history_dlg", None) is None:
+            self._history_dlg = HistoryDialog(self)
+            self._history_dlg.finished.connect(lambda _r: setattr(self, "_history_dlg", None))
+        self._history_dlg.refresh()
+        self._history_dlg.show()
+        self._history_dlg.raise_()
+
     def _on_subtitle(self, msg):
         if msg.get("type") != "line":
             return
+        h = self.history.setdefault(msg["id"], {"_t": time.time()})
+        h.update(msg)
+        if len(self.history) > 3000:
+            self.history.pop(next(iter(self.history)))
+        if getattr(self, "_history_dlg", None) is not None and not getattr(self, "_hist_pending", False):
+            self._hist_pending = True                     # refresh the open history at most twice a second
+            QTimer.singleShot(500, self._refresh_history)
         self._log[msg["id"]] = msg
         for k in sorted(self._log)[:-3]:
             self._log.pop(k)
@@ -1023,7 +1074,7 @@ class MainWindow(QMainWindow):
                         f'font-weight:{600 if last else 450}">{escape(m["text"])}</span><br>'
                         f'<span style="font-size:12px;color:{c["muted"]}">{escape(m["original"])}</span></div>')
         self.lbl_log.setText("".join(rows))
-        eng = {"argos": "Offline", "deepl": "DeepL", "google": "Google Cloud", "libre": "LibreTranslate",
+        eng = {"argos": "Offline", "own": tr("history_own").capitalize(), "deepl": "DeepL", "google": "Google Cloud", "libre": "LibreTranslate",
                "none": "—"}.get(msg.get("engine"), msg.get("engine", ""))
         self.lbl_meta.setText(f"{eng} · {tr('latency')}: {msg.get('latency_ms', 0)} ms")
 

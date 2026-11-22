@@ -550,6 +550,12 @@ class ClassicOverlay:
         primary = eng._primary()
         from .translate.glossary import Glossary
         glossary = Glossary.from_list(p.glossary)
+        # 0) the user's own corrections
+        from .translate.corrections import corrections
+        own = [corrections().get(t, tgt) for _, t in lines]
+        if lines and all(own):
+            show([(sp, o) for (sp, _), o in zip(lines, own)])
+            return
         # 1) memory
         if primary is not None:
             hit = [eng.cache.get(primary.id, src, tgt, tp.prep(t, src)) for _, t in lines]
@@ -606,6 +612,7 @@ class ClassicOverlay:
         gx, gy, region_w, source_w = self._geo
         # font like the game's: one text line ≈ 0.55 of a one-line box (the old translator's rule)
         one = float(np.percentile(self.line_hs, 25)) if self.line_hs else None   # wrapped 2-line boxes are taller
+        learn = bool(getattr(getattr(self.eng, "profile", None), "learn_mode", False))   # original under the translation
         out = []
         for e in self.entries:
             if not e.alive:
@@ -615,6 +622,7 @@ class ClassicOverlay:
                         "bg": tuple(int(v) for v in self.color) if self.color is not None else (24, 24, 30),
                         "name": e.name_rgb, "px": e.px or self._px(y1 - y0, one),
                         "lines": [(sp, t) for sp, t in e.hu] or [(None, "")],
+                        "en": [t for _sp, t in e.lines] if learn and e.hu else [],
                         # the game wraps long subtitles: about half the picture width at most
                         "max_w": int(source_w * 0.5 / 0.62)})
         self.stats["emits"] += 1

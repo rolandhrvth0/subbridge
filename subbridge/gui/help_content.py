@@ -12,6 +12,12 @@ HELP = {
 </ol>
 <p><b>Ajánlott beállítás a játékban</b> (Beállítások › UI › Subtitles &amp; Captions, vagy hasonló menü):</p><ul><li><b>Subtitles (Felirat):</b> On – a legteljesebb fokozat (3/3): így a járókelők és NPC-k beszéde is feliratot kap, és azt is fordítja</li><li><b>Closed Captions:</b> Off</li><li><b>Size (Méret):</b> Medium</li><li><b>Speaker Names (Beszélőnevek):</b> On</li><li><b>Background (Háttér):</b> Solid – egyszínű doboz, ezt takarja le pontosan</li></ul>
 """),
+("v1", "Pontos fordító, Feliratnapló, Tanuló mód", """
+<p><b>Pontos fordító:</b> a Fordító kártyán a <i>Pontos fordító letöltése</i> gomb egy sokkal jobb offline modellt tölt le (kb. 200 MB, egyszer). Utána magától ezt használja.</p>
+<p><b>Feliratnapló:</b> az Utolsó felirat kártyán. Itt visszaolvashatsz mindent, kereshetsz, elmentheted fájlba. Dupla kattintással kijavíthatod a fordítást – onnantól az a mondat mindig így jelenik meg.</p>
+<p><b>Tanuló mód:</b> a magyar felirat alatt kicsiben az angol eredeti is látszik a játék képén.</p>
+<p><b>Hibajelentés:</b> felül a zászló gomb – egy kattintással elküldi a fejlesztőnek, ami a javításhoz kell.</p>
+"""),
 ("chiaki", "PS5 Remote Play beállítása (chiaki-ng)", """
 <p><b>Windowson:</b> a chiaki-ng-t F11-es teljes képernyőn használd. Ultrawide monitoron hagyd a képet 16:9-ben (fekete sáv két oldalt), ne nyújtsd ki (Stretch/Zoom).</p>
 <p>A {app} nem tartalmaz Remote Play klienst – a képet egy külön program adja. PS5-höz a nyílt forráskódú <b>chiaki-ng</b> ajánlott (külön telepítendő, AGPL licenc).</p>
@@ -88,6 +94,12 @@ HELP = {
 <li>Press <b>Start</b>.</li>
 </ol>
 <p><b>Recommended in-game settings</b> (Settings › UI › Subtitles &amp; Captions, or similar):</p><ul><li><b>Subtitles:</b> On – the fullest level (3/3): ambient and NPC speech get subtitles too, so they are translated as well</li><li><b>Closed Captions:</b> Off</li><li><b>Size:</b> Medium</li><li><b>Speaker Names:</b> On</li><li><b>Background:</b> Solid – a plain box, covered exactly</li></ul>
+"""),
+("v1", "Precise translator, Subtitle history, Learning mode", """
+<p><b>Precise translator:</b> <i>Get precise translator</i> in the Translator card downloads a much better offline model (about 200 MB, once). It is used automatically afterwards.</p>
+<p><b>Subtitle history:</b> in the Last subtitle card. Read everything back, search, save to a file. Double-click a line to fix the translation – that sentence always shows your way from then on.</p>
+<p><b>Learning mode:</b> the original shows small under the translation on the game picture.</p>
+<p><b>Bug report:</b> the flag button at the top sends the developer what's needed to fix a problem.</p>
 """),
 ("chiaki", "PS5 Remote Play setup (chiaki-ng)", """
 <p><b>On Windows:</b> use chiaki-ng in F11 fullscreen. On an ultrawide monitor keep the picture 16:9 (black bars at the sides) – don't stretch or zoom it.</p>

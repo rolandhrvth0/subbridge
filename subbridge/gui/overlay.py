@@ -72,6 +72,10 @@ class OverlayBox(QWidget):
                 for sp, t in box["lines"] if t]           # no text yet: the box alone already hides the original
         html = (f'<div style="color:#ffffff; font-size:{px}px; font-weight:500; line-height:108%">'
                 + "<br>".join(rows) + "</div>") if rows else ""
+        en = [t for t in box.get("en") or [] if t]
+        if html and en:                            # learning mode: the original, small, under the translation
+            html += (f'<div style="color:#c9ced8; font-size:{max(11, int(px * 0.62))}px; font-weight:400; '
+                     f'line-height:110%">' + "<br>".join(escape(t) for t in en) + "</div>")
         self.bg = QColor(*box["bg"])
         font = QFont(self.family)
         font.setPixelSize(px)
@@ -129,9 +133,11 @@ class OverlayBox(QWidget):
                 self._layout_label()
 
         key = tuple(box["lines"])
-        if key != self._key:
-            new_text = [t for _, t in box["lines"] if t] != [t for _, t in (self._key or ()) if t]
+        if key != self._key or tuple(en) != getattr(self, "_en_key", ()):
+            new_text = ([t for _, t in box["lines"] if t] != [t for _, t in (self._key or ()) if t]
+                        or tuple(en) != getattr(self, "_en_key", ()))
             self._key = key
+            self._en_key = tuple(en)
             if new_text:
                 self.label.setText(html)
                 self.text_anim.stop()

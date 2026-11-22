@@ -46,6 +46,7 @@ class Profile:
     zones: list[dict] = field(default_factory=list)
     game_phone: bool = True              # translate the in-game phone (chats, posts, news, replies)
     overlay_scale: float = 1.0
+    learn_mode: bool = False             # show the original (small) under the translation on the game
 
     @classmethod
     def from_dict(cls, d: dict) -> "Profile":
@@ -69,7 +70,7 @@ class AppSettings:
     first_run_done: bool = False
     game_setup_done: bool = False        # confirmed the recommended in-game subtitle settings
     online_feed: bool = True             # news, slang/role packs and update notice from the project site
-    theme: str = "light"
+    theme: str = "dark"
     profiles: list[dict] = field(default_factory=lambda: [asdict(Profile())])
 
     # ---------------------------------------------------------------- profiles

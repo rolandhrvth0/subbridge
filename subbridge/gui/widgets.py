@@ -20,11 +20,14 @@ class Card(QFrame):
         super().__init__(parent)
         self.setObjectName("card")
         self.lay = QVBoxLayout(self)
-        self.lay.setContentsMargins(18, 16, 18, 18)
+        self.lay.setContentsMargins(20, 16, 20, 18)
         self.lay.setSpacing(10)
         if title:
-            self.title = QLabel(title)
+            self.title = QLabel(title.upper())                 # small caps-like section label
             self.title.setObjectName("cardTitle")
+            f = self.title.font()
+            f.setLetterSpacing(QFont.AbsoluteSpacing, 0.9)
+            self.title.setFont(f)
             self.lay.addWidget(self.title)
 
 

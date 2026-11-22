@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+import time
 
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFontDatabase, QIcon
@@ -118,21 +119,42 @@ def main(argv=None):
     if _forward_to_running(args):
         return 0
 
+    settings = AppSettings.load()
+    splash = None
+    if "--start" not in args and "--no-splash" not in args:      # the Remote Play launcher wants speed
+        from .gui.splash import Splash
+        splash = Splash(settings.language)
+        splash.show()
+        splash.set_status("Betöltés…" if settings.language == "hu" else "Loading…")
+        t_end = time.monotonic() + 0.9                           # let the intro play before the heavy build
+        while time.monotonic() < t_end:
+            app.processEvents()
+            time.sleep(0.01)
     from .gui.main_window import MainWindow
     from .gui.wizard import Wizard
-    settings = AppSettings.load()
     win = MainWindow(settings)
-    win.show()
-    if not settings.first_run_done or "--wizard" in sys.argv:
-        wiz = Wizard(win)
-        if wiz.exec():
-            settings.first_run_done = True
-            settings.save()
-            if not win.engine.running:
-                win.toggle_run()
-        else:
-            settings.first_run_done = True
-            settings.save()
+
+    def first_run():
+        if not settings.first_run_done or "--wizard" in sys.argv:
+            wiz = Wizard(win)
+            if wiz.exec():
+                settings.first_run_done = True
+                settings.save()
+                if not win.engine.running:
+                    win.toggle_run()
+            else:
+                settings.first_run_done = True
+                settings.save()
+
+    def reveal():
+        win.show()
+        win.raise_()
+        win.activateWindow()
+        QTimer.singleShot(0, first_run)
+    if splash is not None:
+        splash.finish(reveal)
+    else:
+        reveal()
 
     def handle(cmd: str):
         logging.getLogger("subbridge").info("command %r (running=%s)", cmd, win.engine.running)

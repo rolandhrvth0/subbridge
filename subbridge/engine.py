@@ -327,6 +327,10 @@ class Engine:
         src, tgt = p.source_lang, p.target_lang
         if src == tgt or self._names_only(text):
             return text, "none"
+        from .translate.corrections import corrections
+        own = corrections().get(text, tgt)              # the user's own fix always wins
+        if own:
+            return own, "own"
         glossary = Glossary.from_list(p.glossary)
         primary = self._primary()
         if primary is not None:

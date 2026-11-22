@@ -38,3 +38,10 @@ Szleng- és szerepfordítás javítása **appfrissítés nélkül**: `site/feed/
 - `tools/rollout.sh status|pause|resume|full|rollback <ver>`. Rollback puts the old version in `latest`
   with `replaces: [bad]` -> installs of the bad version go back immediately (old files stay on the server).
 - Before 0.1.8 apps ignore these fields (they update to anything newer at once).
+
+## 1.0 additions
+- Precise offline model: OPUS-MT tc-big en-hu (CC-BY 4.0) converted with build/conv/run.sh (ct2 int8), zipped and
+  hosted at https://rolandhrvth.hu/subbridge/models/opus-big-en_hu-1.zip; sha256 pinned in translate/argos.py PRECISE.
+  A new model version = new file name + new sha in the app.
+- User corrections: <data>/corrections.json (exact sentence). Sent fixes land in /var/lib/subbridge-reports/corrections.jsonl
+  (tools/reports.sh lists them) – turn recurring ones into slang/post pack rules.

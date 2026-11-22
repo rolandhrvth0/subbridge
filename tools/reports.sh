@@ -17,3 +17,13 @@ for l in sys.stdin:
     d = json.loads(l)
     print(f"{d[\"t\"]}  {d[\"id\"]}  v{d[\"app\"]}  {d.get(\"health\")}  {d[\"os\"][:28]:28}  {d[\"note\"][:90]}")'
 echo "$total" > "$seen"
+# fixed translations sent from the Subtitle history (used to improve the slang/post packs)
+if [ -f "$D/corrections.jsonl" ]; then
+  cs=$D/.seen_fix; cf=$(cat "$cs" 2>/dev/null || echo 0); ct=$(wc -l < "$D/corrections.jsonl")
+  echo "corrections: $ct total, $((ct - cf)) new"
+  tail -n +$((cf + 1)) "$D/corrections.jsonl" | python3 -c '
+import json, sys
+for l in sys.stdin:
+    d = json.loads(l); print(f"  {d[\"en\"][:60]!r}\n     MT : {d[\"mt\"][:70]}\n     FIX: {d[\"fix\"][:70]}")'
+  echo "$ct" > "$cs"
+fi
