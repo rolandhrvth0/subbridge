@@ -273,8 +273,8 @@ html[lang="en"] [data-en] { display: revert; }
     <details><summary><span data-hu>Rossz egy fordítás – mit tehetek?</span><span data-en>A translation is wrong – what can I do?</span></summary>
       <p data-hu>A szószedetben megadhatod a neveket és kifejezéseket, ahogy szeretnéd. DeepL-lel még természetesebb a szöveg. A szlengszótár frissítés nélkül, automatikusan bővül.</p><p data-en>Add names and phrases to the glossary. DeepL gives more natural text. The slang dictionary updates automatically without an app update.</p></details>
     <details><summary><span data-hu>Windowson nem jelenik meg a magyar felirat a játékon</span><span data-en>On Windows the translation doesn't appear over the game</span></summary>
-      <p data-hu>Ne kizárólagos teljes képernyőn fusson a Remote Play program: ablakban vagy maximalizált (szegély nélküli) ablakban használd – egy kizárólagos teljes képernyős program fölé a Windows más ablakot nem enged rajzolni. A magyar felirat csak akkor látszik, ha a játék ablaka van elöl. Frissíts a legújabb verzióra is.</p>
-      <p data-en>Don't run the Remote Play app in exclusive fullscreen: use a window or a maximised (borderless) window – Windows doesn't let other windows draw over exclusive fullscreen. The translation only shows while the game window is in front. Also update to the latest version.</p></details>
+      <p data-hu>Frissíts a legújabb verzióra (0.1.2+) – ebben javítottuk. A chiaki-ng F11-es teljes képernyője rendben van. A magyar felirat csak akkor látszik, ha a játék ablaka van elöl (ne a SubBridge vagy más ablak legyen kijelölve). Ha egy program kizárólagos („exclusive”) teljes képernyőt használ, fölé a Windows nem enged rajzolni – ilyenkor válts ablakos vagy szegély nélküli módra.</p>
+      <p data-en>Update to the latest version (0.1.2+) – it is fixed there. chiaki-ng's F11 fullscreen is fine. The translation only shows while the game window is in front. Apps using exclusive fullscreen can't be drawn over on Windows – switch those to windowed or borderless mode.</p></details>
     <details><summary><span data-hu>Hol jelezhetek hibát?</span><span data-en>Where can I report a bug?</span></summary>
       <p data-hu>A GitHubon: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a> – írd meg, melyik rendszerrel és milyen forrással (Remote Play / capture card) használod.</p><p data-en>On GitHub: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a> – tell us your system and source (Remote Play / capture card).</p></details>
   </div>
@@ -310,8 +310,8 @@ html[lang="en"] [data-en] { display: revert; }
 <script>
   // Downloads are hosted on this site (dl/). Windows follows once its build is ready.
   const DL = {
-    windows: { url: "dl/SubBridge-0.1.1-windows-setup.exe", note: ".exe · 121 MB · v0.1.1" },
-    linux: { url: "dl/subbridge_0.1.1_amd64.deb", note: ".deb · 116 MB · v0.1.1", alt: ["dl/SubBridge-0.1.1-linux-x86_64.tar.gz", ".tar.gz (más disztribúciók)"] },
+    windows: { url: "dl/SubBridge-0.1.2-windows-setup.exe", note: ".exe · 121 MB · v0.1.2" },
+    linux: { url: "dl/subbridge_0.1.2_amd64.deb", note: ".deb · 116 MB · v0.1.2", alt: ["dl/SubBridge-0.1.2-linux-x86_64.tar.gz", ".tar.gz (más disztribúciók)"] },
     android: { url: "dl/SubBridge-0.1.0-android.apk", note: ".apk · 1,5 MB · v0.1.0" },
   };
   document.querySelectorAll(".dl-link").forEach(a => {
