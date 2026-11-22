@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .ocr.preprocess import box_color, find_boxes, prepare_boxes
+from .ocr.preprocess import binarize, box_color, find_boxes, prepare_boxes
 from .pipeline.dedup import similarity
 from .pipeline.textclean import clean, has_real_text, is_dialogue, normalise_for_compare, split_lines
 
@@ -59,6 +59,50 @@ def _grown(box, rect, tol: int = 10) -> bool:
     """True if box reaches past rect on any side (by more than tol px)."""
     return (box[0] < rect[0] - tol or box[2] > rect[2] + tol
             or box[1] < rect[1] - tol or box[3] > rect[3] + tol)
+
+
+def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int]]:
+    """Subtitles without a background box: find the white text lines in the middle of the band and
+    return one box around the lowest group of lines (the overlay then draws its own box there)."""
+    h, w = rgb.shape[:2]
+    cx0, cx1 = int(w * 0.2), int(w * 0.8)
+    c = rgb[:, cx0:cx1].astype(np.int16)
+    mn, mx = c.min(axis=2), c.max(axis=2)
+    mask = (mn > 185) & (mx - mn < 45)                     # white-ish glyph pixels
+    rows = mask.mean(axis=1) > 0.004
+    runs, start = [], None
+    for y, v in enumerate(list(rows) + [False]):
+        if v and start is None:
+            start = y
+        elif not v and start is not None:
+            if runs and start - runs[-1][1] <= 6:           # glyph gaps inside one line
+                runs[-1] = (runs[-1][0], y)
+            else:
+                runs.append((start, y))
+            start = None
+    runs = [r for r in runs if 10 <= r[1] - r[0] <= 160]
+    if not runs:
+        return []
+    lh = float(np.median([b - a for a, b in runs]))
+    group = [runs[-1]]                                      # lowest line + the lines right above it
+    for r in reversed(runs[:-1]):
+        if group[0][0] - r[1] <= lh * 1.2:
+            group.insert(0, r)
+        else:
+            break
+    y0, y1 = group[0][0], group[-1][1]
+    cols = np.where(mask[y0:y1].any(axis=0))[0]
+    if len(cols) < 3 or cols[-1] - cols[0] < w * 0.04:
+        return []
+    dens = float(mask[y0:y1, cols[0]:cols[-1] + 1].mean())
+    if not 0.04 <= dens <= 0.45:                            # text is sparse; a white wall / sky is not
+        return []
+    px, py = int(lh * 0.8), int(lh * 0.35)
+    x0, x1 = max(0, cx0 + int(cols[0]) - px), min(w, cx0 + int(cols[-1]) + px)
+    box = (x0, max(0, y0 - py), x1, min(h, y1 + py))
+    if abs((box[0] + box[2]) / 2 - source_w / 2) > source_w * 0.14:
+        return []
+    return [box]
 
 
 def _sig_diff(a, b) -> float:
@@ -160,7 +204,8 @@ class ClassicOverlay:
                 # text pattern of the strip (bright glyph pixels): a new sentence of similar length still
                 # changes it, video noise in the box does not
                 psig = (probe[::2, ::2].max(axis=2) > 140).astype(np.float32) * 100
-                if last_psig is not None and float(np.abs(psig - last_psig).mean()) < 1.5 and now - last_full < 0.25:
+                if (last_psig is not None and last_psig.shape == psig.shape
+                        and float(np.abs(psig - last_psig).mean()) < 1.5 and now - last_full < 0.25):
                     continue
                 last_psig, last_full = psig, now
                 try:
@@ -192,7 +237,7 @@ class ClassicOverlay:
                 self._emit()
             return
         if rgb is None:                              # no box in the probe: only the hold / hide logic
-            color, boxes = self.color, []
+            color, boxes, textbox = self.color, [], False
         else:
             if color_hint is not None:
                 color = color_hint
@@ -203,6 +248,7 @@ class ClassicOverlay:
                 # subtitles are centred; notifications / map labels / menus at the sides are not
                 return [b for b in bs if abs((b[0] + b[2]) / 2 - source_w / 2) <= source_w * 0.14][:MAX_BOXES]
             boxes = centred(find_boxes(rgb, color=color)) if color is not None else []
+            textbox = False
             if not boxes and color_hint is not None and now - self._last_box_t > STALE_COLOR:
                 # the remembered box colour finds nothing for a while (another game, a semi-transparent
                 # background, learnt at a bad moment): try the colour of this picture; it is only kept
@@ -214,6 +260,10 @@ class ClassicOverlay:
                     if found:
                         color, boxes = fresh, found
                         self._relearn = fresh
+            if not boxes:
+                # no box at all (outlined / semi-transparent subtitles): cover the text itself
+                boxes = _text_boxes(rgb, source_w)
+                textbox = bool(boxes)
         used: set[int] = set()          # entries settled this frame
         pending: set[int] = set()       # entries matched by position but whose box must be read
         todo = []
@@ -263,7 +313,7 @@ class ClassicOverlay:
         # cover new boxes and blank changed ones NOW, before the (slower) OCR
         prov: dict[int, Entry] = {}
         for ti, (e, box, _sg) in enumerate(todo):
-            if e is None:
+            if e is None and not textbox:                # box-less text: cover only once it is read
                 slot = self._free_slot()
                 if slot is not None:
                     pe = Entry(box, slot, last_seen=now)
@@ -276,7 +326,7 @@ class ClassicOverlay:
 
         reads = []
         for ti, (e, box, sig) in enumerate(todo):
-            lines = self._read(rgb, box, ocr, opts, min_conf, lang)
+            lines = self._read(rgb, box, ocr, opts, min_conf, lang, textbox)
             if not lines and ti in prov:                 # nothing readable after all
                 self.entries.remove(prov.pop(ti))
                 changed = True
@@ -285,7 +335,7 @@ class ClassicOverlay:
                 used.add(id(e))                          # unreadable this frame: the box stays covered
                 e.last_seen = now
                 continue
-            if lines and (self.color is None or self._relearn is not None):
+            if lines and not textbox and (self.color is None or self._relearn is not None):
                 self.color = color          # learn the box colour only from a box that held a subtitle
                 self._save_color(color)     # …and remember it: next start covers from the first frame
                 self._relearn = None
@@ -420,8 +470,12 @@ class ClassicOverlay:
         return next((i for i in range(MAX_BOXES) if i not in taken), None)
 
     @staticmethod
-    def _read(rgb, box, ocr, opts, min_conf, lang):
-        im = prepare_boxes(rgb, [box], opts)[0]
+    def _read(rgb, box, ocr, opts, min_conf, lang, textbox=False):
+        if textbox:                                   # no box behind the text: plain text binarisation
+            x0, y0, x1, y1 = box
+            im = binarize(rgb[y0:y1, x0:x1], opts)
+        else:
+            im = prepare_boxes(rgb, [box], opts)[0]
         text = clean(" ".join(ln.text for ln in ocr.recognize(im) if ln.confidence >= min_conf))
         out = []
         for ln in split_lines(text, True, lang):

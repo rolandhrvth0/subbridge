@@ -134,3 +134,33 @@ def test_colour_not_relearnt_without_text(overlay):
     mp.setattr(co.ClassicOverlay, "_read", staticmethod(lambda *a, **k: []))
     ov.process(np.zeros((200, 1000, 3), np.uint8), (0, 0), (0, 0, 1000, 200), 1000, True, None, None, 0, "en", old)
     assert np.array_equal(ov.color, old)
+
+
+def _outlined_frame():
+    from PIL import Image, ImageDraw, ImageFont
+    rng = np.random.default_rng(1)
+    bg = (rng.random((200, 1000, 3)) * 120 + 40).astype(np.uint8)          # busy game picture, no box
+    im = Image.fromarray(bg)
+    f = ImageFont.truetype("subbridge/assets/fonts/InterVariable.ttf", 34)
+    d = ImageDraw.Draw(im)
+    d.text((500, 140), "Boobie: Man, I got a date tonight!", font=f, fill="white", anchor="mm",
+           stroke_width=2, stroke_fill="black")
+    return np.asarray(im)
+
+
+def test_text_boxes_finds_boxless_subtitle():
+    rgb = _outlined_frame()
+    boxes = co._text_boxes(rgb, 1000)
+    assert len(boxes) == 1
+    x0, y0, x1, y1 = boxes[0]
+    assert x0 < 280 and x1 > 720 and y0 < 125 and y1 > 152        # the whole line is inside
+
+
+def test_boxless_subtitle_is_covered(overlay):
+    ov, out, mp = overlay
+    ov.color = None
+    mp.setattr(co.ClassicOverlay, "_read", staticmethod(lambda *a, **k: [("Boobie", "Man, I got a date tonight!")]))
+    rgb = _outlined_frame()
+    ov.process(rgb, (0, 0), (0, 0, 1000, 200), 1000, True, None, None, 0, "en", None)
+    assert len(ov.entries) == 1 and out and out[-1]
+    assert ov.color is None                                      # no box colour learnt from a box-less subtitle

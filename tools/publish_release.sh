@@ -42,8 +42,8 @@ open(p, 'w').write(s)
 p = 'site/feed/index.json'; d = json.load(open(p))
 base = "https://rolandhrvth.hu/subbridge/dl/"
 d["latest"] = {"version": v, "url": "https://rolandhrvth.hu/subbridge/#download",
-               "notes": {"hu": "A magyar felirat akkor is megjelenik a játékon, ha a program korábban rossz dobozszínt jegyzett meg (pl. áttetsző feliratháttér, másik játék) – magától újratanulja.",
-                         "en": "On-screen translations also appear when a wrong subtitle box colour was remembered earlier (e.g. semi-transparent background, another game) – it re-learns it by itself."},
+               "notes": {"hu": "A magyar felirat doboz nélküli (körvonalas, áttetsző hátterű) feliratoknál is megjelenik a játékon – a program maga rajzol mögé dobozt.",
+                         "en": "On-screen translations now also work for subtitles without a background box (outlined / semi-transparent) – the app draws its own box."},
                "files": {"windows": {"url": base + f"SubBridge-{v}-windows-setup.exe", "sha256": sw},
                          "linux-deb": {"url": base + f"subbridge_{v}_amd64.deb", "sha256": sd}}}
 d["news"].insert(0, {"id": f"{v}-release", "date": "2026-11-22",
