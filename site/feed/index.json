@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "0.1.8-release",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Megjelent a SubBridge 0.1.8",
+        "en": "SubBridge 0.1.8 is out"
+      },
+      "body": {
+        "hu": "Új: Hibajelentés gomb (zászló) – egy kattintással elküldheted a gondot a fejlesztőnek. Az előnézet alatt élőben látod, felismeri-e a feliratot, és ha nem, miért. A frissítések ezentúl fokozatosan érkeznek, hiba esetén automatikusan visszaállnak.",
+        "en": "New: Bug report button (flag) – send a problem to the developer in one click. Under the preview you can see live whether the subtitle is found, and if not, why. Updates now roll out gradually and roll back automatically if something is wrong."
+      }
+    },
+    {
       "id": "0.1.7-release",
       "date": "2026-11-22",
       "title": {
@@ -150,21 +162,26 @@
     }
   },
   "latest": {
-    "version": "0.1.7",
+    "version": "0.1.8",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Ultrawide monitoron (16:9-es kép fekete sávokkal) pontosabb a felirat elhelyezése és tördelése, és gyorsabban dolgozik a doboz nélküli feliratoknál.",
-      "en": "On ultrawide monitors (16:9 picture with black bars) on-screen translations are placed and wrapped more accurately; box-less subtitles are processed faster."
+      "hu": "Új: Hibajelentés gomb (zászló) – egy kattintással elküldheted a gondot a fejlesztőnek. Az előnézet alatt élőben látod, felismeri-e a feliratot, és ha nem, miért. A frissítések ezentúl fokozatosan érkeznek, hiba esetén automatikusan visszaállnak.",
+      "en": "New: Bug report button (flag) – send a problem to the developer in one click. Under the preview you can see live whether the subtitle is found, and if not, why. Updates now roll out gradually and roll back automatically if something is wrong."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.7-windows-setup.exe",
-        "sha256": "ba198057585123d4a77e19d3c15ee88529bfb0bafe3a650cbe6191dc1670e3b9"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.8-windows-setup.exe",
+        "sha256": "35ad3e79d298405675b32b81db0b7a6da0f9e5505b04fb47b2de845b65c111c3"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.7_amd64.deb",
-        "sha256": "cacb1e08d7e61dc4b8d37e804a32d04f688e2d7b78837263fcaa7d119a5085d7"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.8_amd64.deb",
+        "sha256": "014a7477e93aaac4e0d7b663b718784de9d321140538e6618636732f4bfbbd5c"
       }
+    },
+    "rollout": {
+      "start": 1795381647,
+      "hours": 24.0,
+      "from": 20
     }
   }
 }
