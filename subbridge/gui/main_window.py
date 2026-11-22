@@ -41,7 +41,13 @@ class MainWindow(QMainWindow):
         self.bridge = Bridge()
         from ..capture.device import DeviceCapture, MultiCapture
         self.devices = DeviceCapture()
-        self.capture = MultiCapture(create_backend(), self.devices)
+        try:
+            platform_capture = create_backend()
+            self._capture_error = ""
+        except CaptureError as e:          # e.g. no X display: capture cards and the phone still work
+            from ..capture.base import CaptureSource
+            platform_capture, self._capture_error = CaptureSource(), str(e)
+        self.capture = MultiCapture(platform_capture, self.devices)
         self.gameview = None
         self.server = self._make_server()
         from ..server.discovery import Announcer
@@ -69,6 +75,8 @@ class MainWindow(QMainWindow):
         else:
             self._announce()
         self.refresh_sources(select_saved=True)
+        if self._capture_error:
+            self._show_alert(self._capture_error)
         self._update_phone()
         from ..remote import Remote
         self.remote = Remote(on_change=lambda: self.bridge.feed.emit())
