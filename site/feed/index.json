@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.0.1-release",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.0.1",
+        "en": "SubBridge 1.0.1 is out"
+      },
+      "body": {
+        "hu": "Itt a SubBridge 1.0! Megújult dizájn és indítóképernyő, letölthető pontos offline fordító (sokkal jobb fordítás), Feliratnapló (visszaolvasás, keresés, mentés, saját javítás), Tanuló mód (az angol eredeti is látszik kicsiben), hibajelentés gomb, élő felirat-felismerés jelző, és javítottunk egy ritka összeomlást.",
+        "en": "SubBridge 1.0 is here! New design and start screen, downloadable precise offline translator (much better translations), Subtitle history (read back, search, save, your own fixes), Learning mode (the original shows small too), bug report button, live subtitle detection status, and a rare crash is fixed."
+      }
+    },
+    {
       "id": "0.1.8-release",
       "date": "2026-11-22",
       "title": {
@@ -162,26 +174,26 @@
     }
   },
   "latest": {
-    "version": "0.1.8",
+    "version": "1.0.1",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Új: Hibajelentés gomb (zászló) – egy kattintással elküldheted a gondot a fejlesztőnek. Az előnézet alatt élőben látod, felismeri-e a feliratot, és ha nem, miért. A frissítések ezentúl fokozatosan érkeznek, hiba esetén automatikusan visszaállnak.",
-      "en": "New: Bug report button (flag) – send a problem to the developer in one click. Under the preview you can see live whether the subtitle is found, and if not, why. Updates now roll out gradually and roll back automatically if something is wrong."
+      "hu": "Itt a SubBridge 1.0! Megújult dizájn és indítóképernyő, letölthető pontos offline fordító (sokkal jobb fordítás), Feliratnapló (visszaolvasás, keresés, mentés, saját javítás), Tanuló mód (az angol eredeti is látszik kicsiben), hibajelentés gomb, élő felirat-felismerés jelző, és javítottunk egy ritka összeomlást.",
+      "en": "SubBridge 1.0 is here! New design and start screen, downloadable precise offline translator (much better translations), Subtitle history (read back, search, save, your own fixes), Learning mode (the original shows small too), bug report button, live subtitle detection status, and a rare crash is fixed."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.8-windows-setup.exe",
-        "sha256": "35ad3e79d298405675b32b81db0b7a6da0f9e5505b04fb47b2de845b65c111c3"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.0.1-windows-setup.exe",
+        "sha256": "0b8deff8dbf8546c95a484e1516e7734f31be4c1798fdbbde7546e6ce095d362"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.8_amd64.deb",
-        "sha256": "014a7477e93aaac4e0d7b663b718784de9d321140538e6618636732f4bfbbd5c"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.0.1_amd64.deb",
+        "sha256": "7615265f5e5995b3b1bfee9c5da04aa638caf5014d6c90bcb14e0c9d350b2819"
       }
     },
     "rollout": {
-      "start": 1795381668,
-      "hours": 0,
-      "from": 100
+      "start": 1795383113,
+      "hours": 24.0,
+      "from": 20
     }
   }
 }
