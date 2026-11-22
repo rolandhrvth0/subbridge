@@ -65,11 +65,16 @@ def _bars_w(rgb: np.ndarray) -> int:
     """Width of the black side bars (a 16:9 picture on an ultrawide / 16:10 screen): columns that are
     black in every sampled row, taken from the narrower side so an off-centre dark area never counts."""
     w = rgb.shape[1]
-    dark = rgb[::4, :, :].max(axis=2).max(axis=0) < 10
-    if dark.all():
+    q = int(w * 0.25)                                       # bars never take more than a quarter per side
+    if q < 1:
         return 0
-    left, right = int(np.argmin(dark)), int(np.argmin(dark[::-1]))
-    return max(0, min(left, right, int(w * 0.25)))
+    edges = np.concatenate([rgb[::6, :q], rgb[::6, w - q:]], axis=1)
+    dark = edges.max(axis=(0, 2)) < 10
+    if dark.all():                                          # fade to black: nothing to measure
+        return 0
+    left, right = int(np.argmin(dark[:q])) if not dark[:q].all() else q, \
+        int(np.argmin(dark[q:][::-1])) if not dark[q:].all() else q
+    return min(left, right)
 
 
 def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int]]:
@@ -78,9 +83,11 @@ def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int
     `source_w` is the width of the game picture (without side bars), centred in the band."""
     h, w = rgb.shape[:2]
     cx0, cx1 = max(0, int(w / 2 - source_w * 0.3)), min(w, int(w / 2 + source_w * 0.3))
-    c = rgb[:, cx0:cx1].astype(np.int16)
-    mn, mx = c.min(axis=2), c.max(axis=2)
-    mask = (mn > 185) & (mx - mn < 45)                     # white-ish glyph pixels
+    c = rgb[:, cx0:cx1]
+    r, g, b = c[..., 0], c[..., 1], c[..., 2]              # per-channel uint8 ops: ~3x faster than int16 + axis=2
+    mn = np.minimum(np.minimum(r, g), b)
+    mx = np.maximum(np.maximum(r, g), b)
+    mask = (mn > 185) & ((mx - mn) < 45)                   # white-ish glyph pixels (mx >= mn: no uint8 wrap)
     rows = mask.mean(axis=1) > 0.004
     runs, start = [], None
     for y, v in enumerate(list(rows) + [False]):

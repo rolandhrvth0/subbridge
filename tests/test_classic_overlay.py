@@ -186,3 +186,7 @@ def test_ultrawide_wrap_width(overlay):
     rgb[:, 200:1200] = _outlined_frame()
     ov.process(rgb, (0, 0), (0, 0, 1400, 200), 1400, True, None, None, 0, "en", None)
     assert out and out[-1] and out[-1][0]["max_w"] == int(1000 * 0.5 / 0.62)
+
+
+def test_black_frame_has_no_bars():
+    assert co._bars_w(np.zeros((100, 1400, 3), np.uint8)) == 0
