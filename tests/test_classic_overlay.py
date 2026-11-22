@@ -164,3 +164,25 @@ def test_boxless_subtitle_is_covered(overlay):
     ov.process(rgb, (0, 0), (0, 0, 1000, 200), 1000, True, None, None, 0, "en", None)
     assert len(ov.entries) == 1 and out and out[-1]
     assert ov.color is None                                      # no box colour learnt from a box-less subtitle
+
+
+def test_ultrawide_side_bars():
+    """A 16:9 picture between black bars on an ultrawide screen: bars are measured, the subtitle is
+    still found and the wrap width follows the picture, not the whole screen."""
+    pic = _outlined_frame()                                              # 1000 px wide picture
+    rgb = np.zeros((200, 1400, 3), np.uint8)
+    rgb[:, 200:1200] = pic
+    assert co._bars_w(rgb) == 200
+    assert co._bars_w(pic) == 0
+    boxes = co._text_boxes(rgb, 1000)
+    assert len(boxes) == 1 and boxes[0][0] < 480 and boxes[0][2] > 920
+
+
+def test_ultrawide_wrap_width(overlay):
+    ov, out, mp = overlay
+    ov.color = None
+    mp.setattr(co.ClassicOverlay, "_read", staticmethod(lambda *a, **k: [("Boobie", "Man, I got a date tonight!")]))
+    rgb = np.zeros((200, 1400, 3), np.uint8)
+    rgb[:, 200:1200] = _outlined_frame()
+    ov.process(rgb, (0, 0), (0, 0, 1400, 200), 1400, True, None, None, 0, "en", None)
+    assert out and out[-1] and out[-1][0]["max_w"] == int(1000 * 0.5 / 0.62)

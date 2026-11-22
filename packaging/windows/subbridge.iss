@@ -1,7 +1,7 @@
 ; Inno Setup script – builds SubBridge-Setup-<version>.exe from dist\SubBridge
-; iscc /DAppVersion=0.1.5 packaging\windows\subbridge.iss
+; iscc /DAppVersion=0.1.6 packaging\windows\subbridge.iss
 #ifndef AppVersion
-  #define AppVersion "0.1.5"
+  #define AppVersion "0.1.6"
 #endif
 
 [Setup]

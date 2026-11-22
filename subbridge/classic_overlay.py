@@ -61,11 +61,23 @@ def _grown(box, rect, tol: int = 10) -> bool:
             or box[1] < rect[1] - tol or box[3] > rect[3] + tol)
 
 
+def _bars_w(rgb: np.ndarray) -> int:
+    """Width of the black side bars (a 16:9 picture on an ultrawide / 16:10 screen): columns that are
+    black in every sampled row, taken from the narrower side so an off-centre dark area never counts."""
+    w = rgb.shape[1]
+    dark = rgb[::4, :, :].max(axis=2).max(axis=0) < 10
+    if dark.all():
+        return 0
+    left, right = int(np.argmin(dark)), int(np.argmin(dark[::-1]))
+    return max(0, min(left, right, int(w * 0.25)))
+
+
 def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int]]:
     """Subtitles without a background box: find the white text lines in the middle of the band and
-    return one box around the lowest group of lines (the overlay then draws its own box there)."""
+    return one box around the lowest group of lines (the overlay then draws its own box there).
+    `source_w` is the width of the game picture (without side bars), centred in the band."""
     h, w = rgb.shape[:2]
-    cx0, cx1 = int(w * 0.2), int(w * 0.8)
+    cx0, cx1 = max(0, int(w / 2 - source_w * 0.3)), min(w, int(w / 2 + source_w * 0.3))
     c = rgb[:, cx0:cx1].astype(np.int16)
     mn, mx = c.min(axis=2), c.max(axis=2)
     mask = (mn > 185) & (mx - mn < 45)                     # white-ish glyph pixels
@@ -100,7 +112,7 @@ def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int
     px, py = int(lh * 0.8), int(lh * 0.35)
     x0, x1 = max(0, cx0 + int(cols[0]) - px), min(w, cx0 + int(cols[-1]) + px)
     box = (x0, max(0, y0 - py), x1, min(h, y1 + py))
-    if abs((box[0] + box[2]) / 2 - source_w / 2) > source_w * 0.14:
+    if abs((box[0] + box[2]) / 2 - w / 2) > source_w * 0.14:
         return []
     return [box]
 
@@ -139,6 +151,7 @@ class ClassicOverlay:
         self.color = self._load_color()
         self.line_hs: list[int] = []         # heights of one-line subtitle boxes seen (font size reference)
         self.px_hist: list[int] = []         # font sizes used recently (keeps the size steady)
+        self._pw_hist: list[tuple[float, int]] = []
         self.stats = dict(ticks=0, no_window=0, not_front=0, read=0, boxes=0, emits=0, errors=0)
         self._stat_t0 = time.time()
         self._last_err_log = 0.0
@@ -229,8 +242,14 @@ class ClassicOverlay:
     # ------------------------------------------------------------------ main step
     def process(self, rgb, origin, region, source_w, active, ocr, opts, min_conf, lang, color_hint):
         now = time.time()
+        if rgb is not None:
+            # game picture width: an ultrawide screen shows the 16:9 picture between black bars. The widest
+            # picture of the last 20 s is used, so a dark scene can never make it narrower than it is.
+            pw = source_w - 2 * _bars_w(rgb) if rgb.shape[1] == source_w else source_w
+            self._pw_hist = [(t, v) for t, v in self._pw_hist if now - t < 20] + [(now, pw)]
+        pic_w = max((v for _t, v in self._pw_hist), default=source_w)
         if origin is not None:
-            self._geo = (origin[0] + region[0], origin[1] + region[1], region[2], source_w)
+            self._geo = (origin[0] + region[0], origin[1] + region[1], region[2], pic_w)
         if not active:
             if self.entries:
                 self.entries = []
@@ -246,7 +265,7 @@ class ClassicOverlay:
                 color = box_color(rgb[::3, int(w * 0.3):int(w * 0.7):3])
             def centred(bs):
                 # subtitles are centred; notifications / map labels / menus at the sides are not
-                return [b for b in bs if abs((b[0] + b[2]) / 2 - source_w / 2) <= source_w * 0.14][:MAX_BOXES]
+                return [b for b in bs if abs((b[0] + b[2]) / 2 - source_w / 2) <= pic_w * 0.14][:MAX_BOXES]
             boxes = centred(find_boxes(rgb, color=color)) if color is not None else []
             textbox = False
             if not boxes and color_hint is not None and now - self._last_box_t > STALE_COLOR:
@@ -262,7 +281,7 @@ class ClassicOverlay:
                         self._relearn = fresh
             if not boxes:
                 # no box at all (outlined / semi-transparent subtitles): cover the text itself
-                boxes = _text_boxes(rgb, source_w)
+                boxes = _text_boxes(rgb, pic_w)
                 textbox = bool(boxes)
         used: set[int] = set()          # entries settled this frame
         pending: set[int] = set()       # entries matched by position but whose box must be read
