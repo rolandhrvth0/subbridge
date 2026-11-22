@@ -196,21 +196,93 @@ def text_mask(rgb: np.ndarray, opts: PrepOptions, background: float | None = Non
     elif background is not None:
         thr = min(200, background + 65)     # relative to the box colour
     else:
-        # no box: bright text that has a dark outline/shadow right next to it
-        bright = mx >= 205
-        edge = _dilate(lum < 60, 2)
-        m = bright & edge
-        # grow back into the full glyph (thick strokes are further from the outline)
-        for _ in range(4):
-            m = _dilate(m, 1) & bright
-        # drop isolated speckles (bright noise next to dark scenery): keep pixels with >=3 neighbours
-        n = np.zeros(m.shape, np.int8)
-        for dy in (-1, 0, 1):
-            for dx in (-1, 0, 1):
-                if dy or dx:
-                    n += np.roll(np.roll(m, dy, 0), dx, 1)
-        return m & (n >= 3)
+        return glyph_mask(rgb)
     return mx >= thr
+
+
+def glyph_mask(rgb: np.ndarray) -> np.ndarray:
+    """Box-less subtitles: white glyphs straight on the game picture. Hysteresis (sure-white seeds grow
+    into the anti-aliased stroke edges, so thin letters like i/l/n survive), then connected components
+    that are glyph-sized are kept (walls, sky, lamps and HUD icons are not), then only rows where many
+    glyphs sit side by side (a text line)."""
+    try:
+        import cv2
+    except Exception:  # noqa: BLE001
+        cv2 = None
+    a = rgb
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mn = np.minimum(np.minimum(r, g), b)
+    sat = np.maximum(np.maximum(r, g), b) - mn
+    mx = mn + sat
+    white_s, white_w = (mn >= 205) & (sat < 45), (mn >= 150) & (sat < 60)
+    # coloured speaker names ("Stranger:" in yellow/blue/…): bright AND clearly coloured
+    col_s, col_w = (mx >= 200) & (sat >= 90), (mx >= 150) & (sat >= 70)
+    strong, weak = white_s | col_s, white_w | col_w
+    if cv2 is None:                                   # numpy fallback: grow the seeds a few pixels
+        m = strong
+        for _ in range(3):
+            m = _dilate(m, 1) & weak
+        return m
+    def keep(m_weak, m_strong):
+        n, lab, st, _ = cv2.connectedComponentsWithStats(m_weak.astype(np.uint8), connectivity=8)
+        ok = np.zeros(n, bool)
+        ok[np.unique(lab[m_strong])] = True
+        ok[0] = False
+        w_, h_, area = st[:, 2], st[:, 3], st[:, 4]
+        big = (h_ > max(48, a.shape[1] * 0.03)) | (w_ > max(70, a.shape[1] * 0.04)) | \
+              ((w_ * h_ > 400) & (area > 0.85 * w_ * h_))
+        tiny = h_ < 2
+        return ok & ~big & ~tiny, ok & big, lab
+
+    ok, _big, lab = keep(weak, strong)
+    k = ok[lab]
+    rows = k.sum(axis=1) > max(8, 0.002 * k.shape[1])
+    near = rows | np.roll(rows, 3) | np.roll(rows, -3)
+    return k & near[:, None]
+
+
+def boxless_blocks(rgb: np.ndarray, mask: np.ndarray | None = None) -> list[tuple[int, int, int, int]]:
+    """Text blocks (x0, y0, x1, y1) of box-less subtitles, top to bottom: rows of glyphs are grouped
+    into blocks (a two-line subtitle stays one block, an objective line below is its own), and in
+    every block only the cluster nearest to the centre is kept (subtitles are centred; logos and HUD
+    sit at the sides)."""
+    k = glyph_mask(rgb) if mask is None else mask
+    h, w = k.shape
+    on = k.sum(axis=1) > 8
+    runs, start = [], None
+    for y, v in enumerate(list(on) + [False]):
+        if v and start is None:
+            start = y
+        elif not v and start is not None:
+            if runs and start - runs[-1][1] <= 4:      # i-dots / accents above the line
+                runs[-1] = (runs[-1][0], y)
+            else:
+                runs.append((start, y))
+            start = None
+    runs = [r for r in runs if r[1] - r[0] >= 6]
+    if not runs:
+        return []
+    lh = float(np.median([b - a for a, b in runs]))
+    groups = [[runs[0]]]
+    for r in runs[1:]:
+        if r[0] - groups[-1][-1][1] <= lh * 1.35:      # tight gap: next line of the same subtitle
+            groups[-1].append(r)
+        else:
+            groups.append([r])
+    out = []
+    for gr in groups:
+        y0, y1 = gr[0][0], gr[-1][1]
+        xs = np.where(k[y0:y1].any(axis=0))[0]
+        if len(xs) < 3:
+            continue
+        clusters = np.split(xs, np.where(np.diff(xs) > max(60, lh * 2.5))[0] + 1)
+        c = w / 2
+        best = max(clusters, key=lambda q: len(q) - abs((q[0] + q[-1]) / 2 - c) * 0.05)
+        if best[-1] - best[0] < lh * 1.5 or abs((best[0] + best[-1]) / 2 - c) > w * 0.22:
+            continue                                   # too short, or off to the side (logo, HUD, minimap)
+        pad = int(lh * 0.45) + 4
+        out.append((max(0, int(best[0]) - pad), max(0, y0 - pad), min(w, int(best[-1]) + pad), min(h, y1 + pad)))
+    return out
 
 
 def _otsu(gray: np.ndarray) -> float:
@@ -234,9 +306,11 @@ def _otsu(gray: np.ndarray) -> float:
     return float(thr)
 
 
-def binarize(rgb: np.ndarray, opts: PrepOptions, background: float | None = None) -> Image.Image:
+def binarize(rgb: np.ndarray, opts: PrepOptions, background: float | None = None,
+             mask: np.ndarray | None = None) -> Image.Image:
     """Black text on white, scaled for Tesseract, with a white border."""
-    mask = text_mask(rgb, opts, background)
+    if mask is None:
+        mask = text_mask(rgb, opts, background)
     if opts.invert:
         mask = ~mask
     out = np.where(mask, 0, 255).astype(np.uint8)

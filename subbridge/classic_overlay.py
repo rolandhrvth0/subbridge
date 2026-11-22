@@ -78,50 +78,24 @@ def _bars_w(rgb: np.ndarray) -> int:
 
 
 def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int]]:
-    """Subtitles without a background box: find the white text lines in the middle of the band and
-    return one box around the lowest group of lines (the overlay then draws its own box there).
+    """Subtitles without a background box: the centred white text blocks of the band (subtitle and,
+    below it, an objective line are separate blocks; the overlay draws its own box for each).
     `source_w` is the width of the game picture (without side bars), centred in the band."""
+    from .ocr.preprocess import boxless_blocks, glyph_mask
     h, w = rgb.shape[:2]
-    cx0, cx1 = max(0, int(w / 2 - source_w * 0.3)), min(w, int(w / 2 + source_w * 0.3))
+    cx0, cx1 = max(0, int(w / 2 - source_w * 0.36)), min(w, int(w / 2 + source_w * 0.36))
     c = rgb[:, cx0:cx1]
-    r, g, b = c[..., 0], c[..., 1], c[..., 2]              # per-channel uint8 ops: ~3x faster than int16 + axis=2
-    mn = np.minimum(np.minimum(r, g), b)
-    mx = np.maximum(np.maximum(r, g), b)
-    mask = (mn > 185) & ((mx - mn) < 45)                   # white-ish glyph pixels (mx >= mn: no uint8 wrap)
-    rows = mask.mean(axis=1) > 0.004
-    runs, start = [], None
-    for y, v in enumerate(list(rows) + [False]):
-        if v and start is None:
-            start = y
-        elif not v and start is not None:
-            if runs and start - runs[-1][1] <= 6:           # glyph gaps inside one line
-                runs[-1] = (runs[-1][0], y)
-            else:
-                runs.append((start, y))
-            start = None
-    runs = [r for r in runs if 10 <= r[1] - r[0] <= 160]
-    if not runs:
-        return []
-    lh = float(np.median([b - a for a, b in runs]))
-    group = [runs[-1]]                                      # lowest line + the lines right above it
-    for r in reversed(runs[:-1]):
-        if group[0][0] - r[1] <= lh * 1.2:
-            group.insert(0, r)
-        else:
-            break
-    y0, y1 = group[0][0], group[-1][1]
-    cols = np.where(mask[y0:y1].any(axis=0))[0]
-    if len(cols) < 3 or cols[-1] - cols[0] < w * 0.04:
-        return []
-    dens = float(mask[y0:y1, cols[0]:cols[-1] + 1].mean())
-    if not 0.04 <= dens <= 0.45:                            # text is sparse; a white wall / sky is not
-        return []
-    px, py = int(lh * 0.8), int(lh * 0.35)
-    x0, x1 = max(0, cx0 + int(cols[0]) - px), min(w, cx0 + int(cols[-1]) + px)
-    box = (x0, max(0, y0 - py), x1, min(h, y1 + py))
-    if abs((box[0] + box[2]) / 2 - w / 2) > source_w * 0.14:
-        return []
-    return [box]
+    gm = glyph_mask(c)
+    out = []
+    for x0, y0, x1, y1 in boxless_blocks(c, gm):
+        dens = float(gm[y0:y1, x0:x1].mean())
+        if not 0.03 <= dens <= 0.45:                        # text is sparse; a white wall / sky is not
+            continue
+        box = (cx0 + x0, y0, cx0 + x1, y1)
+        if abs((box[0] + box[2]) / 2 - w / 2) > source_w * 0.14:
+            continue
+        out.append(box)
+    return out
 
 
 def _sig_diff(a, b) -> float:

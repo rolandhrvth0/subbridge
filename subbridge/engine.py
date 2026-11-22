@@ -13,7 +13,7 @@ import numpy as np
 
 from .capture import CaptureError, CaptureSource
 from .config import AppSettings, Profile
-from .ocr.preprocess import PrepOptions, binarize, box_color, find_boxes, prepare_boxes
+from .ocr.preprocess import PrepOptions, binarize, box_color, boxless_blocks, find_boxes, glyph_mask, prepare_boxes
 from .ocr import create_ocr
 from .paths import config_dir
 from .pipeline.textclean import Line, is_dialogue, normalise_for_compare, split_lines
@@ -81,15 +81,31 @@ def read_lines_ex(rgb, ocr, opts: PrepOptions, min_conf: int, speaker: bool, lan
             boxes = find_boxes(rgb, color=color) if color is not None else []
     if not boxes and boxed_only:
         return [], [], color, []
-    images = prepare_boxes(rgb, boxes, opts) if boxes else [binarize(rgb, opts)]
-    lines: list[Line] = []
-    line_box: list[int] = []
-    for bi, im in enumerate(images):
-        text = " ".join(ln.text for ln in ocr.recognize(im) if ln.confidence >= min_conf)
-        for ln in split_lines(text, speaker, lang):
-            if is_dialogue(ln, lang):
-                lines.append(ln)
-                line_box.append(bi if boxes else -1)
+
+    def ocr_images(images, from_boxes):
+        out, idx = [], []
+        for bi, im in enumerate(images):
+            text = " ".join(ln.text for ln in ocr.recognize(im) if ln.confidence >= min_conf)
+            for ln in split_lines(text, speaker, lang):
+                if is_dialogue(ln, lang):
+                    out.append(ln)
+                    idx.append(bi if from_boxes else -1)
+        return out, idx
+
+    boxless = opts.text_color == "light" and not opts.threshold
+    if boxes:
+        lines, line_box = ocr_images(prepare_boxes(rgb, boxes, opts), True)
+        if lines or boxed_only or not boxless:
+            return lines, boxes, color, line_box
+        boxes, color = [], None          # a dark patch of the scene looked like a box: read it box-less
+    if boxless:
+        # box-less subtitles: OCR each centred text block on its own (subtitle, objective line …)
+        gm = glyph_mask(rgb)
+        images = [binarize(rgb[y0:y1, x0:x1], opts, mask=gm[y0:y1, x0:x1])
+                  for x0, y0, x1, y1 in boxless_blocks(rgb, gm)]
+    else:
+        images = [binarize(rgb, opts)]
+    lines, line_box = ocr_images(images, False)
     return lines, boxes, color, line_box
 
 
