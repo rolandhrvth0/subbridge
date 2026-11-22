@@ -71,6 +71,16 @@ section .sub { color: var(--muted); max-width: 680px; margin: 0 0 40px; font-siz
 .card .ic { width: 40px; height: 40px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 14%, var(--surface2));
   display: grid; place-items: center; margin-bottom: 14px; }
 .card .ic svg { width: 21px; height: 21px; stroke: var(--accent); fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.qa { margin-top: 28px; border-top: 1px solid var(--line); }
+.qa details { border-bottom: 1px solid var(--line); }
+.qa summary { cursor: pointer; list-style: none; padding: 18px 36px 18px 2px; font-weight: 600; font-size: 16.5px; position: relative; }
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary::after { content: ""; position: absolute; right: 8px; top: 50%; width: 9px; height: 9px; margin-top: -7px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .18s; }
+.qa details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+.qa summary:hover { color: var(--accent); }
+.qa p { margin: 0 0 18px; color: var(--muted); font-size: 15px; max-width: 760px; }
+.qa a { color: var(--accent); }
 .card h3 { margin: 0 0 6px; font-size: 17px; }
 .card p { margin: 0; color: var(--muted); font-size: 15px; }
 .steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -210,7 +220,7 @@ html[lang="en"] [data-en] { display: revert; }
 </div></section>
 
 <section id="faq"><div class="wrap">
-  <h2 data-hu>Tévén? Xboxon? Más játékkal?</h2><h2 data-en>On a TV? Xbox? Other games?</h2>
+  <h2 data-hu>Gyakori kérdések</h2><h2 data-en>Frequently asked questions</h2>
   <div class="grid faq">
     <div class="card"><h3 data-hu>Tévén</h3><h3 data-en>On a TV</h3>
       <p data-hu>Közvetlenül a konzol tévéképén nem tud feliratot cserélni – a SubBridge a gépen fut, és a gép képét látja. Két megoldás: <b>1)</b> kösd a gépet a tévére (HDMI), és a tévén játszd a Remote Playt – a magyar felirat ott jelenik meg, a telefonon is. <b>2)</b> Capture card + HDMI-elosztó: a konzol a tévére megy, a kártya a gépre; ilyenkor a fordítás a telefonodon jelenik meg. (A 2. még nincs tesztelve.)</p>
@@ -221,6 +231,32 @@ html[lang="en"] [data-en] { display: revert; }
     <div class="card"><h3 data-hu>Melyik játékkal?</h3><h3 data-en>Which games?</h3>
       <p data-hu>Ami feliratot mutat. A legjobban a sötét dobozos feliratok mennek (ilyenkor a dobozt is pontosan letakarja); körvonalas feliratnál a fordítás a telefonon jelenik meg biztosan.</p>
       <p data-en>Any game that shows subtitles. Boxed subtitles work best (the box is covered exactly); with outlined subtitles the translation is reliable on the phone.</p></div>
+  </div>
+  <div class="qa">
+    <details><summary><span data-hu>Ingyenes?</span><span data-en>Is it free?</span></summary>
+      <p data-hu>Igen, teljesen. Nyílt forráskódú (MIT), nincs reklám, nincs előfizetés, nincs fiók. Ha a DeepL fordítót szeretnéd, ahhoz saját (ingyenes DeepL Free) kulcs kell – de alapból offline, ingyen fordít.</p><p data-en>Yes. Open source (MIT), no ads, no subscription, no account. DeepL is optional with your own (free DeepL Free) key – by default it translates offline for free.</p></details>
+    <details><summary><span data-hu>Kitilthatnak miatta? Biztonságos?</span><span data-en>Can I get banned? Is it safe?</span></summary>
+      <p data-hu>A SubBridge csak a gépeden lévő képet olvassa – nem nyúl a konzolhoz, a játékhoz vagy a Remote Play programhoz, semmit nem módosít és nem küld a játéknak. Olyan, mintha valaki a képernyőt nézné.</p><p data-en>SubBridge only reads the picture on your PC – it doesn't touch the console, the game or the Remote Play app, and sends nothing to the game. It's like someone watching your screen.</p></details>
+    <details><summary><span data-hu>Kell hozzá PS Plus?</span><span data-en>Do I need PS Plus?</span></summary>
+      <p data-hu>Nem. A PS5 Remote Play PS Plus nélkül is működik, a SubBridge-nek pedig semmilyen előfizetés nem kell.</p><p data-en>No. PS5 Remote Play works without PS Plus, and SubBridge needs no subscription.</p></details>
+    <details><summary><span data-hu>Kell internet?</span><span data-en>Does it need internet?</span></summary>
+      <p data-hu>Nem. Az alap fordító a gépeden fut, offline. Internet csak akkor kell, ha DeepL-t vagy más online fordítót választasz, illetve a hírekhez és az új szlengszótárakhoz.</p><p data-en>No. The default translator runs offline on your PC. Internet is only used if you pick DeepL or another online service, and for news and slang updates.</p></details>
+    <details><summary><span data-hu>Milyen gyors?</span><span data-en>How fast is it?</span></summary>
+      <p data-hu>A felirat megjelenésétől jellemzően 0,2–0,4 másodperc. Az angol dobozt azonnal letakarja, a magyar szöveg rögtön utána jelenik meg.</p><p data-en>Typically 0.2–0.4 s from the subtitle appearing. The original box is covered at once and the translation follows right after.</p></details>
+    <details><summary><span data-hu>Milyen gép kell?</span><span data-en>What PC do I need?</span></summary>
+      <p data-hu>Nem kell erős gép: a szövegfelismerés és a fordítás a processzoron fut, videokártya nem kell hozzá. Ha a Remote Play rendesen megy a gépeden, a SubBridge is.</p><p data-en>Nothing special: OCR and translation run on the CPU, no graphics card needed. If Remote Play runs well on your PC, SubBridge will too.</p></details>
+    <details><summary><span data-hu>Windows, Linux, Mac, iPhone?</span><span data-en>Windows, Linux, Mac, iPhone?</span></summary>
+      <p data-hu>Linuxra (Mint/Ubuntu/Debian) letölthető, a Windows-telepítő hamarosan érkezik. Mac-re egyelőre nincs. A telefonon nem kell app: iPhone-on és Androidon is böngészőben fut a QR-kód beolvasása után (Androidra van külön app is).</p><p data-en>Available for Linux (Mint/Ubuntu/Debian); the Windows installer is coming soon. No Mac version yet. Phones need no app: iPhone and Android run it in the browser after scanning the QR code (there's also an Android app).</p></details>
+    <details><summary><span data-hu>Melyik Remote Play programmal megy?</span><span data-en>Which Remote Play app?</span></summary>
+      <p data-hu>Linuxon a chiaki-ng-vel teszteltük (PS5). Windowson a hivatalos PS Remote Play alkalmazással és a chiaki-ng-vel is várhatóan megy, mert a SubBridge bármelyik ablakot tudja olvasni. PS4-gyel elvben ugyanígy.</p><p data-en>Tested with chiaki-ng on Linux (PS5). On Windows the official PS Remote Play app and chiaki-ng should work too, since SubBridge can read any window. PS4 should work the same way.</p></details>
+    <details><summary><span data-hu>A beszédet is fordítja?</span><span data-en>Does it translate speech?</span></summary>
+      <p data-hu>Nem, a képen megjelenő feliratot fordítja. Kapcsold be a játékban a feliratot (és ha van, a feliratdobozt/hátteret – azzal megy a legjobban).</p><p data-en>No, it translates the subtitles shown on screen. Turn subtitles on in the game (with a background box if available – that works best).</p></details>
+    <details><summary><span data-hu>Csak magyarra fordít?</span><span data-en>Only into Hungarian?</span></summary>
+      <p data-hu>Alapból angolról magyarra, ehhez van szlengszótár és tegeződés-javítás is. A beállításokban más célnyelv is választható.</p><p data-en>By default English to Hungarian, with slang dictionaries and Hungarian-specific fixes. Other target languages can be set in the settings.</p></details>
+    <details><summary><span data-hu>Rossz egy fordítás – mit tehetek?</span><span data-en>A translation is wrong – what can I do?</span></summary>
+      <p data-hu>A szószedetben megadhatod a neveket és kifejezéseket, ahogy szeretnéd. DeepL-lel még természetesebb a szöveg. A szlengszótár frissítés nélkül, automatikusan bővül.</p><p data-en>Add names and phrases to the glossary. DeepL gives more natural text. The slang dictionary updates automatically without an app update.</p></details>
+    <details><summary><span data-hu>Hol jelezhetek hibát?</span><span data-en>Where can I report a bug?</span></summary>
+      <p data-hu>A GitHubon: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a> – írd meg, melyik rendszerrel és milyen forrással (Remote Play / capture card) használod.</p><p data-en>On GitHub: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a> – tell us your system and source (Remote Play / capture card).</p></details>
   </div>
 </div></section>
 
