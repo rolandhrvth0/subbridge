@@ -128,7 +128,8 @@ class TesseractEngine(OcrEngine):
             try:
                 img.save(path, "PNG")
                 r = subprocess.run([self._cmd or "tesseract", path, "stdout", *args], capture_output=True,
-                                   timeout=8, env=env, creationflags=flags)
+                                   stdin=subprocess.DEVNULL, timeout=8, env=env, creationflags=flags,
+                                   cwd=os.path.dirname(self._cmd) if self._cmd else None)
             finally:
                 try:
                     os.remove(path)
@@ -140,7 +141,7 @@ class TesseractEngine(OcrEngine):
             r = subprocess.run([self._cmd or "tesseract", "stdin", "stdout", *args], input=buf.getvalue(),
                                capture_output=True, timeout=5, env=env, creationflags=flags)
         if r.returncode != 0 or not r.stdout:
-            self.last_error = (r.stderr or b"").decode("utf-8", "ignore")[-400:]
+            self.last_error = f"rc={r.returncode} " + (r.stderr or b"").decode("utf-8", "ignore")[-400:]
         return r.stdout.decode("utf-8", "ignore")
 
     def recognize(self, img) -> list[OcrLine]:

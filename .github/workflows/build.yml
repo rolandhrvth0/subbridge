@@ -63,6 +63,13 @@ jobs:
           New-Item -ItemType Directory -Force packaging/bundle/tessdata | Out-Null
           Invoke-WebRequest -Uri https://github.com/tesseract-ocr/tessdata_fast/raw/main/eng.traineddata -OutFile packaging/bundle/tessdata/eng.traineddata
       - run: pyinstaller packaging/subbridge.spec --noconfirm
+      - name: Bundled Tesseract works on its own
+        shell: pwsh
+        run: |
+          $t = "dist\SubBridge\_internal\tesseract\tesseract.exe"
+          & $t --version
+          Write-Host "version exit: $LASTEXITCODE"
+          Get-ChildItem dist\SubBridge\_internal\tesseract -Filter *.dll | Measure-Object | Select-Object -ExpandProperty Count
       - name: Self-test of the packaged app
         shell: pwsh
         run: |
