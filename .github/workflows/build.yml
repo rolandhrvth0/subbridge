@@ -88,7 +88,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: "21" }
-      - uses: android-actions/setup-android@v3
+      - name: Android SDK (pre-installed on the runner)
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
       - name: Signing key (optional repository secrets)
         if: env.HAS_KS == 'true'
         env: { KS: "${{ secrets.ANDROID_KEYSTORE_B64 }}" }

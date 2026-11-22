@@ -91,6 +91,7 @@ class TesseractEngine(OcrEngine):
         except ImportError:
             self._inproc = False
         self._cmd = None if self._inproc else tesseract_cmd()
+        self.last_error = ""
 
     def available(self) -> bool:
         return self.tessdata is not None and (self._inproc or self._cmd is not None)
@@ -116,13 +117,30 @@ class TesseractEngine(OcrEngine):
             api.SetSourceResolution(70)
             # some locales print the confidence with a decimal comma
             return "h\n" + re.sub(r"\t(-?\d+),(\d+)\t", r"\t\1.\2\t", api.GetTSVText(0))
-        buf = io.BytesIO()
-        img.save(buf, "PNG")
         env = dict(os.environ, TESSDATA_PREFIX=str(self.tessdata))
         flags = 0x08000000 if sys.platform == "win32" else 0          # CREATE_NO_WINDOW
-        r = subprocess.run([self._cmd or "tesseract", "stdin", "stdout", "-l", self.lang, "--oem", "1",
-                            "--psm", str(psm), "tsv"], input=buf.getvalue(), capture_output=True,
-                           timeout=5, env=env, creationflags=flags)
+        args = ["-l", self.lang, "--tessdata-dir", str(self.tessdata), "--oem", "1", "--psm", str(psm), "tsv"]
+        if sys.platform == "win32":
+            # Windows: hand the image over as a file – piping binary data to stdin is unreliable there
+            import tempfile
+            fd, path = tempfile.mkstemp(suffix=".png", prefix="sb-ocr-")
+            os.close(fd)
+            try:
+                img.save(path, "PNG")
+                r = subprocess.run([self._cmd or "tesseract", path, "stdout", *args], capture_output=True,
+                                   timeout=8, env=env, creationflags=flags)
+            finally:
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
+        else:
+            buf = io.BytesIO()
+            img.save(buf, "PNG")
+            r = subprocess.run([self._cmd or "tesseract", "stdin", "stdout", *args], input=buf.getvalue(),
+                               capture_output=True, timeout=5, env=env, creationflags=flags)
+        if r.returncode != 0 or not r.stdout:
+            self.last_error = (r.stderr or b"").decode("utf-8", "ignore")[-400:]
         return r.stdout.decode("utf-8", "ignore")
 
     def recognize(self, img) -> list[OcrLine]:

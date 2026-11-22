@@ -64,7 +64,8 @@ def selftest(out_path: str | None) -> int:
                                 font=ImageFont.truetype(str(resource_dir() / "assets" / "fonts" / "InterVariable.ttf"), 48))
         got = " ".join(l.text for l in e.recognize(im))
         if "Hello" not in got:
-            raise RuntimeError(f"OCR read {got!r}")
+            raise RuntimeError(f"OCR read {got!r}; cmd={getattr(e, '_cmd', None)!r} tessdata={getattr(e, 'tessdata', None)!r} "
+                               f"err={getattr(e, 'last_error', '')!r}")
         return got
     step("ocr", ocr)
     step("translate", lambda: __import__("ctranslate2").__version__)
