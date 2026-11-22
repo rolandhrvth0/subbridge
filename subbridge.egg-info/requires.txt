@@ -1,0 +1,24 @@
+PySide6>=6.6
+numpy
+pillow
+ctranslate2
+sentencepiece
+sacremoses
+subword-nmt
+aiohttp
+qrcode
+cryptography
+zeroconf
+
+[:sys_platform != "win32"]
+tesserocr
+
+[:sys_platform == "linux"]
+python-xlib
+
+[dev]
+pytest
+pyflakes
+
+[rapidocr]
+rapidocr-onnxruntime

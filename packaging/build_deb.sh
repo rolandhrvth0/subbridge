@@ -35,7 +35,7 @@ Section: games
 Priority: optional
 Architecture: $ARCH
 Installed-Size: $SIZE
-Depends: libxcb-cursor0, libxkbcommon-x11-0, libegl1, libgl1
+Depends: libxcb-cursor0, libxkbcommon-x11-0, libegl1, libgl1, libpulse0
 Maintainer: Roland Horváth <rolandhrvth@outlook.hu>
 Homepage: https://rolandhrvth.hu/subbridge
 Description: Live game subtitle translator for your screen and phone
