@@ -246,7 +246,7 @@ html[lang="en"] [data-en] { display: revert; }
     <details><summary><span data-hu>Milyen gép kell?</span><span data-en>What PC do I need?</span></summary>
       <p data-hu>Nem kell erős gép: a szövegfelismerés és a fordítás a processzoron fut, videokártya nem kell hozzá. Ha a Remote Play rendesen megy a gépeden, a SubBridge is.</p><p data-en>Nothing special: OCR and translation run on the CPU, no graphics card needed. If Remote Play runs well on your PC, SubBridge will too.</p></details>
     <details><summary><span data-hu>Windows, Linux, Mac, iPhone?</span><span data-en>Windows, Linux, Mac, iPhone?</span></summary>
-      <p data-hu>Linuxra (Mint/Ubuntu/Debian) letölthető, a Windows-telepítő hamarosan érkezik. Mac-re egyelőre nincs. A telefonon nem kell app: iPhone-on és Androidon is böngészőben fut a QR-kód beolvasása után (Androidra van külön app is).</p><p data-en>Available for Linux (Mint/Ubuntu/Debian); the Windows installer is coming soon. No Mac version yet. Phones need no app: iPhone and Android run it in the browser after scanning the QR code (there's also an Android app).</p></details>
+      <p data-hu>Windowsra (10/11) és Linuxra (Mint/Ubuntu/Debian) is letölthető. Mac-re egyelőre nincs. A telefonon nem kell app: iPhone-on és Androidon is böngészőben fut a QR-kód beolvasása után (Androidra van külön app is).</p><p data-en>Available for Windows (10/11) and Linux (Mint/Ubuntu/Debian). No Mac version yet. Phones need no app: iPhone and Android run it in the browser after scanning the QR code (there's also an Android app).</p></details>
     <details><summary><span data-hu>Melyik Remote Play programmal megy?</span><span data-en>Which Remote Play app?</span></summary>
       <p data-hu>Linuxon a chiaki-ng-vel teszteltük (PS5). Windowson a hivatalos PS Remote Play alkalmazással és a chiaki-ng-vel is várhatóan megy, mert a SubBridge bármelyik ablakot tudja olvasni. PS4-gyel elvben ugyanígy.</p><p data-en>Tested with chiaki-ng on Linux (PS5). On Windows the official PS Remote Play app and chiaki-ng should work too, since SubBridge can read any window. PS4 should work the same way.</p></details>
     <details><summary><span data-hu>A beszédet is fordítja?</span><span data-en>Does it translate speech?</span></summary>
@@ -290,6 +290,7 @@ html[lang="en"] [data-en] { display: revert; }
 <script>
   // Downloads are hosted on this site (dl/). Windows follows once its build is ready.
   const DL = {
+    windows: { url: "dl/SubBridge-0.1.0-windows-setup.exe", note: ".exe · 121 MB · v0.1.0" },
     linux: { url: "dl/subbridge_0.1.0_amd64.deb", note: ".deb · 116 MB · v0.1.0", alt: ["dl/SubBridge-0.1.0-linux-x86_64.tar.gz", ".tar.gz (más disztribúciók)"] },
     android: { url: "dl/SubBridge-0.1.0-android.apk", note: ".apk · 1,5 MB · v0.1.0" },
   };
