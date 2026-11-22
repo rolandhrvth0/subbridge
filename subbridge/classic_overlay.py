@@ -52,7 +52,7 @@ def _has_box(strip: np.ndarray, color) -> bool:
     return best >= need
 
 
-def _grown(box, rect, tol: int = 6) -> bool:
+def _grown(box, rect, tol: int = 10) -> bool:
     """True if box reaches past rect on any side (by more than tol px)."""
     return (box[0] < rect[0] - tol or box[2] > rect[2] + tol
             or box[1] < rect[1] - tol or box[3] > rect[3] + tol)
@@ -192,7 +192,7 @@ class ClassicOverlay:
                        and abs((box[2] - box[0]) - (x.rect[2] - x.rect[0])) <= 8
                        and abs((box[3] - box[1]) - (x.rect[3] - x.rect[1])) <= 6
                        and _sig_diff(sig, x.sig) < 8), None)
-            if mv is not None and (abs(box[1] - mv.rect[1]) > 4 or abs(box[3] - mv.rect[3]) > 4):
+            if mv is not None and (abs(box[1] - mv.rect[1]) > 10 or abs(box[3] - mv.rect[3]) > 10):
                 used.add(id(mv))
                 mv.last_seen, mv.rect = now, box
                 changed = True
@@ -206,7 +206,7 @@ class ClassicOverlay:
                 if _sig_diff(sig, e.sig) < 7 and e.en and not young and not grown:
                     used.add(id(e))                     # same box, same content: no OCR
                     e.last_seen = now
-                    if abs(box[1] - e.rect[1]) > 4 or abs(box[3] - e.rect[3]) > 4:
+                    if abs(box[1] - e.rect[1]) > 10 or abs(box[3] - e.rect[3]) > 10:
                         e.rect = box
                         changed = True
                     continue

@@ -57,3 +57,15 @@ def test_font_size_stays_steady(overlay):
         assert ov._steady_px(px) == px
     assert ov._steady_px(80) <= 31 * 1.2          # a two-line box read as one line: no giant text
     assert ov._steady_px(10) >= 30 * 0.8          # a cut-off box: no tiny text
+
+
+def test_small_wobble_does_not_move_the_box(overlay):
+    ov, out, mp = overlay
+    _frame(ov, mp, [(450, 100, 550, 140)], [("A", "Hi.")])
+    e = ov.entries[0]
+    e.hu = [("A", "Szia.")]
+    e.shown_at -= 5
+    n = len(out)
+    _frame(ov, mp, [(447, 104, 553, 145)], [("A", "Hi.")])          # a few px of detection wobble
+    assert ov.entries[0].rect == (450, 100, 550, 140)
+    assert len(out) == n                                             # nothing re-emitted: no jump

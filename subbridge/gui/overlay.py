@@ -18,7 +18,7 @@ from PySide6.QtGui import QColor, QFont, QFontDatabase, QGuiApplication, QPainte
 from PySide6.QtWidgets import QGraphicsOpacityEffect, QLabel, QWidget
 
 PAD_X, PAD_Y, BLEED = 22, 3, 4
-JITTER = 6            # px of detection wobble that never moves the box
+JITTER = 10           # px of detection wobble that never moves the box
 
 
 def overlay_font_family() -> str:
@@ -104,15 +104,15 @@ class OverlayBox(QWidget):
             self.geo_anim.stop()
             self.setGeometry(target)
             self._target = target
-        elif self._target is not None and (target.left() < self._target.left() - 2 or target.right() > self._target.right() + 2
-                                           or target.top() < self._target.top() - 2
-                                           or target.bottom() > self._target.bottom() + 2):
+        elif self._target is not None and (target.left() < self._target.left() - 8 or target.right() > self._target.right() + 8
+                                           or target.top() < self._target.top() - 8
+                                           or target.bottom() > self._target.bottom() + 8):
             # the original grew (longer line, second line): the cover follows at once – never let it show
             self.geo_anim.stop()
             self.setGeometry(target.united(self._target) if tuple(box["lines"]) == self._key else target)
             self._target = self.geometry()
         elif self._target is None or (tuple(box["lines"]) != self._key and self._moved(self._target, target)) \
-                or abs(target.bottom() - self._target.bottom()) > 4 or abs(target.top() - self._target.top()) > 4:
+                or abs(target.bottom() - self._target.bottom()) > max(10, self._target.height() * 0.3):
             # same text: only a real vertical move (box pushed up) repositions – sideways detection wobble
             # never makes the subtitle shake
             # move at once (like the game): a gliding cover would let the original show for a moment

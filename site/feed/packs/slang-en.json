@@ -1,5 +1,5 @@
 {
- "version": 2,
+ "version": 3,
  "about": "Extra English street talk / texting rules (regex, replacement). Extends the built-in list.",
  "rules": [
   [
@@ -193,6 +193,250 @@
   [
    "\\bvibes\\b",
    "feelings"
+  ],
+  [
+   "\\bain't got\\b",
+   "don't have"
+  ],
+  [
+   "\\bain't nobody\\b",
+   "nobody is"
+  ],
+  [
+   "\\bain't nothin[g']?\\b",
+   "is nothing"
+  ],
+  [
+   "\\bain't\\b",
+   "is not"
+  ],
+  [
+   "\\by'all\\b",
+   "you guys"
+  ],
+  [
+   "\\by'know\\b",
+   "you know"
+  ],
+  [
+   "\\byou feel me\\b",
+   "you understand me"
+  ],
+  [
+   "\\ba'?ight\\b",
+   "all right"
+  ],
+  [
+   "\\bight\\b",
+   "all right"
+  ],
+  [
+   "\\bwassup\\b",
+   "what's up"
+  ],
+  [
+   "\\bwhatchu\\b",
+   "what you"
+  ],
+  [
+   "\\bgimme\\b",
+   "give me"
+  ],
+  [
+   "\\blemme\\b",
+   "let me"
+  ],
+  [
+   "\\bgotta\\b",
+   "have to"
+  ],
+  [
+   "\\bwanna\\b",
+   "want to"
+  ],
+  [
+   "\\boutta\\b",
+   "out of"
+  ],
+  [
+   "\\bkinda\\b",
+   "kind of"
+  ],
+  [
+   "\\bsorta\\b",
+   "sort of"
+  ],
+  [
+   "\\blil(?:'|\\b)",
+   "little"
+  ],
+  [
+   "'em\\b",
+   "them"
+  ],
+  [
+   "\\bdat\\b",
+   "that"
+  ],
+  [
+   "\\bdis\\b",
+   "this"
+  ],
+  [
+   "\\bwit\\b",
+   "with"
+  ],
+  [
+   "\\bya\\b",
+   "you"
+  ],
+  [
+   "\\b'?cause\\b",
+   "because"
+  ],
+  [
+   "\\btrippin[g']?(?=\\W|$)",
+   "freaking out"
+  ],
+  [
+   "\\b(\\w{2,})in'(?=\\W|$)",
+   "\\1ing"
+  ],
+  [
+   "\\bnah\\b",
+   "no"
+  ],
+  [
+   "\\byo\\b(?=[,!])",
+   "hey"
+  ],
+  [
+   "\\bbruh\\b",
+   "bro"
+  ],
+  [
+   "\\bbruv\\b",
+   "bro"
+  ],
+  [
+   "\\bdawg\\b",
+   "buddy"
+  ],
+  [
+   "\\bhomeboy\\b",
+   "friend"
+  ],
+  [
+   "\\bhomie\\b",
+   "friend"
+  ],
+  [
+   "\\bhomies\\b",
+   "friends"
+  ],
+  [
+   "\\bmy g\\b",
+   "my friend"
+  ],
+  [
+   "\\bfam\\b",
+   "buddy"
+  ],
+  [
+   "\\bbae\\b",
+   "babe"
+  ],
+  [
+   "\\bmy latina\\b",
+   "my Latina girlfriend"
+  ],
+  [
+   "\\bsalty\\b",
+   "upset"
+  ],
+  [
+   "\\bno cap\\b",
+   "no lie"
+  ],
+  [
+   "\\bcap\\b(?=[.!?])",
+   "a lie"
+  ],
+  [
+   "\\bon god\\b",
+   "I swear"
+  ],
+  [
+   "\\bon my mama\\b",
+   "I swear"
+  ],
+  [
+   "\\breal talk\\b",
+   "seriously"
+  ],
+  [
+   "\\bdeadass\\b",
+   "seriously"
+  ],
+  [
+   "\\bfr\\b",
+   "for real"
+  ],
+  [
+   "\\blit\\b(?=[.!?,])",
+   "awesome"
+  ],
+  [
+   "\\bwhip\\b",
+   "car"
+  ],
+  [
+   "\\bcrib\\b",
+   "home"
+  ],
+  [
+   "\\bstrap\\b",
+   "gun"
+  ],
+  [
+   "\\bstrapped\\b",
+   "armed"
+  ],
+  [
+   "\\bopps\\b",
+   "enemies"
+  ],
+  [
+   "\\bplug\\b",
+   "dealer"
+  ],
+  [
+   "\\bthe og\\b",
+   "the veteran"
+  ],
+  [
+   "\\bOG\\b",
+   "veteran"
+  ],
+  [
+   "\\bblunts?\\b",
+   "joint"
+  ],
+  [
+   "\\bblue cheese\\b",
+   "Blue Cheese (weed strain)"
+  ],
+  [
+   "\\bskrr+t?\\b",
+   ""
+  ],
+  [
+   "^man, ",
+   "dude, "
+  ],
+  [
+   "\\bmy boy\\b",
+   "my friend"
   ]
  ]
 }

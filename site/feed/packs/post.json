@@ -1,5 +1,5 @@
 {
- "version": 2,
+ "version": 3,
  "about": "Post-translation fixes per target language (regex, replacement).",
  "rules": {
   "hu": [
@@ -42,6 +42,14 @@
    [
     "\\bSzent szar\\b",
     "A francba"
+   ],
+   [
+    "^Mani, ",
+    "Ember, "
+   ],
+   [
+    "\\bMani\\b(?=,)",
+    "Ember"
    ]
   ]
  }
