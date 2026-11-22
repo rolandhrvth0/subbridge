@@ -119,7 +119,7 @@ class TesseractEngine(OcrEngine):
             return "h\n" + re.sub(r"\t(-?\d+),(\d+)\t", r"\t\1.\2\t", api.GetTSVText(0))
         env = dict(os.environ, TESSDATA_PREFIX=str(self.tessdata))
         flags = 0x08000000 if sys.platform == "win32" else 0          # CREATE_NO_WINDOW
-        args = ["-l", self.lang, "--tessdata-dir", str(self.tessdata), "--oem", "1", "--psm", str(psm), "tsv"]
+        args = ["-l", self.lang, "--tessdata-dir", str(self.tessdata), "--oem", "1", "--psm", str(psm), "-c", "tessedit_create_tsv=1"]
         if sys.platform == "win32":
             # Windows: hand the image over as a file – piping binary data to stdin is unreliable there
             import tempfile
