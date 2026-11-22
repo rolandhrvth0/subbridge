@@ -71,6 +71,25 @@ def selftest(out_path: str | None) -> int:
                                f"err={getattr(e, 'last_error', '')!r}")
         return got
     step("ocr", ocr)
+    if sys.platform == "win32":
+        def winocr():
+            from PIL import Image, ImageDraw, ImageFont
+            from .ocr.winocr import WindowsEngine
+            import time as _t
+            e = WindowsEngine("en")
+            if not e.available():
+                raise RuntimeError(f"Windows OCR not available: {e.last_error}")
+            im = Image.new("RGB", (900, 120), (20, 20, 24))
+            ImageDraw.Draw(im).text((20, 30), "Hello there friend", fill="white",
+                                    font=ImageFont.truetype(str(resource_dir() / "assets" / "fonts" / "InterVariable.ttf"), 48))
+            e.recognize(im)
+            t0 = _t.perf_counter()
+            got = " ".join(l.text for l in e.recognize(im))
+            ms = (_t.perf_counter() - t0) * 1000
+            if "Hello" not in got:
+                raise RuntimeError(f"Windows OCR read {got!r} err={e.last_error!r}")
+            return f"{e.lang_tag}: {got!r} {ms:.0f} ms"
+        step("winocr", winocr)
     step("translate", lambda: __import__("ctranslate2").__version__)
     def server():
         from .server.server import SubtitleServer

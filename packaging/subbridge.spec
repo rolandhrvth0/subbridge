@@ -23,6 +23,10 @@ if win and (BUNDLE / "tesseract").exists():
 hidden = ["PySide6.QtNetwork", "PySide6.QtMultimedia", "PySide6.QtMultimediaWidgets", "PySide6.QtSvg",
           "subbridge.capture.windows" if win else "subbridge.capture.x11",
           "aiohttp", "qrcode", "ctranslate2", "sentencepiece", "sacremoses", "subword_nmt"]
+if win:
+    hidden += ["subbridge.ocr.winocr", "winrt.runtime", "winrt.system", "winrt.windows.foundation",
+               "winrt.windows.foundation.collections", "winrt.windows.globalization",
+               "winrt.windows.graphics.imaging", "winrt.windows.media.ocr", "winrt.windows.storage.streams"]
 
 excludes = ["tkinter", "torch", "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets", "PySide6.Qt3DCore",
             "PySide6.QtQuick3D", "PySide6.QtCharts", "PySide6.QtDataVisualization", "PySide6.QtPdf",

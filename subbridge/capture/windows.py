@@ -256,6 +256,21 @@ class WindowsCapture(CaptureSource):
 
         hwnd = self._hwnd(ident)
         cw, ch = self.source_size("window", hwnd)
+        # PrintWindow always renders the WHOLE window (tens of ms at 1080p+); the overlay asks for a
+        # narrow probe strip and then the subtitle band of the same moment -> reuse one picture
+        import time as _t
+        c = getattr(self, "_last_full", None)
+        if c and c[0] == hwnd and c[1] == (cw, ch) and _t.perf_counter() - c[2] < 0.035:
+            arr = c[3]
+        else:
+            arr = self._print_window(hwnd, cw, ch)
+            self._last_full = (hwnd, (cw, ch), _t.perf_counter(), arr)
+        if rect:
+            x, y, w, h = rect
+            arr = arr[max(0, y):y + h, max(0, x):x + w]
+        return arr[..., 2::-1].copy()          # BGRA -> RGB
+
+    def _print_window(self, hwnd, cw, ch):
         wdc = user32.GetDC(hwnd)
         memdc = gdi32.CreateCompatibleDC(wdc)
         bmp = gdi32.CreateCompatibleBitmap(wdc, cw, ch)
@@ -270,7 +285,4 @@ class WindowsCapture(CaptureSource):
             gdi32.DeleteObject(bmp)
             gdi32.DeleteDC(memdc)
             user32.ReleaseDC(hwnd, wdc)
-        if rect:
-            x, y, w, h = rect
-            arr = arr[max(0, y):y + h, max(0, x):x + w]
-        return arr[..., 2::-1].copy()          # BGRA -> RGB
+        return arr.copy()

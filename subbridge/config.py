@@ -22,7 +22,7 @@ class Profile:
     device_audio_id: str = ""            # "" = the card's own audio input
     region: list[float] = field(default_factory=lambda: [0.1, 0.72, 0.8, 0.22])  # x, y, w, h (fractions)
     # OCR
-    ocr_engine: str = "tesseract"
+    ocr_engine: str = "auto"           # auto | tesseract | rapid | windows
     interval_ms: int = 250
     text_color: str = "light"
     threshold: int = 0
@@ -71,6 +71,7 @@ class AppSettings:
     game_setup_done: bool = False        # confirmed the recommended in-game subtitle settings
     online_feed: bool = True             # news, slang/role packs and update notice from the project site
     theme: str = "dark"
+    ocr_auto_done: bool = False          # 1.0.2: old default "tesseract" profiles moved to "auto" once
     profiles: list[dict] = field(default_factory=lambda: [asdict(Profile())])
 
     # ---------------------------------------------------------------- profiles
@@ -114,6 +115,13 @@ class AppSettings:
             s = cls()
         if not s.profiles:
             s.profiles = [asdict(Profile())]
+        if not s.ocr_auto_done:
+            # until 1.0.1 "tesseract" was the silent default (and "windows" secretly ran Tesseract too);
+            # on Windows that meant one tesseract.exe start per subtitle box -> seconds of delay
+            for q in s.profiles:
+                if q.get("ocr_engine") in ("tesseract", "windows", None):
+                    q["ocr_engine"] = "auto"
+            s.ocr_auto_done = True
         return s
 
     def save(self) -> None:

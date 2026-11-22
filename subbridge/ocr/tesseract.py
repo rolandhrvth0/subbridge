@@ -123,10 +123,10 @@ class TesseractEngine(OcrEngine):
         if sys.platform == "win32":
             # Windows: hand the image over as a file – piping binary data to stdin is unreliable there
             import tempfile
-            fd, path = tempfile.mkstemp(suffix=".png", prefix="sb-ocr-")
+            fd, path = tempfile.mkstemp(suffix=".bmp", prefix="sb-ocr-")
             os.close(fd)
             try:
-                img.save(path, "PNG")
+                img.save(path, "BMP")
                 r = subprocess.run([self._cmd or "tesseract", path, "stdout", *args], capture_output=True,
                                    stdin=subprocess.DEVNULL, timeout=8, env=env, creationflags=flags,
                                    cwd=os.path.dirname(self._cmd) if self._cmd else None)
