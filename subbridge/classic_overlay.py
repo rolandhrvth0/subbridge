@@ -12,6 +12,7 @@
 Runs inside the engine thread on the frames the engine already grabs (no second capture)."""
 from __future__ import annotations
 
+import logging
 import time
 from concurrent.futures import TimeoutError as FutTimeout
 from dataclasses import dataclass, field
@@ -27,6 +28,7 @@ HOLD = 0.8          # s the translation stays after the original disappeared
 MIN_SHOW = 2.0      # s a translation is shown at least
 YOUNG = 2.5         # s after a new text during which it is re-read …
 YOUNG_EVERY = 0.3   # … this often
+log = logging.getLogger(__name__)
 ONLINE_WAIT = 0.3   # s the online translator may take; then the offline result shows and stays (no swapping)
 
 
@@ -92,6 +94,9 @@ class ClassicOverlay:
         self.color = self._load_color()
         self.line_hs: list[int] = []         # heights of one-line subtitle boxes seen (font size reference)
         self.px_hist: list[int] = []         # font sizes used recently (keeps the size steady)
+        self.stats = dict(ticks=0, no_window=0, not_front=0, read=0, boxes=0, emits=0, errors=0)
+        self._stat_t0 = time.time()
+        self._last_err_log = 0.0
         from concurrent.futures import ThreadPoolExecutor
         self.pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ovtr")   # never queues behind others
 
@@ -124,39 +129,52 @@ class ClassicOverlay:
                 pass
         self.pool.submit(warm)
         while not eng._stop.wait(0.05):
-            now = time.time()
             try:
-                ident = eng.resolve_window() if kind == "window" else (p.device_id if kind == "device" else p.screen_index)
-                if ident is None or not eng.capture.is_foreground(kind, ident):
+                self._stat_tick()
+                now = time.time()
+                try:
+                    ident = eng.resolve_window() if kind == "window" else (p.device_id if kind == "device" else p.screen_index)
+                    if ident is None or not eng.capture.is_foreground(kind, ident):
+                        self.stats["not_front" if ident is not None else "no_window"] += 1
+                        self.clear()
+                        continue
+                    sw, sh = eng.capture.source_size(kind, ident)
+                    _fx, fy, _fw, fh = p.region
+                    band = (0, int(fy * sh), sw, max(8, int(fh * sh)))           # full width: never cut a subtitle
+                    sw_strip = max(40, int(sw * 0.06))
+                    probe = eng.capture.grab(kind, ident, (sw // 2 - sw_strip // 2, band[1], sw_strip, band[3]))
+                except (CaptureError, NotImplementedError):
                     self.clear()
                     continue
-                sw, sh = eng.capture.source_size(kind, ident)
-                _fx, fy, _fw, fh = p.region
-                band = (0, int(fy * sh), sw, max(8, int(fh * sh)))           # full width: never cut a subtitle
-                sw_strip = max(40, int(sw * 0.06))
-                probe = eng.capture.grab(kind, ident, (sw // 2 - sw_strip // 2, band[1], sw_strip, band[3]))
-            except (CaptureError, NotImplementedError):
-                self.clear()
-                continue
-            if self.color is None and now - last_full < 0.3:
-                continue                    # box colour not known yet: full search, but not on every tick
-            if self.color is not None and not _has_box(probe, self.color):
-                last_psig = None
-                if self.entries:
-                    self.process(None, None, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
-                continue
-            # text pattern of the strip (bright glyph pixels): a new sentence of similar length still
-            # changes it, video noise in the box does not
-            psig = (probe[::2, ::2].max(axis=2) > 140).astype(np.float32) * 100
-            if last_psig is not None and float(np.abs(psig - last_psig).mean()) < 1.5 and now - last_full < 0.25:
-                continue
-            last_psig, last_full = psig, now
-            try:
-                origin = eng.capture.origin(kind, ident)
-                rgb = eng.capture.grab(kind, ident, band)
-            except (CaptureError, NotImplementedError):
-                continue
-            self.process(rgb, origin, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
+                if self.color is None and now - last_full < 0.3:
+                    continue                    # box colour not known yet: full search, but not on every tick
+                if self.color is not None and not _has_box(probe, self.color):
+                    last_psig = None
+                    if self.entries:
+                        self.process(None, None, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
+                    continue
+                # text pattern of the strip (bright glyph pixels): a new sentence of similar length still
+                # changes it, video noise in the box does not
+                psig = (probe[::2, ::2].max(axis=2) > 140).astype(np.float32) * 100
+                if last_psig is not None and float(np.abs(psig - last_psig).mean()) < 1.5 and now - last_full < 0.25:
+                    continue
+                last_psig, last_full = psig, now
+                try:
+                    origin = eng.capture.origin(kind, ident)
+                    rgb = eng.capture.grab(kind, ident, band)
+                except (CaptureError, NotImplementedError):
+                    continue
+                self.stats["read"] += 1
+                self.process(rgb, origin, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
+            except Exception:  # noqa: BLE001  – never let the overlay thread die silently
+                self.stats["errors"] += 1
+                if time.time() - self._last_err_log > 30:
+                    self._last_err_log = time.time()
+                    log.exception("overlay loop error")
+                try:
+                    self.clear()
+                except Exception:  # noqa: BLE001
+                    pass
         self.clear()
 
     # ------------------------------------------------------------------ main step
@@ -184,6 +202,7 @@ class ClassicOverlay:
         pending: set[int] = set()       # entries matched by position but whose box must be read
         todo = []
         changed = False
+        self.stats["boxes"] += len(boxes)
         for box in boxes:
             sig = _sig(rgb, box)
             # same picture as a known box (it only moved, e.g. pushed up by a new speaker): carry it over
@@ -325,6 +344,16 @@ class ClassicOverlay:
                 self.pool.submit(self._translate_entry, e, e.gen, e.lines, list(self.ctx[-3:]))
         if changed:
             self._emit()
+
+    def _stat_tick(self):
+        """Every 30 s one line in subbridge.log: lets us see from a user's log where the overlay stops."""
+        self.stats["ticks"] += 1
+        if time.time() - self._stat_t0 >= 30:
+            g = self._geo
+            log.info("overlay: %s color=%s geo=%s entries=%d", dict(self.stats),
+                     None if self.color is None else [int(v) for v in self.color], g[:4], len(self.entries))
+            self.stats = dict.fromkeys(self.stats, 0)
+            self._stat_t0 = time.time()
 
     def clear(self):
         if self.entries:
@@ -468,6 +497,7 @@ class ClassicOverlay:
                         "lines": [(sp, t) for sp, t in e.hu] or [(None, "")],
                         # the game wraps long subtitles: about half the picture width at most
                         "max_w": int(source_w * 0.5 / 0.62)})
+        self.stats["emits"] += 1
         self.emit_cb(out)
 
 

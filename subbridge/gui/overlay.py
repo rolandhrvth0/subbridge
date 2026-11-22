@@ -175,6 +175,13 @@ class OverlayManager:
         self.max_w = 1600
 
     def update(self, boxes: list[dict]):
+        try:
+            self._update(boxes)
+        except Exception:  # noqa: BLE001 – a drawing error must show up in the log, not vanish
+            import logging
+            logging.getLogger(__name__).exception("overlay draw error")
+
+    def _update(self, boxes: list[dict]):
         if not self.enabled:
             boxes = []
         dpr = QGuiApplication.primaryScreen().devicePixelRatio() if QGuiApplication.primaryScreen() else 1.0

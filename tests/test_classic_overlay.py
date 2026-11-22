@@ -69,3 +69,13 @@ def test_small_wobble_does_not_move_the_box(overlay):
     _frame(ov, mp, [(447, 104, 553, 145)], [("A", "Hi.")])          # a few px of detection wobble
     assert ov.entries[0].rect == (450, 100, 550, 140)
     assert len(out) == n                                             # nothing re-emitted: no jump
+
+
+def test_stats_line_is_logged(overlay, caplog):
+    import logging
+    ov, _out, _mp = overlay
+    ov._stat_t0 -= 31
+    with caplog.at_level(logging.INFO):
+        ov._stat_tick()
+    assert any("overlay:" in r.getMessage() for r in caplog.records)
+    assert ov.stats["ticks"] == 0
