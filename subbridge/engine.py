@@ -293,9 +293,12 @@ class Engine:
         return self._translator
 
     def _translate_text(self, engine, text: str, src: str, tgt: str, glossary: Glossary, ctx) -> str:
+        from .translate.textprep import textprep
+        tp = textprep()
+        text = tp.prep(text, src)                        # slang -> plain English (feed packs)
         cached = self.cache.get(engine.id, src, tgt, text)
         if cached is not None:
-            return _CONTRACTION.sub(r"\1\2", cached)      # entries cached by older versions
+            return tp.post_fix(_CONTRACTION.sub(r"\1\2", cached), tgt)   # entries cached by older versions
         t = glossary.before(text)
         mapping = {}
         if engine.id != "deepl":
@@ -303,7 +306,7 @@ class Engine:
         out = engine.translate([t], src, tgt, context=ctx)[0]
         out = glossary.after(Glossary.restore(out, mapping))
         self.cache.put(engine.id, src, tgt, text, out)
-        return out
+        return tp.post_fix(out, tgt)                     # fixes and the offensive-word safety net
 
     @staticmethod
     def _names_only(text: str) -> bool:

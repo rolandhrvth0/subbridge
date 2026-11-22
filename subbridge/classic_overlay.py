@@ -385,7 +385,11 @@ class ClassicOverlay:
 
     # ------------------------------------------------------------------ translation (pool thread)
     def _translate_entry(self, e: Entry, gen: int, lines, ctx):
+        from .translate.textprep import textprep
+        tp = textprep()
+
         def show(hu_lines):
+            hu_lines = [(tp.speaker(sp, tgt), t) for sp, t in hu_lines]     # "Hoodlum" -> "Huligán"
             if e.gen != gen or not e.alive or hu_lines == e.hu:
                 return
             e.hu = hu_lines
@@ -399,9 +403,9 @@ class ClassicOverlay:
         glossary = Glossary.from_list(p.glossary)
         # 1) memory
         if primary is not None:
-            hit = [eng.cache.get(primary.id, src, tgt, t) for _, t in lines]
+            hit = [eng.cache.get(primary.id, src, tgt, tp.prep(t, src)) for _, t in lines]
             if all(h is not None for h in hit):
-                show([(sp, h) for (sp, _), h in zip(lines, hit)])
+                show([(sp, tp.post_fix(h, tgt)) for (sp, _), h in zip(lines, hit)])
                 return
         if primary is None:
             show([(sp, eng.translate(t, ctx)[0]) for sp, t in lines])
