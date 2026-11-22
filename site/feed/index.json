@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "0.1.7-release",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Megjelent a SubBridge 0.1.7",
+        "en": "SubBridge 0.1.7 is out"
+      },
+      "body": {
+        "hu": "Ultrawide monitoron (16:9-es kép fekete sávokkal) pontosabb a felirat elhelyezése és tördelése, és gyorsabban dolgozik a doboz nélküli feliratoknál.",
+        "en": "On ultrawide monitors (16:9 picture with black bars) on-screen translations are placed and wrapped more accurately; box-less subtitles are processed faster."
+      }
+    },
+    {
       "id": "0.1.5-release",
       "date": "2026-11-22",
       "title": {
@@ -138,20 +150,20 @@
     }
   },
   "latest": {
-    "version": "0.1.5",
+    "version": "0.1.7",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "A magyar felirat doboz nélküli (körvonalas, áttetsző hátterű) feliratoknál is megjelenik a játékon – a program maga rajzol mögé dobozt.",
-      "en": "On-screen translations now also work for subtitles without a background box (outlined / semi-transparent) – the app draws its own box."
+      "hu": "Ultrawide monitoron (16:9-es kép fekete sávokkal) pontosabb a felirat elhelyezése és tördelése, és gyorsabban dolgozik a doboz nélküli feliratoknál.",
+      "en": "On ultrawide monitors (16:9 picture with black bars) on-screen translations are placed and wrapped more accurately; box-less subtitles are processed faster."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.5-windows-setup.exe",
-        "sha256": "beb3b769b62800990d99e4a8f0dc9cd84d38dcf3456750a342f40c4271bc05b0"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.7-windows-setup.exe",
+        "sha256": "ba198057585123d4a77e19d3c15ee88529bfb0bafe3a650cbe6191dc1670e3b9"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.5_amd64.deb",
-        "sha256": "30fc8bed83ba069f1272ebff97ed1a2e9ebbe4273183bbce9bac270d1b87f8aa"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.7_amd64.deb",
+        "sha256": "cacb1e08d7e61dc4b8d37e804a32d04f688e2d7b78837263fcaa7d119a5085d7"
       }
     }
   }
