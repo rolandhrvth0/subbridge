@@ -106,3 +106,31 @@ def test_overlay_maps_box_to_its_monitor(monkeypatch):
     assert abs(x0 - (1920 + 1000)) < 1                      # 1500 native px into the 150 % monitor = 1000 logical
     b2, d2 = ov._to_screen({"rect": (100, 900, 600, 960), "px": 30})
     assert d2 == 1.0 and b2["rect"] == (100, 900, 600, 960)
+
+
+def test_wrong_remembered_colour_is_relearnt(overlay):
+    ov, out, mp = overlay
+    old, new = np.array([49, 43, 41]), np.array([24, 24, 30])
+    ov.color = old
+    ov._last_box_t -= 10                                   # nothing found with the old colour for a while
+    mp.setattr(co, "box_color", lambda px: new)
+    mp.setattr(co, "find_boxes", lambda rgb, color=None: [(450, 100, 550, 140)]
+               if color is not None and np.array_equal(color, new) else [])
+    mp.setattr(co.ClassicOverlay, "_read", staticmethod(lambda *a, **k: [("A", "Hello there.")]))
+    rgb = np.zeros((200, 1000, 3), np.uint8)
+    ov.process(rgb, (0, 0), (0, 0, 1000, 200), 1000, True, None, None, 0, "en", old)
+    assert len(ov.entries) == 1 and out and out[-1]       # the subtitle is covered
+    assert np.array_equal(ov.color, new)                  # and the new colour is remembered
+
+
+def test_colour_not_relearnt_without_text(overlay):
+    ov, out, mp = overlay
+    old, new = np.array([49, 43, 41]), np.array([200, 0, 200])     # e.g. neon, no subtitle in it
+    ov.color = old
+    ov._last_box_t -= 10
+    mp.setattr(co, "box_color", lambda px: new)
+    mp.setattr(co, "find_boxes", lambda rgb, color=None: [(450, 100, 550, 140)]
+               if color is not None and np.array_equal(color, new) else [])
+    mp.setattr(co.ClassicOverlay, "_read", staticmethod(lambda *a, **k: []))
+    ov.process(np.zeros((200, 1000, 3), np.uint8), (0, 0), (0, 0, 1000, 200), 1000, True, None, None, 0, "en", old)
+    assert np.array_equal(ov.color, old)

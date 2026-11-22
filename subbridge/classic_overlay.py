@@ -29,6 +29,7 @@ MIN_SHOW = 2.0      # s a translation is shown at least
 YOUNG = 2.5         # s after a new text during which it is re-read …
 YOUNG_EVERY = 0.3   # … this often
 log = logging.getLogger(__name__)
+STALE_COLOR = 4.0   # s without any box before the remembered box colour is re-checked
 ONLINE_WAIT = 0.3   # s the online translator may take; then the offline result shows and stays (no swapping)
 
 
@@ -97,6 +98,8 @@ class ClassicOverlay:
         self.stats = dict(ticks=0, no_window=0, not_front=0, read=0, boxes=0, emits=0, errors=0)
         self._stat_t0 = time.time()
         self._last_err_log = 0.0
+        self._last_box_t = time.time()       # last time a subtitle box was found
+        self._relearn = None                 # box colour being re-learnt (kept once a subtitle is read)
         from concurrent.futures import ThreadPoolExecutor
         self.pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ovtr")   # never queues behind others
 
@@ -148,7 +151,8 @@ class ClassicOverlay:
                     continue
                 if self.color is None and now - last_full < 0.3:
                     continue                    # box colour not known yet: full search, but not on every tick
-                if self.color is not None and not _has_box(probe, self.color):
+                stale = now - self._last_box_t > STALE_COLOR and now - last_full >= 0.5
+                if self.color is not None and not _has_box(probe, self.color) and not stale:
                     last_psig = None
                     if self.entries:
                         self.process(None, None, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
@@ -195,14 +199,28 @@ class ClassicOverlay:
             else:                           # learn from the centre (where subtitles are), not the neon at the sides
                 w = rgb.shape[1]
                 color = box_color(rgb[::3, int(w * 0.3):int(w * 0.7):3])
-            boxes = find_boxes(rgb, color=color) if color is not None else []
-            # subtitles are centred; notifications / map labels / menus at the sides are not
-            boxes = [b for b in boxes if abs((b[0] + b[2]) / 2 - source_w / 2) <= source_w * 0.14][:MAX_BOXES]
+            def centred(bs):
+                # subtitles are centred; notifications / map labels / menus at the sides are not
+                return [b for b in bs if abs((b[0] + b[2]) / 2 - source_w / 2) <= source_w * 0.14][:MAX_BOXES]
+            boxes = centred(find_boxes(rgb, color=color)) if color is not None else []
+            if not boxes and color_hint is not None and now - self._last_box_t > STALE_COLOR:
+                # the remembered box colour finds nothing for a while (another game, a semi-transparent
+                # background, learnt at a bad moment): try the colour of this picture; it is only kept
+                # once a subtitle is really read in such a box
+                w = rgb.shape[1]
+                fresh = box_color(rgb[::3, int(w * 0.3):int(w * 0.7):3])
+                if fresh is not None:
+                    found = centred(find_boxes(rgb, color=fresh))
+                    if found:
+                        color, boxes = fresh, found
+                        self._relearn = fresh
         used: set[int] = set()          # entries settled this frame
         pending: set[int] = set()       # entries matched by position but whose box must be read
         todo = []
         changed = False
         self.stats["boxes"] += len(boxes)
+        if boxes:
+            self._last_box_t = now
         for box in boxes:
             sig = _sig(rgb, box)
             # same picture as a known box (it only moved, e.g. pushed up by a new speaker): carry it over
@@ -267,9 +285,10 @@ class ClassicOverlay:
                 used.add(id(e))                          # unreadable this frame: the box stays covered
                 e.last_seen = now
                 continue
-            if lines and self.color is None:
+            if lines and (self.color is None or self._relearn is not None):
                 self.color = color          # learn the box colour only from a box that held a subtitle
                 self._save_color(color)     # …and remember it: next start covers from the first frame
+                self._relearn = None
             if lines:
                 reads.append((e, box, sig, lines, " ".join(f"{sp}: {t}" if sp else t for sp, t in lines), ti))
         # a box pushed up by a new speaker carries its text along: it gets its old entry back first,

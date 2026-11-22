@@ -42,8 +42,8 @@ open(p, 'w').write(s)
 p = 'site/feed/index.json'; d = json.load(open(p))
 base = "https://rolandhrvth.hu/subbridge/dl/"
 d["latest"] = {"version": v, "url": "https://rolandhrvth.hu/subbridge/#download",
-               "notes": {"hu": "Windows: a magyar felirat kattintás nélkül megjelenik (F11 teljes képernyőn is), több monitornál is a helyén van, és a felirat-réteg egy váratlan hibától sem áll le.",
-                         "en": "Windows: translations show without clicking into the game (also in F11 fullscreen), land on the right spot with several monitors, and the overlay no longer stops on an unexpected error."},
+               "notes": {"hu": "A magyar felirat akkor is megjelenik a játékon, ha a program korábban rossz dobozszínt jegyzett meg (pl. áttetsző feliratháttér, másik játék) – magától újratanulja.",
+                         "en": "On-screen translations also appear when a wrong subtitle box colour was remembered earlier (e.g. semi-transparent background, another game) – it re-learns it by itself."},
                "files": {"windows": {"url": base + f"SubBridge-{v}-windows-setup.exe", "sha256": sw},
                          "linux-deb": {"url": base + f"subbridge_{v}_amd64.deb", "sha256": sd}}}
 d["news"].insert(0, {"id": f"{v}-release", "date": "2026-11-22",
