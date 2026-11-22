@@ -544,6 +544,7 @@ class MainWindow(QMainWindow):
             def closed():
                 sess.set_audio(self.profile.device_audio_id, False)
                 self.gameview = None
+            sess.framegen_wanted = self.profile.framegen
             self.gameview = GameView(sess, on_close=closed)
             self.gameview.scale = self.profile.overlay_scale
             sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)

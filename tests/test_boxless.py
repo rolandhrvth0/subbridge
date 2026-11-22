@@ -51,3 +51,29 @@ def test_dark_patch_is_not_a_box():
     blocks, _, _ = read_blocks(scene(["Everybody on the ground, now!"], dark_patch=True, seed=2),
                                ocr, PrepOptions(), 60, True)
     assert blocks and similarity(blocks[0].text, "Everybody on the ground, now!") > 0.9, blocks
+
+
+def _driving(shift):
+    """Bright streaks rushing past behind a still subtitle (street lights, lane marks)."""
+    rng = np.random.default_rng(5)
+    w, h = 1920, 290
+    img = np.full((h, w, 3), 40, np.uint8)
+    for _ in range(140):
+        x, y = int(rng.integers(0, w)), int(rng.integers(0, h))
+        ln, th = int(rng.integers(8, 30)), int(rng.integers(2, 5))
+        x = (x + shift) % (w - 40)
+        img[y:y + th, x:x + ln] = 235
+    im = Image.fromarray(img)
+    d = ImageDraw.Draw(im)
+    f = ImageFont.truetype(FONT, 30)
+    t = "Keep your eyes on the road, man."
+    tw = d.textlength(t, font=f)
+    d.text(((w - tw) / 2, 150), t, font=f, fill=(250, 250, 250), stroke_width=2, stroke_fill=(20, 20, 20))
+    return np.asarray(im)
+
+
+def test_moving_background_is_filtered():
+    from subbridge.engine import read_lines_ex
+    a, b = _driving(0), _driving(37)
+    with_prev, *_ = read_lines_ex(b, ocr, PrepOptions(), 60, True, prev=a)
+    assert with_prev and similarity(with_prev[0].text, "Keep your eyes on the road, man.") > 0.9, with_prev

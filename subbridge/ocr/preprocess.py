@@ -200,7 +200,16 @@ def text_mask(rgb: np.ndarray, opts: PrepOptions, background: float | None = Non
     return mx >= thr
 
 
-def glyph_mask(rgb: np.ndarray) -> np.ndarray:
+def motion_level(rgb: np.ndarray, prev: np.ndarray | None) -> float:
+    """How much the picture behind the subtitles moves (mean grey change, 0–255; ~1–3 static, 10+ driving)."""
+    if prev is None or prev.shape != rgb.shape:
+        return 0.0
+    a = rgb[::4, ::4].astype(np.int16).mean(axis=2)
+    b = prev[::4, ::4].astype(np.int16).mean(axis=2)
+    return float(np.abs(a - b).mean())
+
+
+def glyph_mask(rgb: np.ndarray, prev: np.ndarray | None = None) -> np.ndarray:
     """Box-less subtitles: white glyphs straight on the game picture. Hysteresis (sure-white seeds grow
     into the anti-aliased stroke edges, so thin letters like i/l/n survive), then connected components
     that are glyph-sized are kept (walls, sky, lamps and HUD icons are not), then only rows where many
@@ -214,10 +223,19 @@ def glyph_mask(rgb: np.ndarray) -> np.ndarray:
     mn = np.minimum(np.minimum(r, g), b)
     sat = np.maximum(np.maximum(r, g), b) - mn
     mx = mn + sat
+    still = None
+    if prev is not None and prev.shape == a.shape and motion_level(a, prev) > 6:
+        # moving picture (driving, fast camera, drunk wobble): subtitles stand still while everything
+        # behind them moves – keep only bright pixels that were bright at the same place a moment ago
+        p = prev
+        pmx = np.maximum(np.maximum(p[..., 0], p[..., 1]), p[..., 2]).astype(np.int16)
+        still = np.abs(mx.astype(np.int16) - pmx) < 40
     white_s, white_w = (mn >= 205) & (sat < 45), (mn >= 150) & (sat < 60)
     # coloured speaker names ("Stranger:" in yellow/blue/…): bright AND clearly coloured
     col_s, col_w = (mx >= 200) & (sat >= 90), (mx >= 150) & (sat >= 70)
     strong, weak = white_s | col_s, white_w | col_w
+    if still is not None:
+        strong, weak = strong & still, weak & still
     if cv2 is None:                                   # numpy fallback: grow the seeds a few pixels
         m = strong
         for _ in range(3):
@@ -241,12 +259,13 @@ def glyph_mask(rgb: np.ndarray) -> np.ndarray:
     return k & near[:, None]
 
 
-def boxless_blocks(rgb: np.ndarray, mask: np.ndarray | None = None) -> list[tuple[int, int, int, int]]:
+def boxless_blocks(rgb: np.ndarray, mask: np.ndarray | None = None, prev: np.ndarray | None = None
+                   ) -> list[tuple[int, int, int, int]]:
     """Text blocks (x0, y0, x1, y1) of box-less subtitles, top to bottom: rows of glyphs are grouped
     into blocks (a two-line subtitle stays one block, an objective line below is its own), and in
     every block only the cluster nearest to the centre is kept (subtitles are centred; logos and HUD
     sit at the sides)."""
-    k = glyph_mask(rgb) if mask is None else mask
+    k = glyph_mask(rgb, prev) if mask is None else mask
     h, w = k.shape
     on = k.sum(axis=1) > 8
     runs, start = [], None

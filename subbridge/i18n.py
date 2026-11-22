@@ -174,6 +174,9 @@ STRINGS = {
         "card_none": "Válaszd ki a capture cardot képforrásnak, és itt megjelennek a formátumai.",
         "card_audio": "Hangbemenet", "card_audio_auto": "Automatikus (a kártya saját hangja)",
         "card_sound": "Hang lejátszása a Játéknézetben",
+        "card_fg": "Simított mozgás (képkocka-generálás 30 → 60 fps)",
+        "card_fg_hint": "30 fps-es játéknál minden második képet a SubBridge számolja ki a mozgásból – "
+                        "folyamatosabb kép, kb. 20 ms plusz késés. A Játéknézetben a G gomb ki-be kapcsolja.",
         "card_sound_hint": "Passthrough nélküli kártyánál így hallod a játékot a gépen.",
         "err_card_usb2": "A capture card USB 2-es porton van, ezért csak kis felbontásban (720p) megy. Dugd egy USB 3-as (kék vagy USB-C) portba.",
         "err_card_black": "Nem jön kép a capture cardról. PS5-ön kapcsold ki a HDCP-t (Beállítások › Rendszer › HDMI) és a HDR-t, a felbontást pedig állítsd 1080p-re (Képernyő és videó). Ellenőrizd a HDMI-kábelt és az USB 3-as portot.",
@@ -378,6 +381,9 @@ STRINGS = {
         "card_none": "Select the capture card as the source and its formats appear here.",
         "card_audio": "Audio input", "card_audio_auto": "Automatic (the card's own audio)",
         "card_sound": "Play sound in the Game View",
+        "card_fg": "Smooth motion (frame generation 30 → 60 fps)",
+        "card_fg_hint": "For 30 fps games SubBridge computes every second picture from the motion – "
+                        "smoother picture, about 20 ms extra delay. Press G in the Game View to toggle.",
         "card_sound_hint": "With cards without passthrough this is how you hear the game on the PC.",
         "err_card_usb2": "The capture card is on a USB 2 port, so it only works at low resolution (720p). Plug it into a USB 3 (blue or USB-C) port.",
         "err_card_black": "No picture from the capture card. On PS5 turn off HDCP (Settings › System › HDMI) and HDR, and set the resolution to 1080p (Screen and Video). Check the HDMI cable and the USB 3 port.",

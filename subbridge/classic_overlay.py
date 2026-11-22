@@ -77,7 +77,7 @@ def _bars_w(rgb: np.ndarray) -> int:
     return min(left, right)
 
 
-def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int]]:
+def _text_boxes(rgb: np.ndarray, source_w: int, prev: np.ndarray | None = None) -> list[tuple[int, int, int, int]]:
     """Subtitles without a background box: the centred white text blocks of the band (subtitle and,
     below it, an objective line are separate blocks; the overlay draws its own box for each).
     `source_w` is the width of the game picture (without side bars), centred in the band."""
@@ -85,7 +85,7 @@ def _text_boxes(rgb: np.ndarray, source_w: int) -> list[tuple[int, int, int, int
     h, w = rgb.shape[:2]
     cx0, cx1 = max(0, int(w / 2 - source_w * 0.36)), min(w, int(w / 2 + source_w * 0.36))
     c = rgb[:, cx0:cx1]
-    gm = glyph_mask(c)
+    gm = glyph_mask(c, prev[:, cx0:cx1] if prev is not None and prev.shape == rgb.shape else None)
     out = []
     for x0, y0, x1, y1 in boxless_blocks(c, gm):
         dens = float(gm[y0:y1, x0:x1].mean())
@@ -139,6 +139,7 @@ class ClassicOverlay:
         self._last_box_t = time.time()       # last time a subtitle box was found
         # for the live status in the main window: when each state was last seen (0 = never)
         self._t = dict(no_window=0.0, not_front=0.0, front=0.0, box=0.0, cover=0.0, error=0.0)
+        self._prev_band = None               # previous subtitle band (moving-background filter)
         self._relearn = None                 # box colour being re-learnt (kept once a subtitle is read)
         from concurrent.futures import ThreadPoolExecutor
         self.pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ovtr")   # never queues behind others
@@ -214,6 +215,7 @@ class ClassicOverlay:
                     continue
                 self.stats["read"] += 1
                 self.process(rgb, origin, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
+                self._prev_band = rgb
             except Exception:  # noqa: BLE001  – never let the overlay thread die silently
                 self.stats["errors"] += 1
                 self._t["error"] = time.time()
@@ -268,7 +270,7 @@ class ClassicOverlay:
                         self._relearn = fresh
             if not boxes:
                 # no box at all (outlined / semi-transparent subtitles): cover the text itself
-                boxes = _text_boxes(rgb, pic_w)
+                boxes = _text_boxes(rgb, pic_w, self._prev_band)
                 textbox = bool(boxes)
         used: set[int] = set()          # entries settled this frame
         pending: set[int] = set()       # entries matched by position but whose box must be read
@@ -333,7 +335,7 @@ class ClassicOverlay:
 
         reads = []
         for ti, (e, box, sig) in enumerate(todo):
-            lines = self._read(rgb, box, ocr, opts, min_conf, lang, textbox)
+            lines = self._read(rgb, box, ocr, opts, min_conf, lang, textbox, self._prev_band)
             if not lines and ti in prov:                 # nothing readable after all
                 self.entries.remove(prov.pop(ti))
                 changed = True
@@ -491,10 +493,12 @@ class ClassicOverlay:
         return next((i for i in range(MAX_BOXES) if i not in taken), None)
 
     @staticmethod
-    def _read(rgb, box, ocr, opts, min_conf, lang, textbox=False):
+    def _read(rgb, box, ocr, opts, min_conf, lang, textbox=False, prev=None):
         if textbox:                                   # no box behind the text: plain text binarisation
+            from .ocr.preprocess import glyph_mask
             x0, y0, x1, y1 = box
-            im = binarize(rgb[y0:y1, x0:x1], opts)
+            pc = prev[y0:y1, x0:x1] if prev is not None and prev.shape == rgb.shape else None
+            im = binarize(rgb[y0:y1, x0:x1], opts, mask=glyph_mask(rgb[y0:y1, x0:x1], pc))
         else:
             im = prepare_boxes(rgb, [box], opts)[0]
         text = clean(" ".join(ln.text for ln in ocr.recognize(im) if ln.confidence >= min_conf))

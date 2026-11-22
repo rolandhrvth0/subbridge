@@ -67,7 +67,7 @@ def read_lines(rgb: np.ndarray, ocr, opts: PrepOptions, min_conf: int, speaker: 
 
 
 def read_lines_ex(rgb, ocr, opts: PrepOptions, min_conf: int, speaker: bool, lang: str = "en", color_hint=None,
-                  boxed_only: bool = False):
+                  boxed_only: bool = False, prev=None):
     """Like read_lines, plus the index of the box every line came from (-1: no box mode).
     boxed_only: the game is known to draw subtitle boxes – no box means no subtitle, skip the costly
     whole-region OCR (that fallback is for outlined, box-less subtitles)."""
@@ -100,7 +100,7 @@ def read_lines_ex(rgb, ocr, opts: PrepOptions, min_conf: int, speaker: bool, lan
         boxes, color = [], None          # a dark patch of the scene looked like a box: read it box-less
     if boxless:
         # box-less subtitles: OCR each centred text block on its own (subtitle, objective line …)
-        gm = glyph_mask(rgb)
+        gm = glyph_mask(rgb, prev)          # prev: earlier picture, filters a moving background
         images = [binarize(rgb[y0:y1, x0:x1], opts, mask=gm[y0:y1, x0:x1])
                   for x0, y0, x1, y1 in boxless_blocks(rgb, gm)]
     else:
@@ -574,6 +574,7 @@ class Engine:
         if p.engine == "argos" and not installed_models().get((p.source_lang, p.target_lang)):
             self.cb.status("running", "Az offline fordítómodell nincs letöltve.", "no_model")
         frames, t_stat, ocr_ms = 0, time.time(), 0.0
+        prev_rgb = None
         empty_frames = 0
         last_sig, last_ocr = None, 0.0
         box_hits = 0              # subtitles read from boxes so far: after a few, box-less frames are skipped
@@ -645,7 +646,9 @@ class Engine:
             last_sig, last_ocr = sig, t0
             t1 = time.time()
             lines, boxes, color, line_box = read_lines_ex(rgb, ocr, opts, min_conf, p.split_speaker,
-                                                          p.source_lang, color_hint, boxed_only=box_hits >= 3)
+                                                          p.source_lang, color_hint, boxed_only=box_hits >= 3,
+                                                          prev=prev_rgb)
+            prev_rgb = rgb
             if boxes and lines:
                 box_hits += 1
             ocr_ms += (time.time() - t1) * 1000

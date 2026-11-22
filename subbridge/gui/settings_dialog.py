@@ -377,6 +377,10 @@ class SettingsDialog(QDialog):
         self._row(f, tr("card_audio"), self.cmb_audio)
         self.chk_card_sound = QCheckBox(tr("card_sound"), checked=self.p.device_audio)
         self._row(f, "", self.chk_card_sound, tr("card_sound_hint"))
+        from ..framegen import available as fg_available
+        self.chk_fg = QCheckBox(tr("card_fg"), checked=self.p.framegen and fg_available())
+        self.chk_fg.setEnabled(fg_available())
+        self._row(f, "", self.chk_fg, tr("card_fg_hint"))
         return w
 
     def _page_glossary(self):
@@ -508,6 +512,7 @@ class SettingsDialog(QDialog):
         p.device_format = self.cmb_fmt.currentData() or ""
         p.device_audio_id = self.cmb_audio.currentData() or ""
         p.device_audio = self.chk_card_sound.isChecked()
+        p.framegen = self.chk_fg.isChecked() if self.chk_fg.isEnabled() else p.framegen
         p.overlay_scale = float(self.cmb_ov_size.currentData() or 1.0)
 
         net_before = (st.port, st.require_pin, st.https, st.pin, st.token)

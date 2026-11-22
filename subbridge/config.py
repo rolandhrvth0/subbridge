@@ -46,7 +46,8 @@ class Profile:
     zones: list[dict] = field(default_factory=list)
     game_phone: bool = True              # translate the in-game phone (chats, posts, news, replies)
     overlay_scale: float = 1.0
-    learn_mode: bool = False             # show the original (small) under the translation on the game
+    learn_mode: bool = False
+    framegen: bool = True                # Game View: generate in-between frames (30 fps game -> 60 fps)             # show the original (small) under the translation on the game
 
     @classmethod
     def from_dict(cls, d: dict) -> "Profile":
