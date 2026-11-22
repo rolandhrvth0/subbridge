@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "0.1.3-release",
+      "date": "2026-11-22",
+      "title": {
+        "hu": "Megjelent a SubBridge 0.1.3",
+        "en": "SubBridge 0.1.3 is out"
+      },
+      "body": {
+        "hu": "Windows: a magyar felirat kattintás nélkül megjelenik (F11 teljes képernyőn is), több monitornál is a helyén van, és a felirat-réteg egy váratlan hibától sem áll le.",
+        "en": "Windows: translations show without clicking into the game (also in F11 fullscreen), land on the right spot with several monitors, and the overlay no longer stops on an unexpected error."
+      }
+    },
+    {
       "id": "0.1.2-release",
       "date": "2026-11-22",
       "title": {
@@ -102,20 +114,20 @@
     }
   },
   "latest": {
-    "version": "0.1.2",
+    "version": "0.1.3",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Windows: a magyar felirat akkor is megjelenik, ha a Remote Play a streamet külön ablakban mutatja. Plusz minden 0.1.1-es javítás.",
-      "en": "Windows: the translation now also shows when the Remote Play app streams in a separate window. Plus all 0.1.1 fixes."
+      "hu": "Windows: a magyar felirat kattintás nélkül megjelenik (F11 teljes képernyőn is), több monitornál is a helyén van, és a felirat-réteg egy váratlan hibától sem áll le.",
+      "en": "Windows: translations show without clicking into the game (also in F11 fullscreen), land on the right spot with several monitors, and the overlay no longer stops on an unexpected error."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.2-windows-setup.exe",
-        "sha256": "78f9c46e15f4a93a3e6ba32bdc7c5e2cba826adabd1be1ebf35957ac8e3ba442"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-0.1.3-windows-setup.exe",
+        "sha256": "74511eec59da250850893e3530a4c80e96d16d9a82b09e3139ea25f4fdb371ee"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.2_amd64.deb",
-        "sha256": "74b7ea02c30db082012492770ef22068a94820572c8ce7ead48b5280997505d2"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_0.1.3_amd64.deb",
+        "sha256": "8fde8b5494f1750af76bb5c7a3cff1a573583096025cde55c4313abef0c88339"
       }
     }
   }
