@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.1.2-release",
+      "date": "2026-11-23",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.1.2",
+        "en": "SubBridge 1.1.2 is out"
+      },
+      "body": {
+        "hu": "Okosabb szövegfelismerés: a tipikus betűtévesztéseket (pl. „maney” → „money”, „yeu” → „you”) a SubBridge magától kijavítja fordítás előtt, így pontosabb a magyar szöveg. Nevekhez és szlenghez nem nyúl. (Az 1.1 újdonságai: villogásmentes feliratok több beszélőnél, doboz nélküli feliratok, GPS-szűrés, gyors Windows-felismerés, 60 fps Játéknézet.)",
+        "en": "Smarter text recognition: typical letter mix-ups (e.g. \"maney\" → \"money\", \"yeu\" → \"you\") are fixed automatically before translation, so translations are more accurate. Names and slang are left alone. (New in 1.1: flicker-free subtitles with several speakers, box-less subtitles, GPS filtering, fast Windows recognition, 60 fps Game View.)"
+      }
+    },
+    {
       "id": "1.1.1-release",
       "date": "2026-11-23",
       "title": {
@@ -210,24 +222,24 @@
     }
   },
   "latest": {
-    "version": "1.1.1",
+    "version": "1.1.2",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Finomhangolás valódi játékfelvételeken: a háttér nélküli feliratok doboza már nem ugrál, sötét jelenetekben nem keveri össze a felirattal a sötét foltokat, és a telefonra is tisztább, teljes mondatok mennek. Ha az első olvasat hibás volt, a jobb olvasat magától kicseréli. (Az 1.1 újdonságai: villogásmentes feliratok több beszélőnél, doboz nélküli feliratok, GPS-szűrés, gyors Windows-felismerés, 60 fps Játéknézet.)",
-      "en": "Fine-tuned on real gameplay footage: the box of box-less subtitles no longer jumps, dark scene patches are not mistaken for subtitle boxes, and cleaner full sentences reach the phone. A garbled first read is replaced by a better one automatically. (New in 1.1: flicker-free subtitles with several speakers, box-less subtitles, GPS filtering, fast Windows recognition, 60 fps Game View.)"
+      "hu": "Okosabb szövegfelismerés: a tipikus betűtévesztéseket (pl. „maney” → „money”, „yeu” → „you”) a SubBridge magától kijavítja fordítás előtt, így pontosabb a magyar szöveg. Nevekhez és szlenghez nem nyúl. (Az 1.1 újdonságai: villogásmentes feliratok több beszélőnél, doboz nélküli feliratok, GPS-szűrés, gyors Windows-felismerés, 60 fps Játéknézet.)",
+      "en": "Smarter text recognition: typical letter mix-ups (e.g. \"maney\" → \"money\", \"yeu\" → \"you\") are fixed automatically before translation, so translations are more accurate. Names and slang are left alone. (New in 1.1: flicker-free subtitles with several speakers, box-less subtitles, GPS filtering, fast Windows recognition, 60 fps Game View.)"
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.1-windows-setup.exe",
-        "sha256": "24b395348c8b95748807db2e6d7cbe6786a744167d4502d98e4fd5d4a91e26fd"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.2-windows-setup.exe",
+        "sha256": "8279b8bba1365a672437989efe7cbf9649320dccf1679ea4e94ffebc27eb76b3"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.1_amd64.deb",
-        "sha256": "9c385b9da9965994602d45600e32c5bf0b77c4e0430f54c65ef9d2e81769dea0"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.2_amd64.deb",
+        "sha256": "08603deb2ebc172d301bc2146243b933cc599597cf27154327799bfacd74433b"
       }
     },
     "rollout": {
-      "start": 1795395809,
+      "start": 1795396434,
       "hours": 24.0,
       "from": 20
     }
