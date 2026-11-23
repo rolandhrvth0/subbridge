@@ -31,6 +31,14 @@ feliratot jelenít meg.
   kiemelve, felolvasás (TTS) is kérhető.
 - **Játékbeli telefon fordítása.** Üzenetek, chatek, közösségi posztok, hírek és válaszgombok – a játékban elővett
   telefon mellett és a saját telefonodon is.
+- **Dobozos és doboz nélküli feliratok.** Solid háttérnél azonnal letakarja az angolt; háttér nélküli feliratot is
+  felismer (saját dobozba írja a fordítást), bármilyen betűmérettel. Több beszélőnél sem villog: egy sor csak két
+  egyező olvasás után és kész fordítással jelenik meg.
+- **Mozgásálló.** Autózás, gyors kamera, részeg-effekt közben a mozgó hátteret kiszűri (képkockák összevetése);
+  a GPS-navigáció szövegét kihagyja.
+- **Simított mozgás (30 → 60 fps)** a capture cardos Játéknézetben – a köztes képeket optikai folyammal számolja
+  (OpenCV, videokártya nélkül, ~15 ms/kocka 1080p-n). A Játéknézetben a **G** gomb kapcsolja.
+- **Windowson beépített szövegfelismerő** (Windows.Media.Ocr) – egy felirat ~6 ms.
 - **Fordítási zónák.** Súgódobozok, feladatszövegek, értesítések – mindegyik külön területként.
 - **Capture card támogatás.** Bármilyen USB-s HDMI-rögzítő (UVC): Elgato, olcsó 4K HDMI→USB adapterek. Beépített
   **Játéknézet** a passthrough nélküli kártyákhoz: teljes képernyő, hang, magyar felirat a képben.
@@ -99,6 +107,14 @@ Real footage (Linux · Remote Play (chiaki-ng) · PS5): see the pictures above a
 - **Conversation view on the phone** – a colour per speaker, newest line large, lines still on screen highlighted,
   optional read-aloud.
 - **In-game phone translation** – messages, chats, social posts, news and reply buttons.
+- **Boxed and box-less subtitles** – Solid boxes are covered instantly; box-less subtitles are read too (the
+  translation gets its own box), any text size. No flicker with several speakers: a line shows only after two
+  matching reads, with its translation ready.
+- **Motion-proof** – while driving / with fast camera moves the moving background is filtered out by comparing
+  frames; GPS directions are skipped.
+- **Smooth motion (30 → 60 fps)** in the capture card Game View – in-between frames from optical flow (OpenCV,
+  CPU only, ~15 ms per 1080p frame). Toggle with **G**.
+- **Windows: built-in text recogniser** (Windows.Media.Ocr) – ~6 ms per subtitle.
 - **Translation zones** – help boxes, objectives, notifications.
 - **Capture cards** – any UVC HDMI capture device; built-in **Game View** (full screen, sound, translated subtitles)
   for cards without passthrough.

@@ -11,6 +11,8 @@ linked projects. Components under the LGPL are used as separate, replaceable dyn
 | [Qt 6 / PySide6](https://www.qt.io/qt-for-python) | user interface, video capture (Qt Multimedia) | LGPL-3.0 |
 | [FFmpeg](https://ffmpeg.org) (bundled with Qt Multimedia) | video decoding | LGPL-2.1+ |
 | [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) + `eng.traineddata` ([tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast)) | text recognition | Apache-2.0 |
+| [OpenCV](https://opencv.org) (`opencv-python-headless`) | box-less subtitle detection, frame generation (optical flow) | Apache-2.0 |
+| [PyWinRT](https://github.com/pywinrt/pywinrt) (`winrt-*`, Windows only) | Windows built-in text recognition | MIT |
 | [tesserocr](https://github.com/sirfz/tesserocr) | Tesseract binding | MIT |
 | [Leptonica](http://www.leptonica.org) | image library used by Tesseract | BSD-2-Clause |
 | [CTranslate2](https://github.com/OpenNMT/CTranslate2) | offline translation runtime | MIT |
