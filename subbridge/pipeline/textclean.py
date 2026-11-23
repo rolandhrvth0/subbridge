@@ -80,6 +80,51 @@ def clean(text: str) -> str:
     return t.strip()
 
 
+_NAV = re.compile(r"^(?:U-?Turn|Turn|Keep|Bear|Take|Merge|Exit|Continue|Head)\b.{0,30}?\b(?:Left|Right|Straight|ft|m|mi|km|yd)\b",
+                  re.IGNORECASE)
+
+
+def is_navigation(text: str) -> bool:
+    """GPS directions under the minimap/at the bottom ("Turn Left 108 ft"): the distance changes every
+    frame – never a subtitle."""
+    return bool(_NAV.match(text.strip()))
+
+
+_SHORT_OK = {"I", "A", "Ok", "No", "So", "Oh", "Hi", "Yo", "Mr", "Dr", "Ms", "Uh", "Um", "Ah", "Go", "Me", "We",
+             "He", "My", "Be", "Do", "If", "It", "Is", "In", "On", "At", "Up", "Us", "An", "As", "By", "Or", "To"}
+
+
+def strip_ocr_junk(text: str, lang: str = "en") -> str:
+    """Specks read as letters in front of a sentence ("a Fy Yeah, that's…", "aa 2 Yeah", "x «gf »Yeah",
+    "breakdown. ee This Giorgio…"): at a sentence start, up to 4 short tokens that are not a
+    capitalised word, followed by a capitalised word, are dropped."""
+    toks = text.split(" ")
+    out: list[str] = []
+    i = 0
+    while i < len(toks):
+        start = not out or re.search(r"[.!?…]$", out[-1])
+        if start:
+            j = i
+            while j < len(toks) and j - i < 4:
+                bare = re.sub(r"[^A-Za-z0-9']", "", toks[j])
+                short_cap = bare[:1].isupper() and len(bare) <= 2 and bare not in _SHORT_OK and \
+                    not is_word(bare.lower(), lang)                     # "Fy", "Ee"
+                if len(bare) > 3 or re.fullmatch(r"\d{2,}", bare) or \
+                        (bare[:1].isupper() and not short_cap and (len(bare) > 1 or bare in ("I", "A"))):
+                    break
+                j += 1
+            if i < j < len(toks) and toks[j][:1].isupper() is False:
+                m = re.search(r"[A-Z]", toks[j])         # "»Yeah," – junk glued to the word
+                if m and len(re.sub(r"[^A-Za-z]", "", toks[j][:m.start()])) <= 3:
+                    toks[j] = toks[j][m.start():]
+            if i < j < len(toks) and toks[j][:1].isupper() and len(re.sub(r"[^A-Za-z]", "", toks[j])) >= 2 \
+                    and len(toks) - j >= 2:
+                i = j                                    # skip the junk run
+        out.append(toks[i])
+        i += 1
+    return " ".join(out)
+
+
 def strip_trailing_junk(text: str, lang: str = "en") -> str:
     """'Move it! 4' / 'Let's go! gags' / 'be a pussy! Wi' -> drop the junk after the last sentence end."""
     m = re.search(r"^(.*[.!?…\"])\s+(\S.{0,12})$", text)
@@ -106,7 +151,7 @@ def word_ratio(text: str, lang: str = "en") -> float:
 def is_dialogue(line: Line, lang: str = "en") -> bool:
     """Reject HUD/menu/noise. Dialogue has real words and normal casing."""
     body = line.text
-    if not has_real_text(body):
+    if not has_real_text(body) or is_navigation(body):
         return False
     toks = _WORD_RE.findall(body)
     lower = sum(ch.islower() for ch in body)
@@ -179,7 +224,7 @@ def split_lines(text: str, enabled: bool = True, lang: str = "en") -> list[Line]
         nm = _NOTE.match(body)
         if nm:
             note, body = nm.group(1), body[nm.end():]
-        body = strip_trailing_junk(clean(body), lang)
+        body = strip_trailing_junk(strip_ocr_junk(clean(body), lang), lang)
         if body:
             out.append(Line(ln.speaker, body, note))
     return out

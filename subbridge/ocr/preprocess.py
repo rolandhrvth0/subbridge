@@ -267,7 +267,9 @@ def boxless_blocks(rgb: np.ndarray, mask: np.ndarray | None = None, prev: np.nda
     sit at the sides)."""
     k = glyph_mask(rgb, prev) if mask is None else mask
     h, w = k.shape
-    on = k.sum(axis=1) > 8
+    prof = k.sum(axis=1)
+    # specks (minimap dots, glints) make weak rows that would bridge a subtitle and the objective line
+    on = prof > max(8, 0.08 * float(prof.max() if prof.size else 0))
     runs, start = [], None
     for y, v in enumerate(list(on) + [False]):
         if v and start is None:
@@ -291,6 +293,8 @@ def boxless_blocks(rgb: np.ndarray, mask: np.ndarray | None = None, prev: np.nda
     out = []
     for gr in groups:
         y0, y1 = gr[0][0], gr[-1][1]
+        if y1 - y0 > lh * 5:                           # 4+ lines tall: scenery, not a subtitle
+            continue
         xs = np.where(k[y0:y1].any(axis=0))[0]
         if len(xs) < 3:
             continue

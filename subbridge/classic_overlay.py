@@ -13,6 +13,7 @@ Runs inside the engine thread on the frames the engine already grabs (no second 
 from __future__ import annotations
 
 import logging
+import re
 import time
 from concurrent.futures import TimeoutError as FutTimeout
 from dataclasses import dataclass, field
@@ -30,6 +31,9 @@ YOUNG = 2.5         # s after a new text during which it is re-read …
 YOUNG_EVERY = 0.3   # … this often
 log = logging.getLogger(__name__)
 STALE_COLOR = 4.0   # s without any box before the remembered box colour is re-checked
+_DEBUG_TXT = bool(__import__("os").environ.get("SB_DEBUG_TXT"))
+HOLD_TXT = 1.0      # box-less subtitles: the text is not found on some frames (bright background)
+MIN_SHOW_TXT = 1.6
 ONLINE_WAIT = 0.3   # s the online translator may take; then the offline result shows and stays (no swapping)
 
 
@@ -98,6 +102,26 @@ def _text_boxes(rgb: np.ndarray, source_w: int, prev: np.ndarray | None = None) 
     return out
 
 
+def _fits_text(rgb: np.ndarray, box) -> bool:
+    """A real subtitle box holds its text centred with even margins; a dark patch of the scene that
+    happens to contain (part of) a box-less subtitle does not."""
+    x0, y0, x1, y1 = box
+    c = rgb[y0:y1, x0:x1]
+    if c.size == 0:
+        return False
+    mx = c.max(axis=2)
+    bright = mx > min(175, float(np.median(mx)) + 70)        # grey 2nd-speaker lines count too
+    cols = np.where(bright.sum(axis=0) >= 2)[0]
+    rows = np.where(bright.sum(axis=1) >= 2)[0]
+    if len(cols) < 4 or len(rows) < 4:
+        return True                      # nothing readable yet (box just appeared): judged later by OCR
+    w, h = x1 - x0, y1 - y0
+    left, right = cols[0], w - 1 - cols[-1]
+    top, bottom = rows[0], h - 1 - rows[-1]
+    return abs(left - right) <= max(24, 0.12 * w) and abs(top - bottom) <= max(10, 0.4 * h) \
+        and (cols[-1] - cols[0]) >= 0.45 * w
+
+
 def _sig_diff(a, b) -> float:
     if a is None or b is None or a.shape != b.shape:
         return 255.0
@@ -120,6 +144,7 @@ class Entry:
     alive: bool = True
     px: int = 0
     requested: int = -1                           # gen whose translation was requested
+    textless: bool = False                        # box-less subtitle: own box, shown only when translated
 
 
 class ClassicOverlay:
@@ -140,6 +165,9 @@ class ClassicOverlay:
         # for the live status in the main window: when each state was last seen (0 = never)
         self._t = dict(no_window=0.0, not_front=0.0, front=0.0, box=0.0, cover=0.0, error=0.0)
         self._prev_band = None               # previous subtitle band (moving-background filter)
+        self._txt_pending: list = []         # box-less reads waiting for a second, matching read
+        self._txt_seen_t = 0.0               # last time a box-less subtitle was read
+        self._hits = {"box": [], "txt": []}  # recent reads per subtitle style (majority decides)
         self._relearn = None                 # box colour being re-learnt (kept once a subtitle is read)
         from concurrent.futures import ThreadPoolExecutor
         self.pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ovtr")   # never queues behind others
@@ -196,7 +224,8 @@ class ClassicOverlay:
                 if self.color is None and now - last_full < 0.3:
                     continue                    # box colour not known yet: full search, but not on every tick
                 stale = now - self._last_box_t > STALE_COLOR and now - last_full >= 0.5
-                if self.color is not None and not _has_box(probe, self.color) and not stale:
+                textless_recent = now - self._txt_seen_t < 30      # this game shows box-less subtitles
+                if self.color is not None and not _has_box(probe, self.color) and not stale and not textless_recent:
                     last_psig = None
                     if self.entries:
                         self.process(None, None, band, sw, True, ocr, opts, min_conf, p.source_lang, self.color)
@@ -255,7 +284,7 @@ class ClassicOverlay:
             def centred(bs):
                 # subtitles are centred; notifications / map labels / menus at the sides are not
                 return [b for b in bs if abs((b[0] + b[2]) / 2 - source_w / 2) <= pic_w * 0.14][:MAX_BOXES]
-            boxes = centred(find_boxes(rgb, color=color)) if color is not None else []
+            boxes = centred([b for b in find_boxes(rgb, color=color) if _fits_text(rgb, b)]) if color is not None else []
             textbox = False
             if not boxes and color_hint is not None and now - self._last_box_t > STALE_COLOR:
                 # the remembered box colour finds nothing for a while (another game, a semi-transparent
@@ -264,14 +293,19 @@ class ClassicOverlay:
                 w = rgb.shape[1]
                 fresh = box_color(rgb[::3, int(w * 0.3):int(w * 0.7):3])
                 if fresh is not None:
-                    found = centred(find_boxes(rgb, color=fresh))
+                    found = centred([b for b in find_boxes(rgb, color=fresh) if _fits_text(rgb, b)])
                     if found:
                         color, boxes = fresh, found
                         self._relearn = fresh
+            if boxes and self._mostly_textless(now):
+                boxes = []          # this game's subtitles are box-less: a "box" now is a dark patch of the scene
             if not boxes:
                 # no box at all (outlined / semi-transparent subtitles): cover the text itself
                 boxes = _text_boxes(rgb, pic_w, self._prev_band)
                 textbox = bool(boxes)
+        if textbox:
+            self._process_textless(rgb, boxes, now, ocr, opts, min_conf, lang)
+            return
         used: set[int] = set()          # entries settled this frame
         pending: set[int] = set()       # entries matched by position but whose box must be read
         todo = []
@@ -322,7 +356,9 @@ class ClassicOverlay:
         # cover new boxes and blank changed ones NOW, before the (slower) OCR
         prov: dict[int, Entry] = {}
         for ti, (e, box, _sg) in enumerate(todo):
-            if e is None and not textbox:                # box-less text: cover only once it is read
+            # box-less text, or a "box" that does not hold its text like a subtitle box (a dark patch of the
+            # scene, the GPS panel): cover only once it is read – no empty boxes flashing up
+            if e is None and not textbox and _fits_text(rgb, box) and now - self._txt_seen_t > 30:
                 slot = self._free_slot()
                 if slot is not None:
                     pe = Entry(box, slot, last_seen=now)
@@ -349,6 +385,7 @@ class ClassicOverlay:
                 self._save_color(color)     # …and remember it: next start covers from the first frame
                 self._relearn = None
             if lines:
+                self._hit("box", now)
                 reads.append((e, box, sig, lines, " ".join(f"{sp}: {t}" if sp else t for sp, t in lines), ti))
         # a box pushed up by a new speaker carries its text along: it gets its old entry back first,
         # before the new box below claims that entry by position (no duplicate text, no swap)
@@ -405,12 +442,13 @@ class ClassicOverlay:
         active_entries = [x for x in self.entries if id(x) in used]
         for e in self.entries:
             # an old translation must not cover another box that is on screen now
-            if id(e) not in used and any(min(e.rect[3], u.rect[3]) - max(e.rect[1], u.rect[1]) > 0
-                                         for u in active_entries):
+            if id(e) not in used and not e.textless and any(min(e.rect[3], u.rect[3]) - max(e.rect[1], u.rect[1]) > 0
+                                                            for u in active_entries):
                 e.alive = False
                 changed = True
                 continue
-            if id(e) in used or now - e.last_seen <= HOLD or (e.en and now - e.shown_at <= MIN_SHOW):
+            hold, min_show = (HOLD_TXT, MIN_SHOW_TXT) if e.textless else (HOLD, MIN_SHOW)
+            if id(e) in used or now - e.last_seen <= hold or (e.en and now - e.shown_at <= min_show):
                 keep.append(e)
             else:
                 e.alive = False
@@ -420,6 +458,108 @@ class ClassicOverlay:
             if e.en and not e.hu and e.requested != e.gen and e.lines:
                 e.requested = e.gen
                 self.pool.submit(self._translate_entry, e, e.gen, e.lines, list(self.ctx[-3:]))
+        if changed:
+            self._emit()
+
+    def _hit(self, kind: str, now: float):
+        h = self._hits[kind]
+        h.append(now)
+        while h and now - h[0] > 60:
+            h.pop(0)
+
+    def _mostly_textless(self, now: float) -> bool:
+        box = sum(1 for t in self._hits["box"] if now - t <= 60)
+        txt = sum(1 for t in self._hits["txt"] if now - t <= 60)
+        return txt >= 6 and txt > 3 * box
+
+    def _process_textless(self, rgb, boxes, now, ocr, opts, min_conf, lang):
+        """Box-less subtitles (white text on the picture). Calm by design – this is what people see when
+        several characters talk over a moving scene:
+          * a new text is shown only after two matching reads (fade-in fragments never get out),
+          * nothing is drawn before its translation is ready (no empty boxes flashing),
+          * a shown text is kept while noisy re-reads of it come in; only a clearly new sentence (or the
+            same one grown longer) replaces it, and the old one stays until the new translation is ready."""
+        from .engine import name_color
+        self.stats["boxes"] += len(boxes)
+        self._last_box_t = self._t["box"] = now
+        reads = []
+        for box in boxes:
+            lines = self._read(rgb, box, ocr, opts, min_conf, lang, True, self._prev_band)
+            if lines:
+                reads.append((box, lines, " ".join(f"{sp}: {t}" if sp else t for sp, t in lines)))
+        if reads:
+            self._txt_seen_t = now
+            self._hit("txt", now)
+        if _DEBUG_TXT:
+            log.warning("txt %.2f boxes=%s reads=%s", now, boxes, [r[2] for r in reads])
+        changed = False
+        seen: set[int] = set()
+        pend = self._txt_pending
+        self._txt_pending = []
+        for box, lines, text in reads:
+            nt = normalise_for_compare(text)
+            e = None
+            for x in self.entries:
+                if not x.textless or not x.alive or id(x) in seen:
+                    continue
+                nx = normalise_for_compare(x.en)
+                if similarity(text, x.en) >= 0.6 or (len(nt) >= 6 and (nt in nx or nx in nt)):
+                    e = x
+                    break
+            confirmed = any(similarity(text, q) >= 0.85 for q, _b in pend)
+            if e is not None:
+                seen.add(id(e))
+                e.last_seen = now
+                if abs(box[1] - e.rect[1]) > 10 or abs(box[3] - e.rect[3]) > 10 or _grown(box, e.rect):
+                    e.rect = box
+                    changed = True
+                nx = normalise_for_compare(e.en)
+                if len(nt) > len(nx) + 6 and confirmed:          # finished typing in / got longer
+                    e.en, e.lines = text, lines
+                    e.gen += 1
+                    e.requested = e.gen
+                    self.pool.submit(self._translate_entry, e, e.gen, lines, list(self.ctx[-3:]))
+                elif len(nt) > len(nx) + 6:
+                    self._txt_pending.append((text, box))
+                continue
+            if not confirmed:
+                self._txt_pending.append((text, box))
+                continue
+            # a typing-in fragment ("Itt van a"): game subtitles end with punctuation
+            if not re.search(r"[.!?…,\"')\]]$", text) and len(text.split()) < 7:
+                self._txt_pending.append((text, box))
+                continue
+            # another reading at the place of a subtitle that only just appeared: a misread of it
+            if any(x.textless and x.alive and now - (x.shown_at or now) < 1.2
+                   and min(x.rect[3], box[3]) - max(x.rect[1], box[1]) > 0.5 * (box[3] - box[1])
+                   for x in self.entries):
+                continue
+            if sum(1 for x in self.entries if x.textless) >= 3:
+                continue
+            slot = self._free_slot()
+            if slot is None:
+                continue
+            x0, y0, x1, y1 = box
+            e = Entry(box, slot, en=text, lines=lines, last_seen=now, shown_at=now, last_ocr=now, textless=True)
+            e.name_rgb = name_color(rgb[y0:y1, x0:x1])
+            e.px = self._steady_px(self._px(y1 - y0, float(np.percentile(self.line_hs, 25)) if self.line_hs else None))
+            e.gen = e.requested = 1
+            self.entries.append(e)
+            seen.add(id(e))
+            self.ctx = (self.ctx + [t for _, t in lines])[-6:]
+            self.pool.submit(self._translate_entry, e, e.gen, lines, list(self.ctx[-4:-len(lines) or None]))
+        # expiry; a translated newer text replaces an older one at the same place
+        keep = []
+        for e in self.entries:
+            newer = any(o is not e and o.textless and o.hu and o.shown_at > e.shown_at
+                        and min(e.rect[3], o.rect[3]) - max(e.rect[1], o.rect[1]) > 0 for o in self.entries)
+            hold, min_show = (HOLD_TXT, MIN_SHOW_TXT) if e.textless else (HOLD, MIN_SHOW)
+            if not newer and (id(e) in seen or now - e.last_seen <= hold or now - e.shown_at <= min_show):
+                keep.append(e)
+            else:
+                e.alive = False
+                changed = True
+        self.entries = keep
         if changed:
             self._emit()
 
@@ -519,6 +659,8 @@ class ClassicOverlay:
             hu_lines = [(tp.speaker(sp, tgt), t) for sp, t in hu_lines]     # "Hoodlum" -> "Huligán"
             if e.gen != gen or not e.alive or hu_lines == e.hu:
                 return
+            if e.textless and not e.hu:
+                e.shown_at = time.time()          # box-less: visible from now on
             e.hu = hu_lines
             self._emit()
 
@@ -593,8 +735,8 @@ class ClassicOverlay:
         learn = bool(getattr(getattr(self.eng, "profile", None), "learn_mode", False))   # original under the translation
         out = []
         for e in self.entries:
-            if not e.alive:
-                continue
+            if not e.alive or (e.textless and not e.hu):
+                continue                    # box-less: never an empty box – nothing to hide behind it
             x0, y0, x1, y1 = e.rect
             out.append({"slot": e.slot, "rect": (gx + x0, gy + y0, gx + x1, gy + y1),
                         "bg": tuple(int(v) for v in self.color) if self.color is not None else (24, 24, 30),

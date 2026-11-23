@@ -106,7 +106,7 @@ def main():
             vis[txt] = t
         for txt in set(vis) - texts:
             spans.append((txt, vis.pop(txt), t))
-        s = " | ".join(f"[{sl}] y{r[1]} {txt[:70]}" for sl, r, txt in sorted(bx, key=lambda b: b[1][1]))
+        s = " | ".join(f"[{sl}] {r[0]}-{r[2]}x{r[1]}-{r[3]} {txt[:70]}" for sl, r, txt in sorted(bx, key=lambda b: b[1][1]))
         if s != last:
             print(f"{a.start + t:7.2f}  {s or '-'}")
             last = s

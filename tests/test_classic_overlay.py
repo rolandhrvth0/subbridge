@@ -163,7 +163,14 @@ def test_boxless_subtitle_is_covered(overlay):
     mp.setattr(co.ClassicOverlay, "_read", staticmethod(lambda *a, **k: [("Boobie", "Man, I got a date tonight!")]))
     rgb = _outlined_frame()
     ov.process(rgb, (0, 0), (0, 0, 1000, 200), 1000, True, None, None, 0, "en", None)
-    assert len(ov.entries) == 1 and out and out[-1]
+    assert not ov.entries                                        # one read is not enough (fade-in fragments)
+    ov.process(rgb, (0, 0), (0, 0, 1000, 200), 1000, True, None, None, 0, "en", None)
+    assert len(ov.entries) == 1
+    assert not out or not out[-1]                                # no empty box before the translation
+    e = ov.entries[0]
+    e.hu = [("Boobie", "Ember, randim van ma este!")]
+    ov._emit()
+    assert out[-1] and out[-1][0]["lines"][0][1].startswith("Ember")
     assert ov.color is None                                      # no box colour learnt from a box-less subtitle
 
 
@@ -185,7 +192,10 @@ def test_ultrawide_wrap_width(overlay):
     mp.setattr(co.ClassicOverlay, "_read", staticmethod(lambda *a, **k: [("Boobie", "Man, I got a date tonight!")]))
     rgb = np.zeros((200, 1400, 3), np.uint8)
     rgb[:, 200:1200] = _outlined_frame()
-    ov.process(rgb, (0, 0), (0, 0, 1400, 200), 1400, True, None, None, 0, "en", None)
+    for _ in range(2):
+        ov.process(rgb, (0, 0), (0, 0, 1400, 200), 1400, True, None, None, 0, "en", None)
+    ov.entries[0].hu = [("Boobie", "Ember!")]
+    ov._emit()
     assert out and out[-1] and out[-1][0]["max_w"] == int(1000 * 0.5 / 0.62)
 
 
