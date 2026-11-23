@@ -13,7 +13,8 @@ import numpy as np
 
 from .capture import CaptureError, CaptureSource
 from .config import AppSettings, Profile
-from .ocr.preprocess import PrepOptions, binarize, box_color, boxless_blocks, find_boxes, glyph_mask, prepare_boxes
+from .ocr.preprocess import (PrepOptions, binarize, box_color, boxless_blocks, find_boxes, fits_text, glyph_mask,
+                             prepare_boxes)
 from .ocr import create_ocr
 from .paths import config_dir
 from .pipeline.textclean import Line, is_dialogue, normalise_for_compare, split_lines
@@ -67,7 +68,7 @@ def read_lines(rgb: np.ndarray, ocr, opts: PrepOptions, min_conf: int, speaker: 
 
 
 def read_lines_ex(rgb, ocr, opts: PrepOptions, min_conf: int, speaker: bool, lang: str = "en", color_hint=None,
-                  boxed_only: bool = False, prev=None):
+                  boxed_only: bool = False, prev=None, prefer_textless: bool = False):
     """Like read_lines, plus the index of the box every line came from (-1: no box mode).
     boxed_only: the game is known to draw subtitle boxes – no box means no subtitle, skip the costly
     whole-region OCR (that fallback is for outlined, box-less subtitles)."""
@@ -79,6 +80,9 @@ def read_lines_ex(rgb, ocr, opts: PrepOptions, min_conf: int, speaker: bool, lan
         if not boxes:
             color = box_color(rgb[::3, ::3])
             boxes = find_boxes(rgb, color=color) if color is not None else []
+    # a "box" that does not hold its text like a subtitle box is a dark patch of the scene; in a game whose
+    # subtitles are box-less any box is (prefer_textless)
+    boxes = [] if prefer_textless else [b for b in boxes if fits_text(rgb, b)]
     if not boxes and boxed_only:
         return [], [], color, []
 
@@ -575,9 +579,10 @@ class Engine:
             self.cb.status("running", "Az offline fordítómodell nincs letöltve.", "no_model")
         frames, t_stat, ocr_ms = 0, time.time(), 0.0
         prev_rgb = None
+        hits_box: list[float] = []     # subtitles read in boxes / box-less in the last minute (majority decides)
+        hits_txt: list[float] = []
         empty_frames = 0
         last_sig, last_ocr = None, 0.0
-        box_hits = 0              # subtitles read from boxes so far: after a few, box-less frames are skipped
         tick = max(p.interval_ms, 150) / 1000         # phone feed; the PC overlay has its own 70 ms loop
         # screen capture would read our own overlay; devices draw it in the Game View
         overlay_ok = p.overlay and p.source_kind in ("window", "device")
@@ -645,12 +650,17 @@ class Engine:
                 continue
             last_sig, last_ocr = sig, t0
             t1 = time.time()
-            lines, boxes, color, line_box = read_lines_ex(rgb, ocr, opts, min_conf, p.split_speaker,
-                                                          p.source_lang, color_hint, boxed_only=box_hits >= 3,
-                                                          prev=prev_rgb)
+            hits_box[:] = [t for t in hits_box if t0 - t < 60]
+            hits_txt[:] = [t for t in hits_txt if t0 - t < 60]
+            lines, boxes, color, line_box = read_lines_ex(
+                rgb, ocr, opts, min_conf, p.split_speaker, p.source_lang, color_hint,
+                boxed_only=len(hits_box) >= 3 and not hits_txt, prev=prev_rgb,
+                prefer_textless=len(hits_txt) >= 6 and len(hits_txt) > 3 * len(hits_box))
             prev_rgb = rgb
             if boxes and lines:
-                box_hits += 1
+                hits_box.append(t0)
+            elif lines:
+                hits_txt.append(t0)
             ocr_ms += (time.time() - t1) * 1000
             if color is not None:
                 color_hint = color

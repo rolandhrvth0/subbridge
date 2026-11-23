@@ -259,6 +259,28 @@ def glyph_mask(rgb: np.ndarray, prev: np.ndarray | None = None) -> np.ndarray:
     return k & near[:, None]
 
 
+def fits_text(rgb: np.ndarray, box) -> bool:
+    """A real subtitle box holds its text centred with even margins; a dark patch of the scene that
+    happens to contain (part of) a box-less subtitle does not."""
+    x0, y0, x1, y1 = box
+    c = rgb[y0:y1, x0:x1]
+    if c.size == 0:
+        return False
+    mx = c.max(axis=2)
+    bright = mx > min(175, float(np.median(mx)) + 70)        # grey 2nd-speaker lines count too
+    cols = np.where(bright.sum(axis=0) >= 2)[0]
+    rows = np.where(bright.sum(axis=1) >= 2)[0]
+    if len(cols) < 4 or len(rows) < 4:
+        return True                      # nothing readable yet (box just appeared): judged later by OCR
+    w, h = x1 - x0, y1 - y0
+    left, right = cols[0], w - 1 - cols[-1]
+    top, bottom = rows[0], h - 1 - rows[-1]
+    # real subtitle boxes hug their text: on recordings it fills >= 53 % of the height and >= 88 % of the
+    # width; a dark patch of the scene around a box-less line is much larger than the text
+    return abs(left - right) <= max(24, 0.12 * w) and abs(top - bottom) <= max(10, 0.4 * h) \
+        and (cols[-1] - cols[0]) >= 0.75 * w and (rows[-1] - rows[0]) >= 0.4 * h
+
+
 def boxless_blocks(rgb: np.ndarray, mask: np.ndarray | None = None, prev: np.ndarray | None = None
                    ) -> list[tuple[int, int, int, int]]:
     """Text blocks (x0, y0, x1, y1) of box-less subtitles, top to bottom: rows of glyphs are grouped

@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .ocr.preprocess import binarize, box_color, find_boxes, prepare_boxes
+from .ocr.preprocess import binarize, box_color, find_boxes, fits_text as _fits_text, prepare_boxes
 from .pipeline.dedup import similarity
 from .pipeline.textclean import clean, has_real_text, is_dialogue, normalise_for_compare, split_lines, word_ratio
 
@@ -100,26 +100,6 @@ def _text_boxes(rgb: np.ndarray, source_w: int, prev: np.ndarray | None = None) 
             continue
         out.append(box)
     return out
-
-
-def _fits_text(rgb: np.ndarray, box) -> bool:
-    """A real subtitle box holds its text centred with even margins; a dark patch of the scene that
-    happens to contain (part of) a box-less subtitle does not."""
-    x0, y0, x1, y1 = box
-    c = rgb[y0:y1, x0:x1]
-    if c.size == 0:
-        return False
-    mx = c.max(axis=2)
-    bright = mx > min(175, float(np.median(mx)) + 70)        # grey 2nd-speaker lines count too
-    cols = np.where(bright.sum(axis=0) >= 2)[0]
-    rows = np.where(bright.sum(axis=1) >= 2)[0]
-    if len(cols) < 4 or len(rows) < 4:
-        return True                      # nothing readable yet (box just appeared): judged later by OCR
-    w, h = x1 - x0, y1 - y0
-    left, right = cols[0], w - 1 - cols[-1]
-    top, bottom = rows[0], h - 1 - rows[-1]
-    return abs(left - right) <= max(24, 0.12 * w) and abs(top - bottom) <= max(10, 0.4 * h) \
-        and (cols[-1] - cols[0]) >= 0.45 * w
 
 
 def _sig_diff(a, b) -> float:

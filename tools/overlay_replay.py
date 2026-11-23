@@ -90,7 +90,12 @@ def main():
             log.append((time.time() - cap.t0, [(b.get("slot"), tuple(b["rect"]),
                                                 " / ".join(f"{s}: {t}" if s else t for s, t in b["lines"]))
                                                for b in boxes]))
-    eng = Engine(st, cap, Callbacks(overlay=ov))
+    phone = []
+
+    def sub(m):
+        if m.get("type") == "line" and cap.t0:
+            phone.append((time.time() - cap.t0, m.get("action"), m.get("original", "")))
+    eng = Engine(st, cap, Callbacks(overlay=ov, subtitle=sub))
     eng.start(7)
     time.sleep(len(frames) / a.fps + 1.0)
     eng.shutdown()
@@ -115,7 +120,11 @@ def main():
     flashes = [s for s in spans if s[2] - s[1] < 1.0]
     summary = {"shown": len(spans), "flashes": len(flashes), "max_boxes": max_boxes,
                "emits": len(log), "seconds": round(len(frames) / a.fps, 1)}
+    summary["phone_lines"] = sum(1 for _t, act, _o in phone if act == "new")
     print(json.dumps(summary))
+    if os.environ.get("SB_PHONE"):
+        for t, act, o in phone:
+            print(f"   phone {a.start + t:7.2f} {act:7} {o[:90]}")
     for f in flashes[:15]:
         print(f"   flash {f[2] - f[1]:.2f}s  {f[0][:80]}")
     if a.out:
