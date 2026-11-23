@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.1.4-release",
+      "date": "2026-11-23",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.1.4",
+        "en": "SubBridge 1.1.4 is out"
+      },
+      "body": {
+        "hu": "Capture card: új „Legkisebb késés” mód (alapból be): olcsó kártyáknál a 60 fps-es módot választja (pl. 720p60 az 1080p30 helyett), nem vár a képernyőfrissítésre, és kis pufferrel játssza a hangot, így az nem késik a kép mögött. A frame gen MJPEG-es (olcsó) kártyáknál is helyesen szűri a dupla képkockákat. Javítva: Linuxon a Játéknézet bezárása MangoHuddal összeomlást okozhatott; a Lossless Scaling (lsfg-vk) Linuxon egyelőre kísérleti, nem kapcsol be magától.",
+        "en": "Capture cards: new \"Lowest latency\" mode (on by default): on cheap cards it picks the 60 fps mode (e.g. 720p60 instead of 1080p30), does not wait for the screen refresh and plays the sound with small buffers so it never lags behind the picture. Frame generation now drops repeated frames on MJPEG (cheap) cards too. Fixed: on Linux closing the Game View could crash with MangoHud; Lossless Scaling (lsfg-vk) on Linux is experimental for now and no longer switched on automatically."
+      }
+    },
+    {
       "id": "1.1.3-release",
       "date": "2026-11-23",
       "title": {
@@ -234,24 +246,24 @@
     }
   },
   "latest": {
-    "version": "1.1.3",
+    "version": "1.1.4",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Új frame gen a capture cardos Játéknézethez: a nézet mostantól a videokártyán fut, és a köztes képeket a kártyád saját technológiája számolja – Linuxon Lossless Scaling (lsfg-vk), Windowson AMD Fluid Motion Frames vagy NVIDIA Smooth Motion (RTX 40/50). A SubBridge kiszűri a kártya dupla képkockáit, így a 30 fps-es játékból valódi, sima 60 fps lesz, kisebb késéssel. Beállítás: Beállítások › Capture card › Képkocka-generálás.",
-      "en": "New frame generation for the capture card Game View: it now runs on the graphics card and the in-between frames come from your card's own technology – Lossless Scaling (lsfg-vk) on Linux, AMD Fluid Motion Frames or NVIDIA Smooth Motion (RTX 40/50) on Windows. SubBridge drops the card's repeated frames, so a 30 fps game becomes real, smooth 60 fps with less delay. Settings › Capture card › Frame generation."
+      "hu": "Capture card: új „Legkisebb késés” mód (alapból be): olcsó kártyáknál a 60 fps-es módot választja (pl. 720p60 az 1080p30 helyett), nem vár a képernyőfrissítésre, és kis pufferrel játssza a hangot, így az nem késik a kép mögött. A frame gen MJPEG-es (olcsó) kártyáknál is helyesen szűri a dupla képkockákat. Javítva: Linuxon a Játéknézet bezárása MangoHuddal összeomlást okozhatott; a Lossless Scaling (lsfg-vk) Linuxon egyelőre kísérleti, nem kapcsol be magától.",
+      "en": "Capture cards: new \"Lowest latency\" mode (on by default): on cheap cards it picks the 60 fps mode (e.g. 720p60 instead of 1080p30), does not wait for the screen refresh and plays the sound with small buffers so it never lags behind the picture. Frame generation now drops repeated frames on MJPEG (cheap) cards too. Fixed: on Linux closing the Game View could crash with MangoHud; Lossless Scaling (lsfg-vk) on Linux is experimental for now and no longer switched on automatically."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.3-windows-setup.exe",
-        "sha256": "ba2c3c1cf683a2806bb5898ca4fc22f25194b46249c15064a98cf01a5e838c00"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.4-windows-setup.exe",
+        "sha256": "8b6ed7a0ff3908e7ed52f2a7f9de4c291a98c7f6933adb60896f05a2f79692ed"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.3_amd64.deb",
-        "sha256": "799aede18e78e8549a8f77e8b22de8bc3a7cf9a8b62ea437d5878169620668a4"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.4_amd64.deb",
+        "sha256": "e57c0bd4514496f9a60cf9ce007ad8d9758ec208d83f4291c92b0c6a618fcd88"
       }
     },
     "rollout": {
-      "start": 1795428774,
+      "start": 1795431668,
       "hours": 24.0,
       "from": 20
     }
