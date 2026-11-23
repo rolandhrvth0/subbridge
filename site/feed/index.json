@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.1.1-release",
+      "date": "2026-11-23",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.1.1",
+        "en": "SubBridge 1.1.1 is out"
+      },
+      "body": {
+        "hu": "Finomhangolás valódi játékfelvételeken: a háttér nélküli feliratok doboza már nem ugrál, sötét jelenetekben nem keveri össze a felirattal a sötét foltokat, és a telefonra is tisztább, teljes mondatok mennek. Ha az első olvasat hibás volt, a jobb olvasat magától kicseréli. (Az 1.1 újdonságai: villogásmentes feliratok több beszélőnél, doboz nélküli feliratok, GPS-szűrés, gyors Windows-felismerés, 60 fps Játéknézet.)",
+        "en": "Fine-tuned on real gameplay footage: the box of box-less subtitles no longer jumps, dark scene patches are not mistaken for subtitle boxes, and cleaner full sentences reach the phone. A garbled first read is replaced by a better one automatically. (New in 1.1: flicker-free subtitles with several speakers, box-less subtitles, GPS filtering, fast Windows recognition, 60 fps Game View.)"
+      }
+    },
+    {
       "id": "1.1.0-release",
       "date": "2026-11-23",
       "title": {
@@ -198,24 +210,24 @@
     }
   },
   "latest": {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Nagy frissítés: a több beszélős jeleneteknél már nem ugrál és nem villog a felirat – minden mondat egyszer, nyugodtan jelenik meg. Doboz nélküli (háttér nélküli) feliratokat is szinte mind felismeri, autózás és gyors mozgás közben is. A GPS-navigáció („Turn Left 100 ft”) nem kerül többé a feliratok közé. Windowson beépített, sokkal gyorsabb szövegfelismerő (a nagy késés megszűnt). Capture cardnál új: simított mozgás, 30 fps-es játékból 60 fps (G gomb).",
-      "en": "Big update: with several speakers the subtitles no longer jump or flicker – every line shows once, calmly. Box-less subtitles (no background) are now read almost always, even while driving or with fast camera moves. GPS directions (\"Turn Left 100 ft\") no longer get mixed into subtitles. Windows: built-in, much faster text recogniser (the long delay is gone). Capture cards: new smooth motion, 30 fps games shown at 60 fps (G key)."
+      "hu": "Finomhangolás valódi játékfelvételeken: a háttér nélküli feliratok doboza már nem ugrál, sötét jelenetekben nem keveri össze a felirattal a sötét foltokat, és a telefonra is tisztább, teljes mondatok mennek. Ha az első olvasat hibás volt, a jobb olvasat magától kicseréli. (Az 1.1 újdonságai: villogásmentes feliratok több beszélőnél, doboz nélküli feliratok, GPS-szűrés, gyors Windows-felismerés, 60 fps Játéknézet.)",
+      "en": "Fine-tuned on real gameplay footage: the box of box-less subtitles no longer jumps, dark scene patches are not mistaken for subtitle boxes, and cleaner full sentences reach the phone. A garbled first read is replaced by a better one automatically. (New in 1.1: flicker-free subtitles with several speakers, box-less subtitles, GPS filtering, fast Windows recognition, 60 fps Game View.)"
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.0-windows-setup.exe",
-        "sha256": "0c2bd4d39169fe438b4c869567e435bf9f1587ae90b048f287ad809d172ad702"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.1-windows-setup.exe",
+        "sha256": "24b395348c8b95748807db2e6d7cbe6786a744167d4502d98e4fd5d4a91e26fd"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.0_amd64.deb",
-        "sha256": "37f49b44dfb041675b6948bb5c31e1fc93b0876f658f7af871c56e39b58b05ca"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.1_amd64.deb",
+        "sha256": "9c385b9da9965994602d45600e32c5bf0b77c4e0430f54c65ef9d2e81769dea0"
       }
     },
     "rollout": {
-      "start": 1795393530,
+      "start": 1795395809,
       "hours": 24.0,
       "from": 20
     }
