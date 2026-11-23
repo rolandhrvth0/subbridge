@@ -47,6 +47,7 @@ class Profile:
     game_phone: bool = True              # translate the in-game phone (chats, posts, news, replies)
     overlay_scale: float = 1.0
     learn_mode: bool = False
+    low_latency: bool = True             # capture card: 60 fps formats first, no vsync wait, small audio buffers
     framegen: str = "auto"               # Game View frame generation: auto|lsfg|afmf|smooth|builtin|off (fgmodes)             # show the original (small) under the translation on the game
 
     @classmethod

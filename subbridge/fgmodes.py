@@ -56,8 +56,8 @@ class FgInfo:
         """'auto' -> the best technique available here; an unavailable choice falls back too."""
         if mode in self.choices() and mode != "auto":
             return mode
-        if sys.platform.startswith("linux") and self.lsfg_ok:
-            return "lsfg"
+        # lsfg-vk 2.0 (dev builds) fails to start in Qt Quick and mpv on current Mesa/loader versions
+        # ("failed to get device proc addr for vkCreateSwapchainKHR"), so it is opt-in, not automatic
         if sys.platform == "win32" and self.gpu.vendor == "amd":
             return "afmf"
         if sys.platform == "win32" and self.gpu.vendor == "nvidia":

@@ -515,7 +515,8 @@ class MainWindow(QMainWindow):
         if dev_id and dev_id not in self.devices.sessions:
             p = self.profile
             try:
-                sess = self.devices.sessions[dev_id] = DeviceSession(dev_id, p.device_audio_id, False, p.device_format)
+                sess = self.devices.sessions[dev_id] = DeviceSession(dev_id, p.device_audio_id, False, p.device_format,
+                                                                               p.low_latency)
                 if sess.usb2:
                     self._show_alert(tr("err_card_usb2"), "capture_card")
             except CaptureError as e:
@@ -548,7 +549,8 @@ class MainWindow(QMainWindow):
             try:
                 from .gameview_gpu import GpuGameView, gpu_available
                 if gpu_available():
-                    self.gameview = GpuGameView(sess, on_close=closed, mode=self.profile.framegen)
+                    self.gameview = GpuGameView(sess, on_close=closed, mode=self.profile.framegen,
+                                                low_latency=self.profile.low_latency)
             except Exception:  # noqa: BLE001  – no Qt Quick / GPU: the classic view still works
                 import logging
                 logging.getLogger(__name__).exception("GPU Game View failed, using the classic one")

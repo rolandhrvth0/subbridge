@@ -21,7 +21,7 @@ from ..i18n import tr
 _API_SET = False
 
 
-def prepare_graphics(mode: str) -> str:
+def prepare_graphics(mode: str, low_latency: bool = True) -> str:
     """Choose the graphics API (and load lsfg-vk) before the first Qt Quick window. Returns the
     frame generation mode really in use (lsfg cannot be loaded once Vulkan is running)."""
     global _API_SET
@@ -29,7 +29,18 @@ def prepare_graphics(mode: str) -> str:
     mode = fi.resolve(mode)
     if not _API_SET:
         _API_SET = True
+        if low_latency and mode != "lsfg":
+            # do not wait for the screen refresh before showing a new picture (Vulkan: mailbox where the
+            # driver has it – no tearing; lsfg-vk paces its own frames, so it keeps the default)
+            from PySide6.QtGui import QSurfaceFormat
+            f = QSurfaceFormat.defaultFormat()
+            f.setSwapInterval(0)
+            QSurfaceFormat.setDefaultFormat(f)
         if sys.platform.startswith("linux"):
+            # MangoHud (often enabled for every Vulkan program via MANGOHUD=1) crashes when a Qt Quick Vulkan
+            # window is destroyed – that would take SubBridge down when the Game View closes
+            import os
+            os.environ["DISABLE_MANGOHUD"] = "1"
             if mode == "lsfg" and not fgmodes.enable_lsfg(fi):
                 mode = "off"
             QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.Vulkan)
@@ -42,8 +53,9 @@ def prepare_graphics(mode: str) -> str:
 
 
 class GpuGameView(QQuickView):
-    def __init__(self, session, on_close=None, mode: str = "auto"):
-        self.mode = prepare_graphics(mode)
+    def __init__(self, session, on_close=None, mode: str = "auto", low_latency: bool = True):
+        self.mode = prepare_graphics(mode, low_latency)
+        self.low_latency = low_latency
         super().__init__()
         self.session = session
         self.on_close = on_close
@@ -74,8 +86,14 @@ class GpuGameView(QQuickView):
 
     # ------------------------------------------------------------------ frame generation
     def _badge_text(self) -> str:
-        return {"lsfg": tr("fg_lsfg_on"), "afmf": tr("fg_afmf_hint"), "smooth": tr("fg_smooth_hint"),
+        fmt = getattr(self.session, "format", "") or ""
+        src = fmt.split(":")[0].replace("x", "×") if fmt else ""
+        parts = [p for p in (src, tr("ll_on") if self.low_latency else "") if p]
+        fg = {"lsfg": tr("fg_lsfg_on"), "afmf": tr("fg_afmf_hint"), "smooth": tr("fg_smooth_hint"),
                 "builtin": tr("fg_builtin_on"), "off": ""}.get(self.mode, "")
+        if fg and self.mode != "off":
+            fg += "  ·  " + tr("fg_lag_note")
+        return "  ·  ".join(parts + ([fg] if fg else []))
 
     def _start_builtin(self):
         from PySide6.QtMultimedia import QVideoFrame

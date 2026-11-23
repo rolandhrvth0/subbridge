@@ -21,7 +21,8 @@ def test_resolve_prefers_vendor_tech(monkeypatch):
     assert fgmodes.FgInfo(fgmodes.Gpu("nvidia")).resolve("auto") == "smooth"
     monkeypatch.setattr(sys, "platform", "linux")
     fi = fgmodes.FgInfo(fgmodes.Gpu("amd"), "/x/layer.json", "/x/Lossless.dll")
-    assert fi.resolve("auto") == "lsfg" and fi.resolve("afmf") == "lsfg"
+    assert fi.resolve("auto") == "off"              # lsfg-vk is opt-in (does not start with Qt Quick yet)
+    assert fi.resolve("lsfg") == "lsfg" and fi.resolve("afmf") == "off"
 
 
 def test_old_bool_setting_migrates():

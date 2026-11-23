@@ -377,6 +377,8 @@ class SettingsDialog(QDialog):
         self._row(f, tr("card_audio"), self.cmb_audio)
         self.chk_card_sound = QCheckBox(tr("card_sound"), checked=self.p.device_audio)
         self._row(f, "", self.chk_card_sound, tr("card_sound_hint"))
+        self.chk_ll = QCheckBox(tr("card_ll"), checked=self.p.low_latency)
+        self._row(f, "", self.chk_ll, tr("card_ll_hint"))
         from .. import fgmodes
         fi = fgmodes.info()
         self.cmb_fg = QComboBox()
@@ -516,6 +518,8 @@ class SettingsDialog(QDialog):
         p.device_audio_id = self.cmb_audio.currentData() or ""
         p.device_audio = self.chk_card_sound.isChecked()
         p.framegen = self.cmb_fg.currentData() or "auto"
+        card_changed = card_changed or p.low_latency != self.chk_ll.isChecked()   # format choice depends on it
+        p.low_latency = self.chk_ll.isChecked()
         p.overlay_scale = float(self.cmb_ov_size.currentData() or 1.0)
 
         net_before = (st.port, st.require_pin, st.https, st.pin, st.token)

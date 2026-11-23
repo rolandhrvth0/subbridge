@@ -12,7 +12,7 @@ import numpy as np
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QImage
 from PySide6.QtMultimedia import (QAudioInput, QAudioOutput, QCamera, QCameraFormat, QMediaCaptureSession,
-                                  QMediaDevices, QVideoFrame, QVideoSink)
+                                  QMediaDevices, QVideoFrame, QVideoFrameFormat, QVideoSink)
 
 from .base import CaptureError, CaptureSource
 
@@ -41,7 +41,7 @@ def format_key(f: QCameraFormat) -> str:
     return f"{r.width()}x{r.height()}@{round(f.maxFrameRate())}:{f.pixelFormat().name.replace('Format_', '')}"
 
 
-def _best_format(dev, wanted: str = "") -> QCameraFormat | None:
+def _best_format(dev, wanted: str = "", low_latency: bool = True) -> QCameraFormat | None:
     """Capture cards (e.g. 4K HDMI→USB adapters) offer 4K30 / 1440p60 / 1080p60-120 in MJPEG and often
     a raw YUV mode. Best for subtitles + Game View: 1080p at ~60 fps (sharp enough for OCR, smooth, light
     on USB and CPU); raw YUV beats MJPEG (no decoding delay) when the card offers it at that size."""
@@ -56,6 +56,15 @@ def _best_format(dev, wanted: str = "") -> QCameraFormat | None:
     def score(f):
         r = f.resolution()
         h, fps = r.height(), f.maxFrameRate()
+        if low_latency:
+            # cheap USB 2 cards: 1080p only at 30 fps, 720p at 60 – a frame every 16 ms instead of 33 ms
+            # matters more for input lag than the sharper picture (OCR reads 720p subtitles fine)
+            return (fps >= 50 and h >= 700,
+                    h == 1080,
+                    -abs(h - 1080),
+                    -abs(min(fps, 120) - 60),
+                    f.pixelFormat().name in _UNCOMPRESSED,
+                    r.width())
         return (h == 1080,                       # 1080p first
                 -abs(h - 1080),                  # otherwise the closest size
                 fps >= 50,                       # smooth enough for the Game View
@@ -103,11 +112,61 @@ def guess_audio(video_name: str):
     return None
 
 
+class LowLatencyAudio:
+    """Card sound straight to the speakers with ~30 ms buffers (Qt's built-in passthrough buffers far
+    more, so the sound lags behind the picture). Old data is dropped rather than queued: lag never grows."""
+
+    def __init__(self, in_dev):
+        self.in_dev = in_dev
+        self.src = self.sink = self.io_in = self.io_out = None
+
+    def start(self) -> bool:
+        from PySide6.QtMultimedia import QAudioSink, QAudioSource
+        fmt = self.in_dev.preferredFormat()
+        out_dev = QMediaDevices.defaultAudioOutput()
+        if not out_dev.isFormatSupported(fmt):
+            fmt = out_dev.preferredFormat()
+            if not self.in_dev.isFormatSupported(fmt):
+                return False
+        self.src = QAudioSource(self.in_dev, fmt)
+        self.sink = QAudioSink(out_dev, fmt)
+        self.src.setBufferSize(max(256, fmt.bytesForDuration(15000)))
+        self.sink.setBufferSize(max(512, fmt.bytesForDuration(35000)))
+        self.io_out = self.sink.start()
+        self.io_in = self.src.start()
+        if self.io_in is None or self.io_out is None:
+            self.stop()
+            return False
+        self._frame = max(1, fmt.bytesPerFrame())
+        self.io_in.readyRead.connect(self._pump)
+        return True
+
+    def _pump(self):
+        data = self.io_in.readAll()
+        free = self.sink.bytesFree()
+        n = len(data)
+        if n > free:                                   # speakers behind: keep only the newest sound
+            keep = free - free % self._frame
+            data = data[n - keep:] if keep > 0 else b""
+        if data:
+            self.io_out.write(data)
+
+    def stop(self):
+        for x in (self.src, self.sink):
+            try:
+                if x is not None:
+                    x.stop()
+            except Exception:  # noqa: BLE001
+                pass
+        self.src = self.sink = self.io_in = self.io_out = None
+
+
 class DeviceSession(QObject):
     """One open device. Lives in the GUI thread (Qt Multimedia objects must)."""
     frame_ready = Signal()
 
-    def __init__(self, device_id: str, audio_id: str = "", play_audio: bool = False, fmt_key: str = ""):
+    def __init__(self, device_id: str, audio_id: str = "", play_audio: bool = False, fmt_key: str = "",
+                 low_latency: bool = True):
         super().__init__()
         dev = next((d for d in QMediaDevices.videoInputs() if bytes(d.id()).decode(errors="ignore") == device_id), None)
         if dev is None:
@@ -115,7 +174,9 @@ class DeviceSession(QObject):
         self.device_id = device_id
         self.name = dev.description()
         self.camera = QCamera(dev)
-        fmt = _best_format(dev, fmt_key)
+        self.low_latency = low_latency
+        self._ll_audio = None
+        fmt = _best_format(dev, fmt_key, low_latency)
         self.format = format_key(fmt) if fmt is not None else ""
         self.usb2 = usb2_limited(dev)
         self.formats = [format_key(f) for f in usable_formats(dev)]
@@ -143,6 +204,20 @@ class DeviceSession(QObject):
 
     # sound passthrough (for capture cards without HDMI passthrough)
     def set_audio(self, audio_id: str, play: bool):
+        if self._ll_audio is not None:
+            self._ll_audio.stop()
+            self._ll_audio = None
+        if play and getattr(self, "low_latency", False):
+            dev = next((d for d in QMediaDevices.audioInputs() if bytes(d.id()).decode(errors="ignore") == audio_id), None) \
+                or guess_audio(self.name)
+            if dev is not None:
+                self.session.setAudioInput(None)
+                self.session.setAudioOutput(None)
+                self.audio_in = self.audio_out = None
+                self._ll_audio = LowLatencyAudio(dev)
+                if self._ll_audio.start():
+                    return
+                self._ll_audio = None
         if not play:
             self.session.setAudioInput(None)
             self.session.setAudioOutput(None)
@@ -173,9 +248,18 @@ class DeviceSession(QObject):
         if not frame.map(QVideoFrame.MapMode.ReadOnly):
             return False
         try:
-            bpl, h = frame.bytesPerLine(0), frame.height()
-            buf = np.frombuffer(frame.bits(0), np.uint8, count=bpl * h).reshape(h, bpl)
-            sig = buf[8:h - 8:12, 16:bpl - 16:24].astype(np.int16)
+            if frame.pixelFormat() == QVideoFrameFormat.PixelFormat.Format_Jpeg:
+                # cheap cards send MJPEG: the bytes differ even for the same picture – decode a 1/8 size
+                # grey thumbnail (libjpeg DCT scaling, ~1 ms at 1080p) and compare that
+                import io
+                from PIL import Image
+                im = Image.open(io.BytesIO(bytes(frame.bits(0)[:frame.mappedBytes(0)])))
+                im.draft("L", (max(1, frame.width() // 8), max(1, frame.height() // 8)))
+                sig = np.asarray(im.convert("L"), np.int16)[2:-2, 2:-2]
+            else:
+                bpl, h = frame.bytesPerLine(0), frame.height()
+                buf = np.frombuffer(frame.bits(0), np.uint8, count=bpl * h).reshape(h, bpl)
+                sig = buf[8:h - 8:12, 16:bpl - 16:24].astype(np.int16)
         except Exception:  # noqa: BLE001
             return False
         finally:
@@ -238,6 +322,9 @@ class DeviceSession(QObject):
 
     def close(self):
         self._extra_sink = None
+        if self._ll_audio is not None:
+            self._ll_audio.stop()
+            self._ll_audio = None
         try:
             self.sink.videoFrameChanged.disconnect(self._on_frame)
         except (RuntimeError, TypeError):
