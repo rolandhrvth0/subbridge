@@ -22,7 +22,7 @@ import numpy as np
 
 from .ocr.preprocess import binarize, box_color, find_boxes, prepare_boxes
 from .pipeline.dedup import similarity
-from .pipeline.textclean import clean, has_real_text, is_dialogue, normalise_for_compare, split_lines
+from .pipeline.textclean import clean, has_real_text, is_dialogue, normalise_for_compare, split_lines, word_ratio
 
 MAX_BOXES = 4
 HOLD = 0.8          # s the translation stays after the original disappeared
@@ -319,6 +319,7 @@ class ClassicOverlay:
             # same picture as a known box (it only moved, e.g. pushed up by a new speaker): carry it over
             # instantly with its translation – no OCR, no blank moment
             mv = next((x for x in self.entries if id(x) not in used | pending and x.en and x.sig is not None
+                       and not x.textless
                        and abs((box[2] - box[0]) - (x.rect[2] - x.rect[0])) <= 8
                        and abs((box[3] - box[1]) - (x.rect[3] - x.rect[1])) <= 6
                        and _sig_diff(sig, x.sig) < 8), None)
@@ -392,7 +393,8 @@ class ClassicOverlay:
         claimed: dict[int, Entry] = {}
         for i, r in enumerate(reads):
             for x in self.entries:
-                if x.en and x not in prov.values() and id(x) not in used and all(c is not x for c in claimed.values()) \
+                if x.en and not x.textless and x not in prov.values() and id(x) not in used \
+                        and all(c is not x for c in claimed.values()) \
                         and similarity(r[4], x.en) >= 0.85:
                     claimed[i] = x
                     break
@@ -510,11 +512,15 @@ class ClassicOverlay:
             if e is not None:
                 seen.add(id(e))
                 e.last_seen = now
-                if abs(box[1] - e.rect[1]) > 10 or abs(box[3] - e.rect[3]) > 10 or _grown(box, e.rect):
+                h_old, h_new = e.rect[3] - e.rect[1], box[3] - box[1]
+                similar_size = 0.75 <= h_new / max(1, h_old) <= 1.33     # noise rows make a block jump
+                if similar_size and (abs(box[1] - e.rect[1]) > 10 or abs(box[3] - e.rect[3]) > 10 or _grown(box, e.rect)):
                     e.rect = box
                     changed = True
                 nx = normalise_for_compare(e.en)
-                if len(nt) > len(nx) + 6 and confirmed:          # finished typing in / got longer
+                better = (confirmed and now - e.shown_at < 2.0 and len(nt) >= len(nx) - 4
+                          and word_ratio(text) > word_ratio(e.en) + 0.15)   # a clean read after a garbled one
+                if better or (len(nt) > len(nx) + 6 and confirmed):      # finished typing in / got longer
                     e.en, e.lines = text, lines
                     e.gen += 1
                     e.requested = e.gen
@@ -560,6 +566,9 @@ class ClassicOverlay:
                 e.alive = False
                 changed = True
         self.entries = keep
+        if _DEBUG_TXT:
+            log.warning("txt entries=%s pend=%s", [(x.en[:30], bool(x.hu), x.textless, x.alive) for x in self.entries],
+                        [q[:30] for q, _b in self._txt_pending])
         if changed:
             self._emit()
 
@@ -620,7 +629,7 @@ class ClassicOverlay:
     def _match(self, box, used):
         best, best_ov = None, 0
         for e in self.entries:
-            if id(e) in used:
+            if id(e) in used or e.textless:       # box-less entries belong to _process_textless only
                 continue
             ov = min(box[3], e.rect[3]) - max(box[1], e.rect[1])
             h = min(box[3] - box[1], e.rect[3] - e.rect[1])
@@ -662,7 +671,10 @@ class ClassicOverlay:
             if e.textless and not e.hu:
                 e.shown_at = time.time()          # box-less: visible from now on
             e.hu = hu_lines
-            self._emit()
+            try:
+                self._emit()
+            except Exception:  # noqa: BLE001
+                log.exception("overlay emit after translation failed")
 
         eng = self.eng
         p = eng.profile
