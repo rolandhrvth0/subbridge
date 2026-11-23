@@ -26,3 +26,16 @@ def test_navigation_is_not_dialogue(t):
 
 def test_real_turn_sentence_stays():
     assert is_dialogue(Line(None, "Turn the car around, now!"), "en")
+
+
+@pytest.mark.parametrize("raw,want", [
+    ("Where's the fuckin' maney?", "Where's the fuckin' money?"),
+    ("See yeu soon.", "See you soon."),
+    ("I was genna werk my way up.", "I was gonna work my way up."),
+    ("We still don't know what's on the hard crive.", "We still don't know what's on the hard drive."),
+    ("Nah, bro, lil homie tryna dip.", "Nah, bro, lil homie tryna dip."),     # street words stay
+    ("Raina and Jason, pre-workout.", "Raina and Jason, pre-workout."),       # names / hyphens stay
+])
+def test_ocr_word_fix(raw, want):
+    from subbridge.pipeline.textclean import fix_ocr_words
+    assert fix_ocr_words(raw) == want

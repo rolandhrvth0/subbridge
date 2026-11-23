@@ -90,6 +90,57 @@ def is_navigation(text: str) -> bool:
     return bool(_NAV.match(text.strip()))
 
 
+# typical OCR letter confusions on game subtitle fonts (wrong -> right), most common first
+_CONFUSE = [("e", "o"), ("a", "o"), ("o", "e"), ("c", "e"), ("c", "d"), ("n", "h"), ("rn", "m"), ("m", "rn"),
+            ("o", "a"), ("e", "a"), ("i", "l"), ("l", "i"), ("u", "o"), ("ii", "ll"), ("0", "o"), ("1", "l"),
+            ("5", "s"), ("vv", "w"), ("cl", "d"), ("li", "h"), ("y", "v"), ("t", "f"), ("f", "t")]
+_SLANG_OK = {"nah", "yeah", "yah", "yo", "bro", "bruh", "lil", "finna", "tryna", "gonna", "wanna", "gotta", "nigga",
+             "niggas", "ya", "yall", "cuz", "homie", "homies", "dope", "ok", "okay", "uh", "um", "hmm", "huh", "aw",
+             "aww", "ey", "ay", "yup", "nope", "naw", "lemme", "gimme", "outta", "kinda", "sorta", "dunno", "imma",
+             "ima", "bae", "fam", "dawg", "shorty", "mama", "papa", "ma", "pa", "hoes", "lotta", "whatcha", "gotcha",
+             "dont", "cant", "wont", "im", "ive", "thats", "whats", "ill", "youre", "theyre", "didnt", "isnt", "aint"}
+
+
+@lru_cache(maxsize=1)
+def common_words() -> frozenset[str]:
+    """~1600 everyday English words (the only targets an OCR fix may produce)."""
+    try:
+        with gzip.open(resource_dir() / "assets" / "wordlist" / "common-en.txt.gz", "rt", encoding="utf-8") as f:
+            return frozenset(w.strip() for w in f if w.strip())
+    except OSError:
+        return frozenset()
+
+
+def fix_ocr_words(text: str, lang: str = "en") -> str:
+    """'Where's the fuckin' maney?' -> 'money', 'werk' -> 'work', 'yeu' -> 'you': a lower-case token that is
+    not a word but becomes exactly one real word by undoing one typical OCR confusion is corrected.
+    Capitalised tokens (names) and known street words are left alone."""
+    common = common_words()
+    if lang != "en" or not english_words() or not common:
+        return text
+
+    def fix(m):
+        w = m.group(0)
+        lw = w.lower()
+        if len(w) < 2 or not w.islower() or lw in _SLANG_OK or is_word(lw, lang):
+            return w
+        for a, b in _CONFUSE:
+            cands = set()
+            i = lw.find(a)
+            while i >= 0:
+                c = lw[:i] + b + lw[i + len(a):]
+                if c in common:
+                    cands.add(c)
+                i = lw.find(a, i + 1)
+            if len(cands) == 1:
+                return cands.pop()
+            if cands:
+                return w                      # ambiguous: leave it
+        return w
+    # whole plain tokens only: never next to OCR symbols ("hote!'s", "te$ting") or inside hyphenated words
+    return re.sub(r"(?<![\w'\-*$¥!@#\[\]|])[a-z0-9]+(?![\w'\-*$¥!@#\[\]|])", fix, text)
+
+
 _SHORT_OK = {"I", "A", "Ok", "No", "So", "Oh", "Hi", "Yo", "Mr", "Dr", "Ms", "Uh", "Um", "Ah", "Go", "Me", "We",
              "He", "My", "Be", "Do", "If", "It", "Is", "In", "On", "At", "Up", "Us", "An", "As", "By", "Or", "To"}
 
@@ -224,7 +275,7 @@ def split_lines(text: str, enabled: bool = True, lang: str = "en") -> list[Line]
         nm = _NOTE.match(body)
         if nm:
             note, body = nm.group(1), body[nm.end():]
-        body = strip_trailing_junk(strip_ocr_junk(clean(body), lang), lang)
+        body = strip_trailing_junk(fix_ocr_words(strip_ocr_junk(clean(body), lang), lang), lang)
         if body:
             out.append(Line(ln.speaker, body, note))
     return out
