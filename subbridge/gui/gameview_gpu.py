@@ -80,7 +80,7 @@ class GpuGameView(QQuickView):
         self.root.setProperty("hint", tr("game_view_hint_gpu"))
         self.root.setProperty("badge", self._badge_text())
         QTimer.singleShot(6000, lambda: self.root.setProperty("hint", ""))
-        QTimer.singleShot(9000, lambda: self.root.setProperty("badge", "") if self.isFullScreen() else None)
+        QTimer.singleShot(9000, lambda: self.root.setProperty("badge", "") if self._is_full() else None)
         self._cursor = QTimer(self, singleShot=True, interval=2000, timeout=lambda: self.setCursor(Qt.BlankCursor))
         # (the closing signal's QQuickCloseEvent cannot be passed to Python: handle the close event instead)
 
@@ -150,7 +150,7 @@ class GpuGameView(QQuickView):
     def keyPressEvent(self, e):
         if e.key() in (Qt.Key_F11, Qt.Key_F):
             self.toggle_full()
-        elif e.key() == Qt.Key_Escape and self.isFullScreen():
+        elif e.key() == Qt.Key_Escape and self._is_full():
             self.showNormal()
         elif e.key() == Qt.Key_G:
             self.root.setProperty("badge", self._badge_text() or tr("fg_off"))
@@ -166,8 +166,13 @@ class GpuGameView(QQuickView):
         self._cursor.start()
         super().mouseMoveEvent(e)
 
+    def _is_full(self) -> bool:
+        # QWindow (unlike QWidget) has no isFullScreen()
+        from PySide6.QtGui import QWindow
+        return self.visibility() == QWindow.Visibility.FullScreen
+
     def toggle_full(self):
-        self.showNormal() if self.isFullScreen() else self.showFullScreen()
+        self.showNormal() if self._is_full() else self.showFullScreen()
 
     def activateWindow(self):
         self.requestActivate()

@@ -5,4 +5,4 @@ APP_ID = "subbridge"            # config dir, desktop file, service name
 APP_TAGLINE_HU = "Játékfeliratok élő fordítása a telefonodra"
 APP_TAGLINE_EN = "Live game subtitle translation on your phone"
 HOMEPAGE = "https://rolandhrvth.hu/subbridge"
-VERSION = "1.1.4"
+VERSION = "1.1.5"
