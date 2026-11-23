@@ -1091,7 +1091,7 @@ class MainWindow(QMainWindow):
         dark = self.settings.theme == "dark"
         return QColor.fromHsl(hues[k], int(255 * (0.75 if dark else 0.65)), int(255 * (0.66 if dark else 0.38))).name()
 
-    OV_COLORS = {"ok": "#3fb950", "reading": "#3fb950", "no_subtitle": "#d29922", "covered": "#d29922",
+    OV_COLORS = {"ok": "#3fb950", "ok_textless": "#3fb950", "reading": "#3fb950", "no_subtitle": "#d29922", "covered": "#d29922",
                  "no_window": "#f85149", "error": "#f85149"}
 
     def _on_stats(self, d):

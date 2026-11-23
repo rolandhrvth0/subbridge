@@ -50,7 +50,12 @@ def test_help_zone_is_read_once_and_covered(tmp_path, monkeypatch):
     subs, ovs = [], []
     eng = Engine(st, Fake(), Callbacks(subtitle=subs.append, overlay=ovs.append))
     eng.start(7)
-    time.sleep(2.5)
+    t0 = time.time()
+    while time.time() - t0 < 20:         # first translation loads the offline model (slow under load)
+        time.sleep(0.25)
+        if any(m.get("type") == "line" and m.get("zone") for m in subs) and any(ovs):
+            time.sleep(1.0)              # … and it must stay one line, not repeat
+            break
     eng.shutdown()
     zone = [m for m in subs if m.get("type") == "line" and m.get("zone")]
     assert len(zone) == 1, subs

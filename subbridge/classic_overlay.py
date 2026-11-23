@@ -582,7 +582,7 @@ class ClassicOverlay:
         if not recent("front"):
             return "no_window" if recent("no_window") else "covered" if recent("not_front") else "idle"
         if recent("cover", 4):
-            return "ok"
+            return "ok_textless" if self._mostly_textless(now) else "ok"
         if recent("box", 4):
             return "reading"
         return "no_subtitle"
