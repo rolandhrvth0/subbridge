@@ -243,7 +243,7 @@ html[lang="en"] [data-hu] { display: none !important; }
       <p data-hu>A Windows beépített szövegfelismerőjét használja – a korábbi nagy késés megszűnt.</p><p data-en>Uses the text recogniser built into Windows – the earlier long delay is gone.</p></div>
     <div class="nc reveal"><div class="num">60<small>fps</small></div>
       <h3 data-hu>Simított mozgás</h3><h3 data-en>Smooth motion</h3>
-      <p data-hu>Capture carddal a 30 fps-es játék 60 fps-sel fut a Játéknézetben – a köztes képeket a SubBridge számolja.</p><p data-en>With a capture card, 30 fps games run at 60 fps in the Game View – SubBridge computes the in-between frames.</p></div>
+      <p data-hu>Capture carddal 30 → 60 fps a Játéknézetben – AMD, NVIDIA vagy Lossless Scaling frame gennel, a videokártyán.</p><p data-en>With a capture card, 30 → 60 fps in the Game View – with AMD, NVIDIA or Lossless Scaling frame generation, on the GPU.</p></div>
   </div>
 </div></section>
 
@@ -335,7 +335,7 @@ html[lang="en"] [data-hu] { display: none !important; }
       <p data-hu>Autózás, gyors kameramozgás, részeg-effekt: a mozgó háttér kiszűrve, a GPS-szöveg kihagyva.</p><p data-en>Driving, fast camera, drunk effect: the moving background is filtered out, GPS text skipped.</p></div>
     <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 12h3l2-4 3 8 2-4h6"/><circle cx="12" cy="12" r="10"/></svg></div>
       <h3 data-hu>Simított mozgás 30 → 60 <span class="tag">új</span></h3><h3 data-en>Smooth motion 30 → 60 <span class="tag">new</span></h3>
-      <p data-hu>Capture cardos Játéknézetben a köztes képkockákat a SubBridge számolja ki.</p><p data-en>In the capture card Game View SubBridge computes the in-between frames.</p></div>
+      <p data-hu>Capture cardos Játéknézet a videokártyán: AMD Fluid Motion Frames, NVIDIA Smooth Motion vagy Lossless Scaling.</p><p data-en>Capture card Game View on the GPU: AMD Fluid Motion Frames, NVIDIA Smooth Motion or Lossless Scaling.</p></div>
     <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 7h6M9 11h4"/></svg></div>
       <h3 data-hu>Játékbeli telefon</h3><h3 data-en>In-game phone</h3>
       <p data-hu>Chatek, posztok, hírek és válaszgombok fordítása.</p><p data-en>Chats, posts, news and reply buttons translated.</p></div>
@@ -413,7 +413,7 @@ html[lang="en"] [data-hu] { display: none !important; }
     <details><summary><span data-hu>Autózás, gyors mozgás, részeg-effekt közben is megy?</span><span data-en>Does it work while driving, with fast camera moves or a drunk effect?</span></summary>
       <p data-hu>Igen. A felirat ilyenkor is egy helyben áll, csak mögötte mozog a kép – a SubBridge az egymás utáni képkockákat összeveti, és csak azt tekinti betűnek, ami nem mozdult. A GPS-navigáció szövegét („Turn Left 100 ft”) felismeri és kihagyja.</p><p data-en>Yes. The subtitle stays still while the picture moves behind it – SubBridge compares consecutive frames and only treats what didn't move as text. GPS directions ("Turn Left 100 ft") are recognised and skipped.</p></details>
     <details><summary><span data-hu>Mi az a simított mozgás (30 → 60 fps)?</span><span data-en>What is smooth motion (30 → 60 fps)?</span></summary>
-      <p data-hu>Capture cardos Játéknézetben a 30 fps-es játékoknál minden második képet a SubBridge számolja ki a mozgásból, így a kép 60 fps-sel, sokkal folyamatosabban fut. Kb. 20 ms plusz késéssel jár, videokártya nem kell hozzá. A Játéknézetben a <b>G</b> gombbal kapcsolhatod ki-be.</p><p data-en>In the capture card Game View, for 30 fps games SubBridge computes every second picture from the motion, so the picture runs at 60 fps, much smoother. About 20 ms extra delay, no graphics card needed. Toggle it with <b>G</b> in the Game View.</p></details>
+      <p data-hu>A capture cardos Játéknézet a videokártyán fut, és a köztes képeket a kártyád saját technológiája számolja: <b>Linuxon a Lossless Scaling (lsfg-vk)</b>, <b>Windowson AMD-n a Fluid Motion Frames</b>, <b>NVIDIA RTX 40/50-en a Smooth Motion</b>. A SubBridge kiszűri a kártya dupla képkockáit, így a 30 fps-es játékból valódi 60 fps lesz. Beállítás: Beállítások › Capture card › Képkocka-generálás (Automatikus).</p><p data-en>The capture card Game View runs on the graphics card and the in-between frames come from your card's own technology: <b>Lossless Scaling (lsfg-vk) on Linux</b>, <b>Fluid Motion Frames on AMD</b> and <b>Smooth Motion on NVIDIA RTX 40/50</b> under Windows. SubBridge drops the card's repeated frames, so a 30 fps game becomes real 60 fps. Settings › Capture card › Frame generation (Automatic).</p></details>
     <details><summary><span data-hu>A beszédet is fordítja?</span><span data-en>Does it translate speech?</span></summary>
       <p data-hu>Nem, a képen megjelenő feliratot fordítja. Kapcsold be a játékban a feliratot (és ha van, a feliratdobozt/hátteret – azzal megy a legjobban).</p><p data-en>No, it translates the subtitles shown on screen. Turn subtitles on in the game (with a background box if available – that works best).</p></details>
     <details><summary><span data-hu>Csak magyarra fordít?</span><span data-en>Only into Hungarian?</span></summary>

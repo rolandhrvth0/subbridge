@@ -544,8 +544,18 @@ class MainWindow(QMainWindow):
             def closed():
                 sess.set_audio(self.profile.device_audio_id, False)
                 self.gameview = None
-            sess.framegen_wanted = self.profile.framegen
-            self.gameview = GameView(sess, on_close=closed)
+            self.gameview = None
+            try:
+                from .gameview_gpu import GpuGameView, gpu_available
+                if gpu_available():
+                    self.gameview = GpuGameView(sess, on_close=closed, mode=self.profile.framegen)
+            except Exception:  # noqa: BLE001  – no Qt Quick / GPU: the classic view still works
+                import logging
+                logging.getLogger(__name__).exception("GPU Game View failed, using the classic one")
+                self.gameview = None
+            if self.gameview is None:
+                sess.framegen_wanted = self.profile.framegen == "builtin"
+                self.gameview = GameView(sess, on_close=closed)
             self.gameview.scale = self.profile.overlay_scale
             sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)
         self.gameview.show()

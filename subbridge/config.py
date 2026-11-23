@@ -47,12 +47,15 @@ class Profile:
     game_phone: bool = True              # translate the in-game phone (chats, posts, news, replies)
     overlay_scale: float = 1.0
     learn_mode: bool = False
-    framegen: bool = True                # Game View: generate in-between frames (30 fps game -> 60 fps)             # show the original (small) under the translation on the game
+    framegen: str = "auto"               # Game View frame generation: auto|lsfg|afmf|smooth|builtin|off (fgmodes)             # show the original (small) under the translation on the game
 
     @classmethod
     def from_dict(cls, d: dict) -> "Profile":
         names = {f.name for f in fields(cls)}
-        return cls(**{k: v for k, v in (d or {}).items() if k in names})
+        d = {k: v for k, v in (d or {}).items() if k in names}
+        if isinstance(d.get("framegen"), bool):          # 1.1.x: on/off switch for the CPU interpolation
+            d["framegen"] = "auto" if d["framegen"] else "off"
+        return cls(**d)
 
 
 @dataclass

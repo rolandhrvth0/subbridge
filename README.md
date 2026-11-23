@@ -36,8 +36,9 @@ feliratot jelenít meg.
   egyező olvasás után és kész fordítással jelenik meg.
 - **Mozgásálló.** Autózás, gyors kamera, részeg-effekt közben a mozgó hátteret kiszűri (képkockák összevetése);
   a GPS-navigáció szövegét kihagyja.
-- **Simított mozgás (30 → 60 fps)** a capture cardos Játéknézetben – a köztes képeket optikai folyammal számolja
-  (OpenCV, videokártya nélkül, ~15 ms/kocka 1080p-n). A Játéknézetben a **G** gomb kapcsolja.
+- **Frame gen (30 → 60 fps)** a capture cardos Játéknézetben: a nézet a videokártyán fut (Linux: Vulkan, Windows:
+  Direct3D 11), a köztes képeket a kártya technológiája számolja – Linuxon **Lossless Scaling (lsfg-vk)**, Windowson
+  **AMD Fluid Motion Frames** / **NVIDIA Smooth Motion**. A kártya dupla képkockáit a SubBridge kiszűri.
 - **Windowson beépített szövegfelismerő** (Windows.Media.Ocr) – egy felirat ~6 ms.
 - **Fordítási zónák.** Súgódobozok, feladatszövegek, értesítések – mindegyik külön területként.
 - **Capture card támogatás.** Bármilyen USB-s HDMI-rögzítő (UVC): Elgato, olcsó 4K HDMI→USB adapterek. Beépített
@@ -112,8 +113,9 @@ Real footage (Linux · Remote Play (chiaki-ng) · PS5): see the pictures above a
   matching reads, with its translation ready.
 - **Motion-proof** – while driving / with fast camera moves the moving background is filtered out by comparing
   frames; GPS directions are skipped.
-- **Smooth motion (30 → 60 fps)** in the capture card Game View – in-between frames from optical flow (OpenCV,
-  CPU only, ~15 ms per 1080p frame). Toggle with **G**.
+- **Frame generation (30 → 60 fps)** in the capture card Game View: rendered on the GPU (Vulkan on Linux,
+  Direct3D 11 on Windows) so **Lossless Scaling (lsfg-vk)**, **AMD Fluid Motion Frames** or **NVIDIA Smooth Motion**
+  generate the in-between frames. The capture card's repeated frames are dropped first.
 - **Windows: built-in text recogniser** (Windows.Media.Ocr) – ~6 ms per subtitle.
 - **Translation zones** – help boxes, objectives, notifications.
 - **Capture cards** – any UVC HDMI capture device; built-in **Game View** (full screen, sound, translated subtitles)

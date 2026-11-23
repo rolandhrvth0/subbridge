@@ -103,6 +103,22 @@ def selftest(out_path: str | None) -> int:
         ip.mid(a, np.roll(a, 8, axis=1))
         return f"{ip.last_ms:.0f} ms / 1080p frame"
     step("framegen", framegen)
+    def gpu_view():
+        from pathlib import Path as _P
+        from PySide6.QtCore import QUrl
+        from PySide6.QtQml import QQmlComponent, QQmlEngine
+        from . import fgmodes
+        eng = QQmlEngine()
+        qml = _P(__file__).parent / "gui" / "gameview_gpu.qml"
+        comp = QQmlComponent(eng, QUrl.fromLocalFile(str(qml)))
+        if comp.status() != QQmlComponent.Ready:
+            raise RuntimeError("; ".join(e.toString() for e in comp.errors()))
+        obj = comp.create()
+        if obj is None:
+            raise RuntimeError("; ".join(e.toString() for e in comp.errors()))
+        fi = fgmodes.info()
+        return f"qml ok; gpu={fi.gpu.vendor or '?'} fg={fi.resolve('auto')} choices={fi.choices()}"
+    step("gpu_view", gpu_view)
     def server():
         from .server.server import SubtitleServer
         srv = SubtitleServer(18765, "123456", "t")

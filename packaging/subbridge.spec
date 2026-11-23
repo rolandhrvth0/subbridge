@@ -14,6 +14,7 @@ win = sys.platform == "win32"
 datas = [
     (str(PKG / "server" / "web"), "subbridge/server/web"),
     (str(PKG / "assets"), "subbridge/assets"),
+    (str(PKG / "gui" / "gameview_gpu.qml"), "subbridge/gui"),
 ]
 if (BUNDLE / "tessdata").exists():
     datas.append((str(BUNDLE / "tessdata"), "subbridge/tessdata"))
@@ -23,7 +24,8 @@ if win and (BUNDLE / "tesseract").exists():
 hidden = ["PySide6.QtNetwork", "PySide6.QtMultimedia", "PySide6.QtMultimediaWidgets", "PySide6.QtSvg",
           "subbridge.capture.windows" if win else "subbridge.capture.x11",
           "aiohttp", "qrcode", "ctranslate2", "sentencepiece", "sacremoses", "subword_nmt", "cv2",
-          "subbridge.framegen"]
+          "subbridge.framegen",
+          "subbridge.fgmodes", "subbridge.gui.gameview_gpu", "PySide6.QtQuick", "PySide6.QtQml"]
 if win:
     hidden += ["subbridge.ocr.winocr", "winrt.runtime", "winrt.system", "winrt.windows.foundation",
                "winrt.windows.foundation.collections", "winrt.windows.globalization",
@@ -32,18 +34,35 @@ if win:
 excludes = ["tkinter", "torch", "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets", "PySide6.Qt3DCore",
             "PySide6.QtQuick3D", "PySide6.QtCharts", "PySide6.QtDataVisualization", "PySide6.QtPdf",
             "PySide6.QtBluetooth", "PySide6.QtLocation", "PySide6.QtPositioning", "PySide6.QtSensors",
-            "PySide6.QtSerialPort", "PySide6.QtWebSockets", "PySide6.QtDesigner", "PySide6.QtQml",
-            "PySide6.QtQuick", "PySide6.QtQuickWidgets", "rapidocr_onnxruntime", "onnxruntime",
+            "PySide6.QtSerialPort", "PySide6.QtWebSockets", "PySide6.QtDesigner",
+            "PySide6.QtQuickWidgets", "rapidocr_onnxruntime", "onnxruntime",
             "matplotlib", "pytest", "IPython"]
 
 a = Analysis([str(ROOT / "packaging" / "entry.py")], pathex=[str(ROOT)], datas=datas, hiddenimports=hidden,
              excludes=excludes, noarchive=False)
 # drop Qt parts the app never uses (pulled in by plugins). Keep Qt6Qml/Quick: the FFmpeg media plugin links them.
 _DROP = ("Qt6Pdf", "Qt6VirtualKeyboard", "Qt6WlShell", "Qt6EglFS", "Qt6EglFs",
-         "libgtk-3", "libgdk-3", "qpdf", "virtualkeyboard", "platforminputcontexts", "qtquick", "libqgtk3",
+         "libgtk-3", "libgdk-3", "qpdf", "virtualkeyboard", "platforminputcontexts", "libqgtk3",
          "Qt6Designer", "Qt6Test", "Qt6Sql", "Qt6Xml", "egldeviceintegrations", "wayland-decoration",
          "wayland-shell", "wayland-graphics")
 a.binaries = [b for b in a.binaries if not any(k.lower() in b[0].lower() for k in _DROP)]
+# QML: only what the GPU Game View imports (QtQuick, QtMultimedia and their QtQml base) – not Controls, 3D …
+_QML_KEEP = ("QtQuick/", "QtQml/", "QtMultimedia/")
+
+
+def _qml_ok(dest: str) -> bool:
+    d = dest.replace("\\", "/")
+    i = d.find("/qml/")
+    if i < 0:
+        return True
+    rest = d[i + 5:]
+    if rest.startswith("QtQuick/"):
+        return "/" not in rest[len("QtQuick/"):]          # QtQuick itself, not QtQuick/Controls etc.
+    return rest.startswith(_QML_KEEP)
+
+
+a.binaries = [b for b in a.binaries if _qml_ok(b[0])]
+a.datas = [d for d in a.datas if _qml_ok(d[0])]
 a.datas = [d for d in a.datas if not (d[0].startswith("PySide6/Qt/translations") and "qt_" not in d[0]
                                       and "qtbase_" not in d[0] and "qtmultimedia_" not in d[0])]
 pyz = PYZ(a.pure)

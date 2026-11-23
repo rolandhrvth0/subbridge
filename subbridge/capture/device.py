@@ -128,6 +128,8 @@ class DeviceSession(QObject):
         self.session.setVideoSink(self.sink)
         self._extra_sink = None
         self._fg_cb = None
+        self._dedupe = False              # GPU Game View + driver frame gen: show each game picture once
+        self._last_sig = None
         self.sink.videoFrameChanged.connect(self._on_frame)
         self._lock = threading.Lock()
         self._img: QImage | None = None
@@ -156,11 +158,33 @@ class DeviceSession(QObject):
         self.session.setAudioInput(self.audio_in)
         self.session.setAudioOutput(self.audio_out)
 
-    def attach_view(self, video_item_sink: QVideoSink | None):
+    def attach_view(self, video_item_sink: QVideoSink | None, dedupe: bool = False):
         """Mirror frames to a Game View (its QGraphicsVideoItem sink). Only the frame handle is passed on
         (no copy). Rendering straight into the view's sink is not used: those frames can be GPU textures
         that crash when read back for OCR."""
         self._extra_sink = video_item_sink
+        self._dedupe = dedupe
+        self._last_sig = None
+
+    def _is_repeat(self, frame: QVideoFrame) -> bool:
+        """A 60 Hz card sends every picture of a 30 fps game twice. Frame generation (lsfg-vk, AMD AFMF,
+        NVIDIA Smooth Motion) needs the real 30 different pictures, not 60 with repeats – compare a sparse
+        sample of the first plane (luma for YUV) with the previous frame (~0.1 ms)."""
+        if not frame.map(QVideoFrame.MapMode.ReadOnly):
+            return False
+        try:
+            bpl, h = frame.bytesPerLine(0), frame.height()
+            buf = np.frombuffer(frame.bits(0), np.uint8, count=bpl * h).reshape(h, bpl)
+            sig = buf[8:h - 8:12, 16:bpl - 16:24].astype(np.int16)
+        except Exception:  # noqa: BLE001
+            return False
+        finally:
+            frame.unmap()
+        last, self._last_sig = self._last_sig, sig
+        if last is None or last.shape != sig.shape:
+            return False
+        d = np.abs(sig - last)
+        return float(d.mean()) < 0.7 and int(np.percentile(d, 99.5)) < 14
 
     def set_frame_callback(self, cb):
         """Frame generation: every frame as an RGB QImage (converted here, while the buffer is valid)."""
@@ -169,7 +193,7 @@ class DeviceSession(QObject):
     def _on_frame(self, frame: QVideoFrame):
         if not frame.isValid():
             return
-        if self._extra_sink is not None:
+        if self._extra_sink is not None and not (self._dedupe and self._is_repeat(frame)):
             self._extra_sink.setVideoFrame(frame)
         now = time.time()
         if self._fg_cb is not None:
