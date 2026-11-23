@@ -44,8 +44,7 @@ open(p, 'w').write(s)
 p = 'site/feed/index.json'; d = json.load(open(p))
 base = "https://rolandhrvth.hu/subbridge/dl/"
 d["latest"] = {"version": v, "url": "https://rolandhrvth.hu/subbridge/#download",
-               "notes": {"hu": "Itt a SubBridge 1.0! Megújult dizájn és indítóképernyő, letölthető pontos offline fordító (sokkal jobb fordítás), Feliratnapló (visszaolvasás, keresés, mentés, saját javítás), Tanuló mód (az angol eredeti is látszik kicsiben), hibajelentés gomb, élő felirat-felismerés jelző, és javítottunk egy ritka összeomlást.",
-                         "en": "SubBridge 1.0 is here! New design and start screen, downloadable precise offline translator (much better translations), Subtitle history (read back, search, save, your own fixes), Learning mode (the original shows small too), bug report button, live subtitle detection status, and a rare crash is fixed."},
+               "notes": json.load(open("build/release_notes.json", encoding="utf-8")),
                "files": {"windows": {"url": base + f"SubBridge-{v}-windows-setup.exe", "sha256": sw},
                          "linux-deb": {"url": base + f"subbridge_{v}_amd64.deb", "sha256": sd}},
                "rollout": {"start": int(time.time()), "hours": float(hours), "from": 20}}
