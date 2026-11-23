@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.1.5-release",
+      "date": "2026-11-23",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.1.5",
+        "en": "SubBridge 1.1.5 is out"
+      },
+      "body": {
+        "hu": "Javítva: a capture cardos Játéknézetben nem működött a teljes képernyő (F11, dupla kattintás) és az Esc. Új: a Lossless Scaling (lsfg-vk) 2.0 végleges kiadásának támogatása Linuxon.",
+        "en": "Fixed: full screen (F11, double-click) and Esc did not work in the capture card Game View. New: support for the final lsfg-vk 2.0 release (Lossless Scaling) on Linux."
+      }
+    },
+    {
       "id": "1.1.4-release",
       "date": "2026-11-23",
       "title": {
@@ -246,26 +258,26 @@
     }
   },
   "latest": {
-    "version": "1.1.4",
+    "version": "1.1.5",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Capture card: új „Legkisebb késés” mód (alapból be): olcsó kártyáknál a 60 fps-es módot választja (pl. 720p60 az 1080p30 helyett), nem vár a képernyőfrissítésre, és kis pufferrel játssza a hangot, így az nem késik a kép mögött. A frame gen MJPEG-es (olcsó) kártyáknál is helyesen szűri a dupla képkockákat. Javítva: Linuxon a Játéknézet bezárása MangoHuddal összeomlást okozhatott; a Lossless Scaling (lsfg-vk) Linuxon egyelőre kísérleti, nem kapcsol be magától.",
-      "en": "Capture cards: new \"Lowest latency\" mode (on by default): on cheap cards it picks the 60 fps mode (e.g. 720p60 instead of 1080p30), does not wait for the screen refresh and plays the sound with small buffers so it never lags behind the picture. Frame generation now drops repeated frames on MJPEG (cheap) cards too. Fixed: on Linux closing the Game View could crash with MangoHud; Lossless Scaling (lsfg-vk) on Linux is experimental for now and no longer switched on automatically."
+      "hu": "Javítva: a capture cardos Játéknézetben nem működött a teljes képernyő (F11, dupla kattintás) és az Esc. Új: a Lossless Scaling (lsfg-vk) 2.0 végleges kiadásának támogatása Linuxon.",
+      "en": "Fixed: full screen (F11, double-click) and Esc did not work in the capture card Game View. New: support for the final lsfg-vk 2.0 release (Lossless Scaling) on Linux."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.4-windows-setup.exe",
-        "sha256": "8b6ed7a0ff3908e7ed52f2a7f9de4c291a98c7f6933adb60896f05a2f79692ed"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.5-windows-setup.exe",
+        "sha256": "34b395b26a9ed5b19ed957f5572fe97e0cba12567f50ccd2d8ee7bd33e8206f3"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.4_amd64.deb",
-        "sha256": "e57c0bd4514496f9a60cf9ce007ad8d9758ec208d83f4291c92b0c6a618fcd88"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.5_amd64.deb",
+        "sha256": "db5b8bbf5508ad3f637f79bd093632b5e525d1177a1390c345b43b939f0a3007"
       }
     },
     "rollout": {
-      "start": 1795431688,
-      "hours": 0,
-      "from": 100
+      "start": 1795436076,
+      "hours": 0.0,
+      "from": 20
     }
   }
 }
