@@ -13,6 +13,18 @@
       }
     },
     {
+      "id": "slang-4",
+      "date": "2026-11-23",
+      "title": {
+        "hu": "Jobb szlengfordítás",
+        "en": "Better slang translation"
+      },
+      "body": {
+        "hu": "Frissült a szlengszótár (app-frissítés nélkül): \"hit me up\", \"gotta jet\", \"I'll holler\", \"link up\", \"fo' sho'\", \"loaded\" (gazdag), \"score\" (meló) és még sok más most már helyesen fordul.",
+        "en": "The slang dictionary was updated (no app update needed): \"hit me up\", \"gotta jet\", \"I'll holler\", \"link up\", \"fo' sho'\", \"loaded\" (rich), \"score\" (job) and more now translate correctly."
+      }
+    },
+    {
       "id": "1.0.1-release",
       "date": "2026-11-22",
       "title": {
@@ -173,7 +185,7 @@
   ],
   "packs": {
     "slang-en": {
-      "version": 3,
+      "version": 4,
       "url": "packs/slang-en.json"
     },
     "roles": {

@@ -1,5 +1,5 @@
 {
- "version": 3,
+ "version": 4,
  "about": "Extra English street talk / texting rules (regex, replacement). Extends the built-in list.",
  "rules": [
   [
@@ -437,6 +437,142 @@
   [
    "\\bmy boy\\b",
    "my friend"
+  ],
+  [
+   "\\bhit (me|us|him|her|them) (?:up|on the phone|on the speakerphone|on my cell)\\b",
+   "call \\1"
+  ],
+  [
+   "\\bhit (?:you|ya) up\\b",
+   "call you"
+  ],
+  [
+   "\\b(?:I'll|I will|ima|I'mma) holler(?: at you| at ya)?\\b",
+   "I'll call you"
+  ],
+  [
+   "\\bholler at (me|us|him|her|them)\\b",
+   "call \\1"
+  ],
+  [
+   "\\b(?:gotta|have to|got to) jet\\b",
+   "have to go"
+  ],
+  [
+   "\\blet (?:'em|them|it) rip\\b",
+   "go full speed"
+  ],
+  [
+   "\\bit's so on\\b",
+   "you're on"
+  ],
+  [
+   "(?<=, )dog(?=[.!?])",
+   "man"
+  ],
+  [
+   "\\blink up\\b",
+   "meet up"
+  ],
+  [
+   "\\bfo' ?sho'?",
+   "for sure"
+  ],
+  [
+   "\\bfor sho'?\\b",
+   "for sure"
+  ],
+  [
+   "\\bthe come ?up\\b",
+   "the rise to the top"
+  ],
+  [
+   "\\b(?:shit )?(?:really )?get(?:s|tin'?|ting)? popp(?:in'?|ing)\\b",
+   "things really get exciting"
+  ],
+  [
+   "\\byou don't know dick\\b",
+   "you don't know anything"
+  ],
+  [
+   "\\b(another|a|the|next|big) score\\b(?! (?:is|was) \\d)",
+   "\\1 job"
+  ],
+  [
+   "\\b(isn't|ain't|is not|are|aren't|was|were|is) loaded\\b(?! with)",
+   "\\1 rich"
+  ],
+  [
+   "\\b(?:this|the) (floor|place|room|house|spot)'s a bust\\b",
+   "there's nothing on this \\1"
+  ],
+  [
+   "\\b(this|that) (?:one|car|thing)'s com(?:in'?|ing) home\\b",
+   "I'm taking \\1 one home"
+  ],
+  [
+   "\\bsmart ?ass\\b",
+   "smart-mouth"
+  ],
+  [
+   "\\bexec protection\\b",
+   "executive protection"
+  ],
+  [
+   "\\bwe got you\\b(?=[.!])",
+   "we've got your back"
+  ],
+  [
+   "\\bgot your back\\b",
+   "will protect you"
+  ],
+  [
+   "\\bbounce\\b(?=[.!]| outta| out of)",
+   "leave"
+  ],
+  [
+   "\\bdip out\\b",
+   "leave"
+  ],
+  [
+   "\\bfeds\\b",
+   "federal agents"
+  ],
+  [
+   "\\bfive-o\\b",
+   "police"
+  ],
+  [
+   "\\bstrapped\\b(?=[.!?,])",
+   "armed"
+  ],
+  [
+   "\\bsnitch(?:in'|ing)\\b",
+   "informing"
+  ],
+  [
+   "\\bno cap\\b",
+   "seriously"
+  ],
+  [
+   "\\bbet\\b(?=,)",
+   "okay"
+  ],
+  [
+   "\\btotin[g']?\\b",
+   "carrying"
+  ],
+  [
+   "\\bfeel me\\?",
+   "you know?"
+  ],
+  [
+   "\\brandos\\b",
+   "random people"
+  ],
+  [
+   "\\bmentor type shit\\b",
+   "mentor type of thing"
   ]
  ]
 }
