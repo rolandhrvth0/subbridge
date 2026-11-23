@@ -56,8 +56,10 @@ class FgInfo:
         """'auto' -> the best technique available here; an unavailable choice falls back too."""
         if mode in self.choices() and mode != "auto":
             return mode
-        # lsfg-vk 2.0 (dev builds) fails to start in Qt Quick and mpv on current Mesa/loader versions
-        # ("failed to get device proc addr for vkCreateSwapchainKHR"), so it is opt-in, not automatic
+        # only lsfg-vk 2.0 releases work in Qt Quick; the old dev builds fail there ("failed to get device
+        # proc addr for vkCreateSwapchainKHR"), so those stay opt-in
+        if sys.platform.startswith("linux") and self.lsfg_ok and lsfg_is_release(self.lsfg_json):
+            return "lsfg"
         if sys.platform == "win32" and self.gpu.vendor == "amd":
             return "afmf"
         if sys.platform == "win32" and self.gpu.vendor == "nvidia":
@@ -113,38 +115,58 @@ def _toml_value(text: str, key: str) -> str:
     return m.group(1) if m else ""
 
 
+def _layer_rank(manifest: str) -> tuple:
+    """Release 2.x layers (share/vulkan/… layout, works with Qt Quick and mpv) before old dev builds."""
+    try:
+        impl = int(json.loads(Path(manifest).read_text()).get("layer", {}).get("implementation_version", 0))
+    except (OSError, ValueError, TypeError):
+        impl = 0
+    return ("/share/vulkan/" in manifest, impl, manifest)
+
+
+def lsfg_is_release(manifest: str) -> bool:
+    return "/share/vulkan/" in manifest
+
+
 def find_lsfg() -> tuple[str, str, str]:
-    """(layer manifest, Lossless.dll, gpu name) – empty strings when not installed."""
+    """(layer manifest, shader DLL, gpu name) – empty strings when not installed.
+    lsfg-vk 2.0 releases read lsfg-vk.dll (Lossless Scaling's "lsfg-vk" Steam beta branch); the old dev
+    builds read Lossless.dll."""
     home = Path.home()
     manifests = []
-    for pat in (str(home / ".local/opt/lsfg-vk*/VkLayer_LSFGVK*.json"),
-                str(home / ".local/share/vulkan/*_layer.d/*LSFGVK*.json"),
-                str(home / ".local/share/vulkan/*_layer.d/*lsfg*.json"),
-                "/usr/share/vulkan/*_layer.d/*LSFGVK*.json", "/usr/share/vulkan/*_layer.d/*lsfg*.json",
-                "/etc/vulkan/*_layer.d/*lsfg*.json", "/usr/local/share/vulkan/*_layer.d/*lsfg*.json"):
-        manifests += glob.glob(pat)
+    for pat in (str(home / ".local/opt/*/share/vulkan/*_layer.d/VkLayer_LSFGVK*.json"),
+                str(home / ".local/share/vulkan/*_layer.d/VkLayer_LSFGVK*.json"),
+                str(home / ".local/opt/lsfg-vk*/VkLayer_LSFGVK*.json"),
+                "/usr/share/vulkan/*_layer.d/VkLayer_LSFGVK*.json", "/usr/local/share/vulkan/*_layer.d/VkLayer_LSFGVK*.json",
+                "/etc/vulkan/*_layer.d/VkLayer_LSFGVK*.json"):
+        manifests += [m for m in glob.glob(pat) if not m.endswith(".x86.json")]
     manifest = ""
-    for m in sorted(manifests, reverse=True):          # lsfg-vk2 before lsfg-vk
+    for m in sorted(set(manifests), key=_layer_rank, reverse=True):
         try:
             if json.loads(Path(m).read_text()).get("layer", {}).get("name") == LSFG_LAYER:
                 manifest = m
                 break
         except (OSError, ValueError):
             continue
-    dll, gpu = "", ""
-    confs = [str(Path(manifest).parent / "conf.toml")] if manifest else []
-    confs += [str(home / ".config/lsfg-vk/conf.toml")]
+    release = lsfg_is_release(manifest)
+    steam_dirs = [home / ".steam/steam/steamapps/common", home / ".local/share/Steam/steamapps/common",
+                  home / ".steam/debian-installation/steamapps/common",
+                  home / ".var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common",
+                  home / "snap/steam/common/.local/share/Steam/steamapps/common"]
+    names = ["lsfg-vk.dll"] if release else ["Lossless.dll"]
+    gpu, conf_dll = "", ""
+    confs = ([str(Path(manifest).parent / "conf.toml")] if manifest and not release else []) + \
+        [str(home / ".config/lsfg-vk/conf.toml")]
     for c in confs:
         try:
             t = Path(c).read_text(encoding="utf-8")
         except OSError:
             continue
-        dll = dll or _toml_value(t, "dll")
+        conf_dll = conf_dll or _toml_value(t, "dll")
         gpu = gpu or _toml_value(t, "gpu")
-    for d in ([dll] if dll else []) + [
-            str(home / ".local/share/Steam/steamapps/common/Lossless Scaling/Lossless.dll"),
-            str(home / ".steam/steam/steamapps/common/Lossless Scaling/Lossless.dll"),
-            str(home / ".var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/Lossless Scaling/Lossless.dll")]:
+    cands = [conf_dll] if conf_dll and Path(conf_dll).name in names else []
+    cands += [str(d / "Lossless Scaling" / n) for d in steam_dirs for n in names]
+    for d in cands:
         if d and os.path.isfile(d):
             return manifest, d, gpu
     return manifest, "", gpu
@@ -173,12 +195,15 @@ def enable_lsfg(fi: FgInfo, multiplier: int = 2) -> bool:
     except OSError:
         pass
     conf = config_dir() / "lsfg-vk.toml"
+    release = lsfg_is_release(fi.lsfg_json)
     lines = ["version = 2", "[global]", f"dll = '{fi.lsfg_dll}'", "allow_fp16 = true", "",
              "[[profile]]", "name = 'SubBridge Game View'",
              "active_in = [" + ", ".join(f"'{n}'" for n in sorted(names) if n) + "]"]
-    if fi.lsfg_gpu:
+    if fi.lsfg_gpu and not release:              # 2.0 releases reject the old "gpu" key
         lines.append(f"gpu = '{fi.lsfg_gpu}'")
-    lines += [f"multiplier = {int(multiplier)}", "flow_scale = 1.0", "performance_mode = false", "pacing = 'none'"]
+    lines += [f"multiplier = {int(multiplier)}", "flow_scale = 1.0", "performance_mode = false"]
+    if not release:
+        lines.append("pacing = 'none'")          # the dev builds knew only this one
     conf.write_text("\n".join(lines) + "\n", encoding="utf-8")
     os.environ["VK_ADD_LAYER_PATH"] = os.pathsep.join(
         [str(Path(fi.lsfg_json).parent)] + [p for p in os.environ.get("VK_ADD_LAYER_PATH", "").split(os.pathsep) if p])

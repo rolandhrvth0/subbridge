@@ -20,9 +20,11 @@ def test_resolve_prefers_vendor_tech(monkeypatch):
     assert fgmodes.FgInfo(fgmodes.Gpu("amd")).resolve("auto") == "afmf"
     assert fgmodes.FgInfo(fgmodes.Gpu("nvidia")).resolve("auto") == "smooth"
     monkeypatch.setattr(sys, "platform", "linux")
-    fi = fgmodes.FgInfo(fgmodes.Gpu("amd"), "/x/layer.json", "/x/Lossless.dll")
-    assert fi.resolve("auto") == "off"              # lsfg-vk is opt-in (does not start with Qt Quick yet)
-    assert fi.resolve("lsfg") == "lsfg" and fi.resolve("afmf") == "off"
+    dev = fgmodes.FgInfo(fgmodes.Gpu("amd"), "/x/lsfg-vk2/layer.json", "/x/Lossless.dll")
+    assert dev.resolve("auto") == "off"             # old dev builds do not start in Qt Quick: opt-in only
+    assert dev.resolve("lsfg") == "lsfg" and dev.resolve("afmf") == "off"
+    rel = fgmodes.FgInfo(fgmodes.Gpu("amd"), "/o/lsfg-vk-2.0.0/share/vulkan/implicit_layer.d/l.json", "/s/lsfg-vk.dll")
+    assert rel.resolve("auto") == "lsfg"            # 2.0 release + its DLL: automatic
 
 
 def test_old_bool_setting_migrates():
@@ -40,6 +42,12 @@ def test_enable_lsfg_writes_own_profile(tmp_path, monkeypatch):
     import os
     conf = open(os.environ["LSFGVK_CONFIG"]).read()
     assert "dll = '/games/Lossless.dll'" in conf and "gpu = 'My GPU'" in conf and "multiplier = 2" in conf
+    rel_dir = tmp_path / "share" / "vulkan" / "implicit_layer.d"
+    rel_dir.mkdir(parents=True)
+    (rel_dir / "l.json").write_text("{}")
+    assert fgmodes.enable_lsfg(fgmodes.FgInfo(fgmodes.Gpu("amd"), str(rel_dir / "l.json"), "/s/lsfg-vk.dll", "My GPU"))
+    conf = open(os.environ["LSFGVK_CONFIG"]).read()
+    assert "version = 2" in conf and "gpu" not in conf and "pacing" not in conf     # 2.0 release format
     assert fgmodes.LSFG_LAYER in os.environ["VK_INSTANCE_LAYERS"]
 
 
