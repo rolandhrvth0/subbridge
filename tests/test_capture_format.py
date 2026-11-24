@@ -45,9 +45,14 @@ CARD = _Dev([_Fmt(3840, 2160, 30, "Format_Jpeg"), _Fmt(2560, 1440, 60, "Format_J
              _Fmt(1920, 1080, 60, "Format_NV12"), _Fmt(1280, 720, 60, "Format_YUYV"), _Fmt(2, 1, 1000, "Format_BGRX8888")])
 
 
-def test_prefers_1080p60_raw():
-    f = _best_format(CARD)
-    assert format_key(f) == "1920x1080@60:NV12"
+def test_prefers_1440p60():
+    assert format_key(_best_format(CARD)) == "2560x1440@60:Jpeg"
+    assert format_key(_best_format(CARD, low_latency=False)) == "2560x1440@60:Jpeg"
+
+
+def test_without_1440p60_takes_1080p60_raw():
+    no1440 = _Dev([f for f in CARD.f if f.resolution().height() != 1440] + [_Fmt(2560, 1440, 30, "Format_Jpeg")])
+    assert format_key(_best_format(no1440)) == "1920x1080@60:NV12"
 
 
 def test_manual_choice_wins():

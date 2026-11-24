@@ -43,8 +43,10 @@ def format_key(f: QCameraFormat) -> str:
 
 def _best_format(dev, wanted: str = "", low_latency: bool = True) -> QCameraFormat | None:
     """Capture cards (e.g. 4K HDMI→USB adapters) offer 4K30 / 1440p60 / 1080p60-120 in MJPEG and often
-    a raw YUV mode. Best for subtitles + Game View: 1080p at ~60 fps (sharp enough for OCR, smooth, light
-    on USB and CPU); raw YUV beats MJPEG (no decoding delay) when the card offers it at that size."""
+    a raw YUV mode. Best for subtitles + Game View: 1440p at 60 fps when the card offers it (sharper
+    subtitle text and picture; a 30 fps game still gets each picture within 16 ms), else 1080p60.
+    60 over 120 (a 30/60 fps console game gains nothing, half the decode work); raw YUV beats MJPEG
+    (no decoding delay) at the same size."""
     fmts = usable_formats(dev)
     if not fmts:
         return None
@@ -60,13 +62,15 @@ def _best_format(dev, wanted: str = "", low_latency: bool = True) -> QCameraForm
             # cheap USB 2 cards: 1080p only at 30 fps, 720p at 60 – a frame every 16 ms instead of 33 ms
             # matters more for input lag than the sharper picture (OCR reads 720p subtitles fine)
             return (fps >= 50 and h >= 700,
-                    h == 1080,
-                    -abs(h - 1080),
+                    h in (1440, 1080),
+                    h == 1440,
+                    -abs(h - 1440),
                     -abs(min(fps, 120) - 60),
                     f.pixelFormat().name in _UNCOMPRESSED,
                     r.width())
-        return (h == 1080,                       # 1080p first
-                -abs(h - 1080),                  # otherwise the closest size
+        return (h in (1440, 1080),               # 1440p / 1080p first
+                h == 1440,
+                -abs(h - 1440),                  # otherwise the closest size
                 fps >= 50,                       # smooth enough for the Game View
                 -abs(min(fps, 120) - 60),        # 60 fps over 120 (half the decode work, same OCR)
                 f.pixelFormat().name in _UNCOMPRESSED,

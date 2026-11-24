@@ -18,7 +18,7 @@ class Profile:
     device_id: str = ""                  # video capture device (capture card), kind "device"
     device_name: str = ""
     device_audio: bool = True            # play the card's sound in the Game View
-    device_format: str = ""              # "" = automatic (1080p ~60 fps), else "1920x1080@60:Jpeg"
+    device_format: str = ""              # "" = automatic (1440p/1080p 60 fps), else "1920x1080@60:Jpeg"
     device_audio_id: str = ""            # "" = the card's own audio input
     region: list[float] = field(default_factory=lambda: [0.1, 0.72, 0.8, 0.22])  # x, y, w, h (fractions)
     # OCR

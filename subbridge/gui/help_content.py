@@ -40,11 +40,11 @@ HELP = {
 <p><b>Passthrough nélküli kártya (például kis 4K HDMI→USB adapter):</b></p>
 <ul>
 <li>Dugd <b>USB 3-as</b> (kék vagy USB-C) portba – USB 2-n csak 720p megy, a program szól, ha ez a helyzet.</li>
-<li>PS5: <i>Képernyő és videó › Videókimenet › Felbontás</i> = <b>1080p</b>, <i>HDR</i> = <b>ki</b>, <i>Rendszer › HDMI › HDCP</i> = <b>ki</b>. Az ilyen adapterek a 4K 60 Hz-es és a HDR-jelet gyakran nem fogadják (fekete kép).</li>
+<li>PS5: <i>Képernyő és videó › Videókimenet › Felbontás</i> = <b>1440p</b> (ha nincs ilyen: 1080p), <i>HDR</i> = <b>ki</b>, <i>Rendszer › HDMI › HDCP</i> = <b>ki</b>. Az ilyen adapterek a 4K 60 Hz-es és a HDR-jelet gyakran nem fogadják (fekete kép).</li>
 <li>Játék a gépen: nyisd meg a <b>Játéknézetet</b> (dupla kattintás = teljes képernyő), a hang is ott szól.</li>
 <li>Játék a tévén: tegyél a konzol és a kártya közé egy olcsó <b>HDMI-elosztót</b> (1 be, 2 ki): az egyik kimenet a tévére, a másik a kártyába megy. A SubBridge így a háttérben olvas, a fordítás a telefonodon jelenik meg.</li>
 </ul>
-<p>Tipp: az automatikus képformátum (1080p, ~60 fps) a legjobb; a <i>Beállítások › Capture card</i> alatt kézzel is választhatsz.</p>
+<p>Tipp: az automatikus képformátum (1440p vagy 1080p, 60 fps) a legjobb; a <i>Beállítások › Capture card</i> alatt kézzel is választhatsz.</p>
 """),
 ("minimized", "Az ablak le van kicsinyítve", """
 <p>Kicsinyített ablakot az operációs rendszer nem rajzol ki, így nincs mit kiolvasni. Állítsd vissza az ablakot – más ablakok mögött nyugodtan maradhat.</p>
@@ -123,11 +123,11 @@ HELP = {
 <p><b>Cards without passthrough (e.g. a small 4K HDMI→USB adapter):</b></p>
 <ul>
 <li>Use a <b>USB 3</b> (blue or USB-C) port – USB 2 only gives 720p; the app warns you.</li>
-<li>PS5: <i>Screen and Video › Video Output › Resolution</i> = <b>1080p</b>, <i>HDR</i> = <b>off</b>, <i>System › HDMI › HDCP</i> = <b>off</b>. Such adapters often reject 4K 60 Hz and HDR signals (black picture).</li>
+<li>PS5: <i>Screen and Video › Video Output › Resolution</i> = <b>1440p</b> (if missing: 1080p), <i>HDR</i> = <b>off</b>, <i>System › HDMI › HDCP</i> = <b>off</b>. Such adapters often reject 4K 60 Hz and HDR signals (black picture).</li>
 <li>Play on the PC: open the <b>Game View</b> (double-click = full screen); the sound plays there too.</li>
 <li>Play on the TV: put a cheap <b>HDMI splitter</b> (1 in, 2 out) between console and card: one output to the TV, the other to the card. SubBridge reads in the background and the translation shows on your phone.</li>
 </ul>
-<p>Tip: automatic format (1080p, ~60 fps) is best; you can pick one under <i>Settings › Capture card</i>.</p>
+<p>Tip: automatic format (1440p or 1080p, 60 fps) is best; you can pick one under <i>Settings › Capture card</i>.</p>
 """),
 ("minimized", "The window is minimised", """
 <p>The operating system doesn't draw minimised windows, so there's nothing to read. Restore it – it can stay behind other windows.</p>
