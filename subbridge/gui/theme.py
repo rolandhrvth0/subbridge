@@ -1,11 +1,12 @@
 from PySide6.QtGui import QColor, QPalette
 
-LIGHT = dict(bg="#f2f3f6", bg2="#e9ebf0", surface="#ffffff", surface2="#f0f2f5", line="#e2e5eb", text="#14171c",
-             muted="#666e7c", accent="#c98a12", accent_hover="#b47a0c", accent2="#e0a12a", accent_ink="#ffffff",
-             ok="#1f9d5c", warn="#b7791f", danger="#d64545", sel="#fff3d6")
-DARK = dict(bg="#0c0e12", bg2="#141821", surface="#14171d", surface2="#1c2028", line="#252a33", text="#eef0f4",
-            muted="#8a92a2", accent="#f5b83d", accent_hover="#ffc75a", accent2="#e89a1c", accent_ink="#1a1405",
-            ok="#4ccf8a", warn="#f5b83d", danger="#ff6b6b", sel="#2e2513")
+# "Vice night" palette: deep violet-black surfaces, sunset coral → orange accent (matches the logo)
+LIGHT = dict(bg="#f4f2f7", bg2="#ebe8f0", surface="#ffffff", surface2="#f2eff6", line="#e3dfea", text="#16121d",
+             muted="#6a6478", accent="#e0336f", accent_hover="#c92a62", accent2="#f06a3c", accent_ink="#ffffff",
+             ok="#1f9d5c", warn="#b7791f", danger="#d64545", sel="#fde3ec")
+DARK = dict(bg="#0d0a14", bg2="#151020", surface="#161120", surface2="#1e182b", line="#2a2238", text="#f1eef6",
+            muted="#958ca6", accent="#ff4f87", accent_hover="#ff6b9a", accent2="#ff8a4c", accent_ink="#ffffff",
+            ok="#4ccf8a", warn="#ffb547", danger="#ff6b6b", sel="#33172a")
 
 
 def stylesheet(c: dict) -> str:
@@ -26,6 +27,7 @@ QToolTip {{ background: {c['surface']}; color: {c['text']}; border: 1px solid {c
 #pin {{ font-size: 28px; font-weight: 700; letter-spacing: 6px; }}
 #subHu {{ font-size: 17px; font-weight: 600; }}
 #subEn {{ color: {c['muted']}; font-size: 13px; }}
+#edition {{ color: {c['accent']}; font-size: 12px; font-weight: 650; padding: 3px 9px; border-radius: 9px; border: 1px solid {c['line']}; }}
 #speaker {{ color: {c['accent']}; font-weight: 650; font-size: 12px; }}
 #preview {{ background: {c['bg']}; border: 1px solid {c['line']}; border-radius: 12px; color: {c['muted']}; }}
 QListWidget {{ background: {c['surface']}; border: 1px solid {c['line']}; border-radius: 12px; padding: 4px; outline: 0; }}

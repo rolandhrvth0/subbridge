@@ -644,7 +644,11 @@ class ClassicOverlay:
         from .translate.textprep import textprep
         tp = textprep()
 
+        fixed: list = []
+
         def show(hu_lines):
+            if fixed:                             # translation-memory / own lines always win per line
+                hu_lines = [(sp, f or t) for (sp, t), f in zip(hu_lines, fixed)]
             hu_lines = [(tp.speaker(sp, tgt), t) for sp, t in hu_lines]     # "Hoodlum" -> "Huligán"
             if e.gen != gen or not e.alive or hu_lines == e.hu:
                 return
@@ -660,11 +664,14 @@ class ClassicOverlay:
         p = eng.profile
         src, tgt = p.source_lang, p.target_lang
         primary = eng._primary()
-        from .translate.glossary import Glossary
-        glossary = Glossary.from_list(p.glossary)
+        from .translate.glossary import Glossary, with_game_names  # noqa: F401
+        glossary = with_game_names(p.glossary)
         # 0) the user's own corrections
         from .translate.corrections import corrections
-        own = [corrections().get(t, tgt) for _, t in lines]
+        from .translate.memory import memory
+        own = [corrections().get(t, tgt) or memory().get(t, tgt) for _, t in lines]
+        if any(own):
+            fixed[:] = own
         if lines and all(own):
             show([(sp, o) for (sp, _), o in zip(lines, own)])
             return

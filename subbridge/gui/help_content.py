@@ -1,4 +1,4 @@
-"""Help texts (HTML). Keep game-agnostic: no game names or trademarks."""
+"""Help texts (HTML). The app is tuned for GTA VI (named descriptively only: no logos, artwork or official look)."""
 
 HELP = {
 "hu": [
@@ -11,6 +11,15 @@ HELP = {
 <li>Nyomd meg az <b>Indítás</b> gombot.</li>
 </ol>
 <p><b>Ajánlott beállítás a játékban</b> (Beállítások › UI › Subtitles &amp; Captions, vagy hasonló menü):</p><ul><li><b>Subtitles (Felirat):</b> On – a legteljesebb fokozat (3/3): így a járókelők és NPC-k beszéde is feliratot kap, és azt is fordítja</li><li><b>Closed Captions:</b> Off</li><li><b>Size (Méret):</b> Medium</li><li><b>Speaker Names (Beszélőnevek):</b> On</li><li><b>Background (Háttér):</b> Solid – egyszínű doboz, ezt takarja le pontosan</li></ul>
+"""),
+("gta", "GTA VI-hoz hangolva", """
+<p>A {app} kifejezetten a <b>GTA VI</b>-hoz készült: a felismerés a játék feliratdobozaihoz és betűtípusához van hangolva, a fordító pedig ismeri a játék szereplőit, helyszíneit és szlengjét.</p>
+<ul>
+<li><b>Fordítási memória:</b> a játék több ezer párbeszédsorát előre, kézzel ellenőrizve fordítottuk le. Ha egy ilyen sor jelenik meg, azonnal és internet nélkül a kész magyar mondatot látod – egységes nevekkel és tegezéssel.</li>
+<li><b>Szleng és nevek:</b> a frissítések között is bővül (a program magától letölti), nem kell hozzá új verzió.</li>
+<li><b>Ami nincs a memóriában</b> (járókelők, rádió, ritka sorok), azt a választott fordító fordítja élőben.</li>
+</ul>
+<p style="color:#8a8f9a"><small>A SubBridge független, nem hivatalos program; nem áll kapcsolatban a Rockstar Games-szel és a Take-Two Interactive-val, és nem is támogatják. A „Grand Theft Auto” és a „GTA” a Take-Two Interactive védjegyei, itt csak a játék megnevezésére szolgálnak.</small></p>
 """),
 ("v1", "Pontos fordító, Feliratnapló, Tanuló mód", """
 <p><b>Pontos fordító:</b> a Fordító kártyán a <i>Pontos fordító letöltése</i> gomb egy sokkal jobb offline modellt tölt le (kb. 200 MB, egyszer). Utána magától ezt használja.</p>
@@ -94,6 +103,15 @@ HELP = {
 <li>Press <b>Start</b>.</li>
 </ol>
 <p><b>Recommended in-game settings</b> (Settings › UI › Subtitles &amp; Captions, or similar):</p><ul><li><b>Subtitles:</b> On – the fullest level (3/3): ambient and NPC speech get subtitles too, so they are translated as well</li><li><b>Closed Captions:</b> Off</li><li><b>Size:</b> Medium</li><li><b>Speaker Names:</b> On</li><li><b>Background:</b> Solid – a plain box, covered exactly</li></ul>
+"""),
+("gta", "Tuned for GTA VI", """
+<p>{app} is built specifically for <b>GTA VI</b>: recognition is tuned to the game's subtitle boxes and font, and the translator knows the game's characters, places and slang.</p>
+<ul>
+<li><b>Translation memory:</b> thousands of the game's dialogue lines are translated in advance and checked by hand. When such a line appears you see the finished translation instantly and offline, with consistent names and tone.</li>
+<li><b>Slang and names</b> keep growing between releases (downloaded automatically, no new version needed).</li>
+<li><b>Anything not in the memory</b> (passers-by, radio, rare lines) is translated live by the translator you chose.</li>
+</ul>
+<p style="color:#8a8f9a"><small>SubBridge is an independent, unofficial program; it is not affiliated with or endorsed by Rockstar Games or Take-Two Interactive. "Grand Theft Auto" and "GTA" are trademarks of Take-Two Interactive and are used here only to name the game.</small></p>
 """),
 ("v1", "Precise translator, Subtitle history, Learning mode", """
 <p><b>Precise translator:</b> <i>Get precise translator</i> in the Translator card downloads a much better offline model (about 200 MB, once). It is used automatically afterwards.</p>

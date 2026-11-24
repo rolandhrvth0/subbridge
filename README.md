@@ -3,8 +3,12 @@
 </p>
 
 <h1 align="center">SubBridge</h1>
-<p align="center"><b>Játékfeliratok élő fordítása – a képernyőn és a telefonodon.</b><br>
-Live game subtitle translation – on your screen and on your phone.</p>
+<p align="center"><b>GTA VI magyarul – élő felirat a játék képén és a telefonodon.</b><br>
+Live Hungarian subtitles for GTA VI – on the game picture and on your phone.</p>
+
+<p align="center"><sub>Független, nem hivatalos program; nem áll kapcsolatban a Rockstar Games-szel és a Take-Two Interactive-val.
+A „Grand Theft Auto” és a „GTA” a Take-Two Interactive védjegyei, itt csak a játék megnevezésére szolgálnak.<br>
+Independent, unofficial program; not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.</sub></p>
 
 <p align="center">
   <a href="#magyar">Magyar</a> · <a href="#english">English</a> · <a href="https://rolandhrvth.hu/subbridge">rolandhrvth.hu/subbridge</a>
@@ -16,9 +20,11 @@ Live game subtitle translation – on your screen and on your phone.</p>
 
 ## Magyar
 
-A SubBridge kiolvassa a játék angol feliratát a képből, lefordítja (alapból magyarra), és megmutatja
-**a játék képén az eredeti helyén**, **a telefonodon** – vagy mindkettőn. Bármilyen játékkal működik, amelyik
-feliratot jelenít meg.
+A SubBridge kiolvassa a GTA VI angol feliratát a képből, lefordítja magyarra, és megmutatja
+**a játék képén az eredeti helyén**, **a telefonodon** – vagy mindkettőn. A felismerés és a fordítás a GTA VI-ra van
+hangolva: a játék több ezer párbeszédsora előre, kézzel ellenőrizve le van fordítva (fordítási memória,
+`subbridge/assets/packs/lines-hu.json` – az angol szöveg nincs benne, csak OCR-tűrő kulcsok), a többit élőben fordítja.
+Más, feliratos játékokkal is működik, csak ott nincs előre fordított memória.
 
 ### Mit tud
 

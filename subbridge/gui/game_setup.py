@@ -163,7 +163,7 @@ class SetupAnimation(QWidget):
 
 
 class GameSetupDialog(QDialog):
-    def __init__(self, parent=None, accent="#f5b83d"):
+    def __init__(self, parent=None, accent="#ff4f87"):
         super().__init__(parent)
         hu = current_language() == "hu"
         self.setWindowTitle("Felirat beállítása a játékban" if hu else "Subtitle settings in the game")

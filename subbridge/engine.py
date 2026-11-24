@@ -24,7 +24,7 @@ from .translate import TranslationError, create_translator
 from .translate.registry import engine_key
 from .translate.argos import ArgosTranslator, installed_models
 from .translate.cache import TranslationCache
-from .translate.glossary import Glossary
+from .translate.glossary import Glossary, with_game_names  # noqa: F401
 
 log = logging.getLogger(__name__)
 
@@ -299,7 +299,7 @@ class Engine:
     # ---------------------------------------------------------------- translation
     def _primary(self):
         p = self.profile
-        g = Glossary.from_list(p.glossary)
+        g = with_game_names(p.glossary)
         key = (p.engine, engine_key(p.engine, self.settings.__dict__), tuple(g.keep_terms()))
         if self._translator_key != key:
             self._translator = None
@@ -351,7 +351,11 @@ class Engine:
         own = corrections().get(text, tgt)              # the user's own fix always wins
         if own:
             return own, "own"
-        glossary = Glossary.from_list(p.glossary)
+        from .translate.memory import memory
+        tm = memory().get(text, tgt)                    # the game's own lines, translated in advance
+        if tm:
+            return tm, "tm"
+        glossary = with_game_names(p.glossary)
         primary = self._primary()
         if primary is not None:
             fut = self._net.submit(self._translate_text, primary, text, src, tgt, glossary, ctx)

@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <base href="/subbridge/">
-<title>SubBridge – játékfeliratok élő fordítása</title>
-<meta name="description" content="A SubBridge élőben lefordítja a játékok feliratát: a játék képén az eredeti helyén, és a telefonodon. Dobozos és doboz nélküli felirat, Remote Play, capture card, offline és ingyenes.">
-<meta property="og:title" content="SubBridge – játékfeliratok élő fordítása">
-<meta property="og:description" content="Magyar felirat élőben a játék képén és a telefonodon. Nyugodt, villogásmentes feliratok több beszélőnél is. Ingyenes, nyílt forrású, offline.">
+<title>SubBridge – GTA VI magyar felirat, élőben</title>
+<meta name="description" content="Magyar felirat GTA VI-hoz, élőben: a játék képén az angol helyén és a telefonodon. Több ezer előre, kézzel ellenőrzött párbeszédsor, szlengszótár, Remote Play és capture card. Ingyenes, offline. Nem hivatalos program.">
+<meta property="og:title" content="SubBridge – GTA VI magyar felirat, élőben">
+<meta property="og:description" content="GTA VI magyarul: a felirat az angol helyén, a játék képén és a telefonodon. Több ezer kézzel ellenőrzött sor, szleng, offline. Ingyenes, nyílt forrású.">
 <meta property="og:image" content="https://rolandhrvth.hu/subbridge/img/real-3.jpg">
 <link rel="canonical" href="https://rolandhrvth.hu/subbridge/">
-<meta name="theme-color" content="#0b0d11">
+<meta name="theme-color" content="#0d0a14">
 <link rel="icon" href="img/icon-192.png">
 <style>
 @font-face { font-family: Inter; src: url(img/inter-latin.woff2) format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: Inter; src: url(img/inter-latin-ext.woff2) format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 :root {
-  --bg: #0b0d11; --bg2: #0f1217; --surface: #14181e; --surface2: #1b2028; --line: #242a33; --line2: #2f3642;
-  --text: #edf0f4; --muted: #9aa3b2; --faint: #6c7584;
-  --accent: #f5b83d; --accent2: #ffd27a; --accent-ink: #1a1405; --ok: #3ccf91;
+  --bg: #0d0a14; --bg2: #120d1c; --surface: #171122; --surface2: #1f182c; --line: #2a2139; --line2: #382c4a;
+  --text: #f3eff8; --muted: #a79cba; --faint: #776d8a;
+  --accent: #ff4f87; --accent2: #ff9a4c; --accent-ink: #ffffff; --ok: #3ccf91;
   --r: 18px;
 }
 * { box-sizing: border-box; }
@@ -47,7 +47,7 @@ nav .links a:hover { color: var(--text); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 14px 24px; border-radius: 13px;
   font-weight: 650; font-size: 15.5px; transition: transform .15s, filter .15s, background .15s; }
 .btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.btn.primary { background: linear-gradient(180deg, var(--accent2), var(--accent)); color: var(--accent-ink);
+.btn.primary { background: linear-gradient(120deg, var(--accent2), var(--accent)); color: var(--accent-ink);
   box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--accent) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.35); }
 .btn.ghost { border: 1px solid var(--line2); color: var(--text); background: color-mix(in srgb, var(--surface) 60%, transparent); }
 .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
@@ -56,7 +56,7 @@ nav .links a:hover { color: var(--text); }
 header.hero { position: relative; padding: 88px 0 30px; text-align: center; isolation: isolate; }
 header.hero::before { content: ""; position: absolute; inset: -120px 0 auto; height: 720px; z-index: -1;
   background: radial-gradient(600px 300px at 50% 18%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
-              radial-gradient(900px 500px at 50% 0%, rgba(80,110,180,.14), transparent 70%); }
+              radial-gradient(900px 500px at 50% 0%, rgba(255,140,70,.10), transparent 70%); }
 .pill { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--text);
   border: 1px solid var(--line2); background: color-mix(in srgb, var(--surface) 75%, transparent); padding: 6px 14px 6px 6px; border-radius: 99px; }
 .pill b { background: var(--accent); color: var(--accent-ink); border-radius: 99px; padding: 2px 9px; font-size: 11.5px; letter-spacing: .04em; }
@@ -197,6 +197,7 @@ html[lang="en"] [data-hu] { display: none !important; }
 <nav><div class="wrap">
   <a class="brand" href="#"><img src="img/icon-192.png" alt="">SubBridge</a>
   <div class="links">
+    <a href="#gta">GTA VI</a>
     <a href="#new"><span data-hu>Újdonságok</span><span data-en>What's new</span></a>
     <a href="#how"><span data-hu>Hogyan működik</span><span data-en>How it works</span></a>
     <a href="#features"><span data-hu>Funkciók</span><span data-en>Features</span></a>
@@ -207,11 +208,11 @@ html[lang="en"] [data-hu] { display: none !important; }
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <span class="pill"><b>1.1</b><span data-hu>Nyugodt feliratok több beszélőnél is · 60 fps Játéknézet</span><span data-en>Calm subtitles with several speakers · 60 fps Game View</span></span>
-  <h1 data-hu>Magyar felirat <em>a játék képén</em><br>és a telefonodon.</h1>
-  <h1 data-en>Your language <em>on the game picture</em><br>and on your phone.</h1>
-  <p class="lead" data-hu>A SubBridge élőben lefordítja a játékok angol feliratát, és pontosan az eredeti helyére teszi – közben a telefonodon is olvashatod. Ingyenes, nyílt forrású, és a gépeden fut.</p>
-  <p class="lead" data-en>SubBridge translates game subtitles live and puts the translation exactly where the original was – and on your phone too. Free, open source, and it runs on your own PC.</p>
+  <span class="pill"><b>GTA VI</b><span data-hu>Több ezer kézzel ellenőrzött magyar sor · szleng · offline</span><span data-en>Thousands of hand-checked lines · slang · offline</span></span>
+  <h1 data-hu>GTA VI <em>magyarul</em>.<br>Élőben, a játék képén.</h1>
+  <h1 data-en>GTA VI <em>in Hungarian</em>.<br>Live, on the game picture.</h1>
+  <p class="lead" data-hu>A SubBridge a GTA VI angol feliratát élőben magyarra fordítja, és pontosan az eredeti helyére teszi – közben a telefonodon is olvashatod. A játék párbeszédeinek ezreit előre, kézzel ellenőrizve fordítottuk le. Ingyenes, és a gépeden fut.</p>
+  <p class="lead" data-en>SubBridge translates GTA VI's English subtitles into Hungarian live and puts them exactly where the original was – and on your phone too. Thousands of the game's dialogue lines are translated in advance and checked by hand. Free, and it runs on your own PC.</p>
   <div class="cta">
     <a class="btn primary" href="#download"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg><span data-hu>Ingyenes letöltés</span><span data-en>Free download</span></a>
     <a class="btn ghost" href="#real"><svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span data-hu>Valódi felvétel</span><span data-en>Real footage</span></a>
@@ -226,7 +227,28 @@ html[lang="en"] [data-hu] { display: none !important; }
   </div>
 </div></header>
 
-<section id="new"><div class="wrap">
+<section id="gta"><div class="wrap">
+  <span class="eyebrow" data-hu>GTA VI-ra hangolva</span><span class="eyebrow" data-en>Tuned for GTA VI</span>
+  <h2 data-hu>Nem általános fordító. Ezt a játékot ismeri.</h2><h2 data-en>Not a generic translator. It knows this game.</h2>
+  <p class="sub" data-hu>Több mint 50 óra végigjátszáson tanítottuk: a felismerés a játék feliratdobozaihoz és betűihez, a fordítás a szereplőihez, helyszíneihez és szlengjéhez van igazítva.</p>
+  <p class="sub" data-en>Trained on more than 50 hours of playthroughs: recognition is tuned to the game's subtitle boxes and font, translation to its characters, places and slang.</p>
+  <div class="news">
+    <div class="nc reveal"><div class="num">3 000+<small data-hu>sor</small><small data-en>lines</small></div>
+      <h3 data-hu>Kész magyar párbeszédek</h3><h3 data-en>Ready-made dialogue</h3>
+      <p data-hu>A gyakori sorokat előre, kézzel ellenőrizve fordítottuk le. Ha ilyen jön, azonnal a kész mondatot látod – internet nélkül, egységes nevekkel és tegezéssel.</p><p data-en>Frequent lines are translated in advance and checked by hand. When one appears you see the finished sentence instantly – offline, with consistent names and tone.</p></div>
+    <div class="nc reveal"><div class="num">0<small data-hu>ms fordítás</small><small data-en>ms translating</small></div>
+      <h3 data-hu>Nincs várakozás</h3><h3 data-en>No waiting</h3>
+      <p data-hu>Az előre lefordított sorokhoz nem kell fordítóprogram: amint a SubBridge kiolvasta a feliratot, már ott is a kész magyar mondat.</p><p data-en>Pre-translated lines need no translation engine: as soon as SubBridge has read the subtitle, the finished translation is there.</p></div>
+    <div class="nc reveal"><div class="num">50<small data-hu>óra</small><small data-en>hours</small></div>
+      <h3 data-hu>Valódi játékon mérve</h3><h3 data-en>Measured on the real game</h3>
+      <p data-hu>Több végigjátszáson, különböző feliratbeállításokkal teszteltük: dobozos és doboz nélküli, kicsi és nagy felirat, autózás, sötét jelenetek.</p><p data-en>Tested on several playthroughs with different subtitle settings: boxed and box-less, small and large, driving, dark scenes.</p></div>
+    <div class="nc reveal"><div class="num">140+<small data-hu>szlengszó</small><small data-en>slang terms</small></div>
+      <h3 data-hu>Utcai szleng érthetően</h3><h3 data-en>Street slang, made clear</h3>
+      <p data-hu>„bro”, „finna”, „bussin'” – a szlengszótár érthető magyarra fordítja, és frissítés nélkül is bővül.</p><p data-en>"bro", "finna", "bussin'" – the slang dictionary turns it into plain language and keeps growing without app updates.</p></div>
+  </div>
+</div></section>
+
+<section id="new" class="alt"><div class="wrap">
   <span class="eyebrow" data-hu>Újdonságok · 1.1</span><span class="eyebrow" data-en>What's new · 1.1</span>
   <h2 data-hu>Nyugodt, olvasható, gyors.</h2><h2 data-en>Calm, readable, fast.</h2>
   <p class="sub" data-hu>A visszajelzéseitek alapján órákig tartó valódi játékfelvételen hangoltuk: több beszélő, autózás, sötét jelenetek, doboz nélküli feliratok.</p>
@@ -247,7 +269,7 @@ html[lang="en"] [data-hu] { display: none !important; }
   </div>
 </div></section>
 
-<section id="how" class="alt"><div class="wrap">
+<section id="how"><div class="wrap">
   <div class="center">
     <span class="eyebrow" data-hu>Hogyan működik</span><span class="eyebrow" data-en>How it works</span>
     <h2 data-hu>Csak nézi a képet. Mint te.</h2><h2 data-en>It just watches the picture. Like you.</h2>
@@ -470,9 +492,9 @@ html[lang="en"] [data-hu] { display: none !important; }
 </div></section>
 
 <footer><div class="wrap">
-  <span>SubBridge 1.1 · <span data-hu>Készítette</span><span data-en>Made by</span> Roland Horváth · <a href="https://rolandhrvth.hu">rolandhrvth.hu</a></span>
-  <span data-hu>Független projekt, egyetlen játékkiadóhoz vagy platformhoz sem kapcsolódik.</span>
-  <span data-en>An independent project, not affiliated with any game publisher or platform holder.</span>
+  <span>SubBridge 1.2 · <span data-hu>Készítette</span><span data-en>Made by</span> Roland Horváth · <a href="https://rolandhrvth.hu">rolandhrvth.hu</a></span>
+  <span data-hu>Független, nem hivatalos program; nem áll kapcsolatban a Rockstar Games-szel és a Take-Two Interactive-val, és nem is támogatják. A „Grand Theft Auto” és a „GTA” a Take-Two Interactive védjegyei, itt csak a játék megnevezésére szolgálnak.</span>
+  <span data-en>An independent, unofficial program; not affiliated with or endorsed by Rockstar Games or Take-Two Interactive. "Grand Theft Auto" and "GTA" are trademarks of Take-Two Interactive, used here only to name the game.</span>
   <span class="r"><a href="https://github.com/rolandhrvth0/subbridge">GitHub</a> · MIT</span>
 </div></footer>
 

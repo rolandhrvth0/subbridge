@@ -96,7 +96,7 @@ class PreviewWidget(QLabel):
         w, h = iw * s, ih * s
         x, y = (self.width() - w) / 2, (self.height() - h) / 2
         p.drawImage(QRectF(x, y, w, h), self._img)
-        p.setPen(QPen(QColor("#f5b83d"), 2))
+        p.setPen(QPen(QColor("#ff4f87"), 2))
         p.setBrush(Qt.NoBrush)
         for (x0, y0, x1, y1) in self._boxes:
             p.drawRoundedRect(QRectF(x + x0 * s, y + y0 * s, (x1 - x0) * s, (y1 - y0) * s), 4, 4)
@@ -153,7 +153,7 @@ class RegionSelector(QDialog):
                          QRectF(r.x(), sel.top(), sel.left() - r.x(), sel.height()),
                          QRectF(sel.right(), sel.top(), r.right() - sel.right(), sel.height())):
                 p.drawRect(part)
-            p.setPen(QPen(QColor("#f5b83d"), 2))
+            p.setPen(QPen(QColor("#ff4f87"), 2))
             p.setBrush(Qt.NoBrush)
             p.drawRect(sel)
             sx = self.img.width() / r.width()

@@ -13,7 +13,7 @@ from ..paths import resource_dir
 
 AUTHOR = "Roland Horváth"
 SITE = "rolandhrvth.hu"
-ACCENT = QColor("#f5b83d")
+ACCENT = QColor("#ff4f87")
 
 
 def _ease(t: float) -> float:

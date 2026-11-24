@@ -66,3 +66,37 @@ class Glossary:
         for tok, term in mapping.items():
             text = re.sub(rf"{tok}\w*", term, text)
         return text
+
+
+_GAME_NAMES: tuple[float, list[str]] | None = None
+
+
+def game_names() -> list[str]:
+    """Proper names of the game world (brands, places, crews) that machine translation would otherwise
+    translate word by word ("Jack of Hearts" -> "Szív Jack", "Final Chapter" -> "Utolsó fejezet").
+    Bundled assets/packs/names.json, overridden by a newer downloaded <data>/packs/names.json."""
+    global _GAME_NAMES
+    import json
+    from ..paths import data_dir, resource_dir
+    files = [resource_dir() / "assets" / "packs" / "names.json", data_dir() / "packs" / "names.json"]
+    stamp = sum((f.stat().st_mtime if f.exists() else 0) for f in files)
+    if _GAME_NAMES and _GAME_NAMES[0] == stamp:
+        return _GAME_NAMES[1]
+    best, ver = [], -1
+    for f in files:
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if int(d.get("version", 0)) > ver:
+            best, ver = [str(x) for x in d.get("keep") or []], int(d.get("version", 0))
+    _GAME_NAMES = (stamp, best)
+    return best
+
+
+def with_game_names(items: list[dict]) -> Glossary:
+    """The user's glossary plus the game's proper names (the user's own rules come first and win)."""
+    g = Glossary.from_list(items)
+    have = {r.find.lower() for r in g.rules}
+    g.rules += [Rule(n, stage="keep", case_sensitive=True) for n in game_names() if n.lower() not in have]
+    return g

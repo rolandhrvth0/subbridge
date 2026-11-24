@@ -10,10 +10,10 @@ import androidx.compose.ui.graphics.Color
 data class Palette(val bg: Color, val surface: Color, val surface2: Color, val line: Color, val text: Color,
                    val muted: Color, val accent: Color, val accentInk: Color, val ok: Color, val warn: Color, val dark: Boolean)
 
-val DarkPalette = Palette(Color(0xFF0F1115), Color(0xFF181B21), Color(0xFF22262D), Color(0xFF2C313A), Color(0xFFECEEF2),
-    Color(0xFF8D95A4), Color(0xFFF5B83D), Color(0xFF1A1405), Color(0xFF4CCF8A), Color(0xFFF5B83D), true)
-val LightPalette = Palette(Color(0xFFF4F5F7), Color(0xFFFFFFFF), Color(0xFFEEF0F3), Color(0xFFE1E4E9), Color(0xFF16191E),
-    Color(0xFF69717F), Color(0xFFC98A12), Color(0xFFFFFFFF), Color(0xFF1F9D5C), Color(0xFFB7791F), false)
+val DarkPalette = Palette(Color(0xFF0D0A14), Color(0xFF161120), Color(0xFF1E182B), Color(0xFF2A2238), Color(0xFFF1EEF6),
+    Color(0xFF958CA6), Color(0xFFFF4F87), Color(0xFFFFFFFF), Color(0xFF4CCF8A), Color(0xFFFFB547), true)
+val LightPalette = Palette(Color(0xFFF4F2F7), Color(0xFFFFFFFF), Color(0xFFF2EFF6), Color(0xFFE3DFEA), Color(0xFF16121D),
+    Color(0xFF6A6478), Color(0xFFE0336F), Color(0xFFFFFFFF), Color(0xFF1F9D5C), Color(0xFFB7791F), false)
 
 val LocalPalette = staticCompositionLocalOf { DarkPalette }
 

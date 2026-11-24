@@ -109,9 +109,11 @@ class MainWindow(QMainWindow):
         logo = QLabel()
         logo.setPixmap(QIcon(str(resource_dir() / "server" / "web" / "icon-192.png")).pixmap(30, 30))
         brand = QLabel(APP_NAME, objectName="brand")
+        edition = QLabel(tr("edition"), objectName="edition")
         self.status_pill = QLabel(tr("stopped"), objectName="statusPill")
         head.addWidget(logo)
         head.addWidget(brand)
+        head.addWidget(edition)
         head.addSpacing(8)
         head.addWidget(self.status_pill)
         head.addStretch(1)
@@ -267,6 +269,8 @@ class MainWindow(QMainWindow):
         self.lbl_model = QLabel(objectName="small", wordWrap=True)
         self.btn_model = QPushButton(tr("download_model"))
         trc.lay.addWidget(self.lbl_model)
+        self.lbl_tm = QLabel(objectName="small", wordWrap=True)
+        trc.lay.addWidget(self.lbl_tm)
         trc.lay.addWidget(self.btn_model)
         self.prog = QProgressBar(textVisible=False, maximumHeight=8)
         self.prog.hide()
@@ -744,6 +748,10 @@ class MainWindow(QMainWindow):
                                tr("model_std", mb=PRECISE[pair]["size_mb"]) if can_precise else
                                tr("model_ok") if have else tr("model_missing"))
         self.lbl_model.setVisible(p.engine == "argos" or not have)
+        from ..translate.memory import memory
+        n_tm = memory().count(p.target_lang) if p.source_lang == "en" else 0
+        self.lbl_tm.setText(tr("tm_info", n=f"{n_tm:,}".replace(",", "\u202f")))
+        self.lbl_tm.setVisible(n_tm > 0)
         self.btn_model.setVisible(not have or can_precise)
         self.btn_model.setText(tr("precise_get") if can_precise else tr("download_model"))
         self.btn_model.setIcon(icon("download", self.colors()["text"], 16))
