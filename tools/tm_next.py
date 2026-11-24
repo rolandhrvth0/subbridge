@@ -26,7 +26,8 @@ from subbridge.pipeline.textclean import word_ratio  # noqa: E402
 from subbridge.translate.memory import tm_key  # noqa: E402
 
 TM = ROOT / "build" / "tm"
-SOURCES = ["build/corpus/v1/lines.jsonl", "build/corpus/v2/lines.jsonl", "build/tm/v3_lines.jsonl"]
+SOURCES = ["build/corpus/v1/lines.jsonl", "build/corpus/v2/lines.jsonl", "build/tm/v3_lines.jsonl"] + [
+    f"build/corpus/{c}/lines.jsonl" for c in ("ch3", "ch4", "ch5", "ch1", "ch2")]   # v4_* = held-out test only
 
 
 def translated() -> dict[str, str]:
@@ -98,12 +99,14 @@ def main():
     ap.add_argument("cmd", choices=["next", "pack", "stats"])
     ap.add_argument("--size", type=int, default=300)
     ap.add_argument("--min-n", type=int, default=2, help="skip lines read fewer times (flashes, OCR variants)")
+    ap.add_argument("--only", default="", help="only lines seen in this recording (e.g. ch3)")
     a = ap.parse_args()
     done = translated()
     if a.cmd == "next":
         skip = skipped()
         todo = [m for m in candidates() if m["key"] not in done and m["key"] not in skip
-                and (m["n"] >= a.min_n or len(m["src"]) > 1)][: a.size]
+                and (m["n"] >= a.min_n or len(m["src"]) > 1)
+                and (not a.only or any(f"/{a.only}/" in x for x in m["src"]))][: a.size]
         (TM / "batchk").mkdir(exist_ok=True)
         n = len(glob.glob(str(TM / "batchk" / "*.tsv")))
         out = TM / "batchk" / f"{n:03d}.tsv"

@@ -38,7 +38,9 @@ def _segment(args):
     W, H = 1920, 1080
     y0, y1 = int(H * Y0), int(H * Y1)
     bh = y1 - y0
-    cmd = ["ffmpeg", "-loglevel", "error", "-ss", str(start), "-t", str(length), "-i", path,
+    import os
+    hw = ["-hwaccel", "vaapi", "-hwaccel_device", "/dev/dri/renderD128"] if os.environ.get("SB_HWACCEL") == "vaapi" else []
+    cmd = ["ffmpeg", "-loglevel", "error", *hw, "-ss", str(start), "-t", str(length), "-i", path,
            "-vf", f"fps={fps},scale={W}:{H},crop={W}:{bh}:0:{y0}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     ocr = TesseractEngine("en")
