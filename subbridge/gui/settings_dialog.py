@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
                                QFormLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget,
@@ -357,6 +357,22 @@ class SettingsDialog(QDialog):
         if dlg.exec() and dlg.result_region:
             z["region"] = [round(v, 4) for v in dlg.result_region]
 
+    def _update_signal(self, sess):
+        try:
+            i = sess.signal_info()
+        except RuntimeError:                       # session closed meanwhile
+            self._signal_timer.stop()
+            return
+        if not i["live"] or not i["size"]:
+            text = tr("card_signal_none")
+        else:
+            text = tr("card_signal_live", w=i["size"][0], h=i["size"][1], fps=i["fps"] or "…")
+            if i["range"] == "limited":
+                text += "\n" + tr("card_range_limited")
+        if self.lbl_signal.text() != text:
+            self.lbl_signal.setText(text)
+            _fit(self.lbl_signal)
+
     def _page_card(self):
         w, _, f = self._page(tr("s_card"), tr("s_card_sub"))
         sess = self.main.devices.sessions.get(self.p.device_id) if self.p.source_kind == "device" else None
@@ -368,6 +384,12 @@ class SettingsDialog(QDialog):
             self.cmb_fmt.addItem(f"{res.replace('x', '×')}  ·  {fps} fps  ·  {pix}", k)
         self.cmb_fmt.setCurrentIndex(max(0, self.cmb_fmt.findData(self.p.device_format)))
         self._row(f, tr("card_fmt"), self.cmb_fmt, tr("card_fmt_hint") if sess else tr("card_none"))
+        if sess is not None:
+            self.lbl_signal = _hint("", FIELD_W)
+            self._row(f, tr("card_signal"), self.lbl_signal)
+            self._signal_timer = QTimer(self, interval=1000, timeout=lambda: self._update_signal(sess))
+            self._signal_timer.start()
+            self._update_signal(sess)
         from ..capture.device import list_audio_inputs
         self.cmb_audio = QComboBox()
         self.cmb_audio.addItem(tr("card_audio_auto"), "")

@@ -57,3 +57,43 @@ def test_manual_choice_wins():
 def test_usb2_detection():
     assert not usb2_limited(CARD)
     assert usb2_limited(_Dev([_Fmt(1280, 720, 30, "Format_Jpeg"), _Fmt(640, 480, 30, "Format_YUYV")]))
+
+
+def test_picture_range():
+    import numpy as np
+    from subbridge.capture.device import picture_range
+    rng = np.random.default_rng(1)
+    limited = rng.integers(16, 236, 5000)
+    full = rng.integers(0, 256, 5000)
+    assert picture_range(limited) == "limited"
+    assert picture_range(full) == "ok"
+    assert picture_range(np.full(5000, 20)) == ""          # flat (black screen / menu): can't tell
+
+
+def test_stall_restart_backoff(monkeypatch):
+    import subbridge.capture.device as d
+    s = d.DeviceSession.__new__(d.DeviceSession)
+
+    class Cam:
+        n = 0
+
+        def stop(self):
+            pass
+
+        def start(self):
+            Cam.n += 1
+    s.camera, s.error, s._last_sig = Cam(), "", None
+    t = [1000.0]
+    monkeypatch.setattr(d.time, "time", lambda: t[0])
+    s._opened, s._last_frame, s._restarts, s._restart_t = 1000.0, 0.0, 0, 0.0
+    assert not s.stalled()
+    t[0] = 1005.0
+    assert s.stalled() and s.restart() and Cam.n == 1
+    assert not s.stalled()                    # gives the restarted stream time
+    for _ in range(2):
+        t[0] += 4.5
+        assert s.stalled() and s.restart()
+    t[0] += 4.5
+    assert s.stalled() and not s.restart()    # backs off after 3 tries (console switched off)
+    t[0] += 20
+    assert s.restart() and Cam.n == 4

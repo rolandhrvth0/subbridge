@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 import threading
 from html import escape
@@ -398,13 +399,21 @@ class MainWindow(QMainWindow):
             self.sources.insert(0, {"kind": "window", "ident": None, "title": p.window_title, "stream": True,
                                     "waiting": True, "label": tr("source_waiting", name=p.window_title)})
             self.cmb_source.insertItem(0, icon("window", c, 16), self.sources[0]["label"])
+        if p.source_kind == "device" and p.device_name and not any(
+                s["kind"] == "device" and (s["ident"] == p.device_id or s["title"] == p.device_name)
+                for s in self.sources):
+            # the capture card is not plugged in yet: wait for it (picked up as soon as it appears)
+            # instead of silently switching to the desktop
+            self.sources.insert(0, {"kind": "device", "ident": None, "title": p.device_name, "stream": True,
+                                    "waiting": True, "label": tr("source_waiting_card", name=p.device_name)})
+            self.cmb_source.insertItem(0, icon("monitor", c, 16), self.sources[0]["label"])
         if p.source_kind:
             for i, s in enumerate(self.sources):
                 if p.source_kind == "window" and s["kind"] == "window" and s["title"] == p.window_title:
                     idx = i
                     break
                 if p.source_kind == "device" and s["kind"] == "device" and (
-                        s["ident"] == p.device_id or s["title"] == p.device_name):
+                        s["ident"] == p.device_id or s["title"] == p.device_name or s.get("waiting")):
                     idx = i
                     break
                 if p.source_kind == "screen" and s["kind"] == "screen" and s["ident"] == p.screen_index:
@@ -435,8 +444,16 @@ class MainWindow(QMainWindow):
             fresh = list_sources(self.capture)
         except CaptureError:
             return
+        self._card_watch()
         if [(s["kind"], s["ident"], s["title"]) for s in fresh] == getattr(self, "_source_keys", None):
             return
+        # a capture card that was unplugged: drop its dead session, so plugging it back in (often under
+        # the same /dev/videoN) opens it fresh
+        present = {str(s["ident"]) for s in fresh if s["kind"] == "device"}
+        for k in [k for k in self.devices.sessions if k not in present]:
+            if self.gameview:
+                self.gameview.close()
+            self.devices.sessions.pop(k).close()
         cur = self.current_source()
         waiting = bool(cur and cur.get("waiting"))
         self.refresh_sources(select_saved=True)
@@ -445,7 +462,18 @@ class MainWindow(QMainWindow):
             self.engine.window_id = now["ident"]
             if self._autostart_pending and not self.engine.running:
                 self.toggle_run()
+        elif waiting and now and not now.get("waiting") and now["kind"] == "device":
+            if self._autostart_pending and not self.engine.running:
+                self.toggle_run()
         self._update_tiles()
+
+    def _card_watch(self):
+        """Capture card stream died (console rest mode, HDMI mode switch, USB reset): restart it in place."""
+        if self.profile.source_kind != "device":
+            return
+        sess = self.devices.sessions.get(self.profile.device_id)
+        if sess is not None and sess.stalled() and sess.restart():
+            logging.getLogger(__name__).info("capture card: no frames, stream restarted (try %d)", sess._restarts)
 
     def _update_overlay_ui(self):
         p = self.profile

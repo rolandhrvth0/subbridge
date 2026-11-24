@@ -91,6 +91,19 @@ def frame_to_rgb(frame: QVideoFrame) -> np.ndarray | None:
     return np.frombuffer(img.constBits(), np.uint8, h * bpl).reshape(h, bpl)[:, : w * 3].reshape(h, w, 3).copy()
 
 
+def picture_range(sample: np.ndarray) -> str:
+    """'limited' when the darkest and brightest pixels of a varied picture sit at ~16 and ~235 (video
+    levels shown as PC levels: grey blacks, dull whites), 'ok' otherwise, '' when the picture is too flat
+    (menu, black screen) to tell."""
+    v = np.asarray(sample, np.float32).reshape(-1)
+    if v.size < 200:
+        return ""
+    lo, hi = np.percentile(v, 0.5), np.percentile(v, 99.5)
+    if hi - lo < 120:
+        return ""
+    return "limited" if 10 <= lo <= 24 and 225 <= hi <= 240 else "ok"
+
+
 def guess_audio(video_name: str):
     """The card's own sound input (UVC cards add a USB audio device with a matching name)."""
     ins = list(QMediaDevices.audioInputs())
@@ -198,6 +211,11 @@ class DeviceSession(QObject):
         self._t = 0.0
         self.error = ""
         self.camera.errorOccurred.connect(lambda _e, msg: setattr(self, "error", msg))
+        self._opened = time.time()
+        self._last_frame = 0.0             # any frame (also the ones not converted)
+        self._fps_n, self._fps_t0, self.fps = 0, time.time(), 0.0
+        self._restarts = 0
+        self._restart_t = 0.0
         self.audio_in = self.audio_out = None
         self.set_audio(audio_id, play_audio)
         self.camera.start()
@@ -277,6 +295,12 @@ class DeviceSession(QObject):
     def _on_frame(self, frame: QVideoFrame):
         if not frame.isValid():
             return
+        now = time.time()
+        self._last_frame = now
+        self._restarts = 0
+        self._fps_n += 1
+        if now - self._fps_t0 >= 2.0:
+            self.fps, self._fps_n, self._fps_t0 = self._fps_n / (now - self._fps_t0), 0, now
         if self._extra_sink is not None and not (self._dedupe and self._is_repeat(frame)):
             self._extra_sink.setVideoFrame(frame)
         now = time.time()
@@ -301,6 +325,45 @@ class DeviceSession(QObject):
                     self._img, self._t = img, now
                     self._size = (img.width(), img.height())
         self.frame_ready.emit()
+
+    def stalled(self, after: float = 4.0) -> bool:
+        """No frame for a while although the device is open: the console went to rest mode, the HDMI
+        signal changed resolution (PS5 boot logo → game) or the USB link reset. Many UVC cards then keep
+        the stream dead until it is reopened."""
+        ref = max(self._last_frame, self._opened, self._restart_t)
+        return time.time() - ref > after
+
+    def restart(self) -> bool:
+        """Restart the stream in place (keeps the Game View and sinks attached). Backs off after a few
+        tries so a switched-off console does not cause a restart every few seconds."""
+        now = time.time()
+        wait = 4.0 if self._restarts < 3 else 20.0
+        if now - self._restart_t < wait:
+            return False
+        self._restarts += 1
+        self._restart_t = now
+        self.error = ""
+        self._last_sig = None
+        try:
+            self.camera.stop()
+            self.camera.start()
+        except Exception:  # noqa: BLE001
+            return False
+        return True
+
+    def signal_info(self) -> dict:
+        """What actually arrives from the card (for the settings page): size, measured fps and whether
+        the picture looks like limited-range video (16–235) shown as full range – washed-out blacks."""
+        with self._lock:
+            img = self._img
+        live = not self.stalled(3.0)
+        info = {"live": live, "fps": round(self.fps) if live else 0, "size": self._size, "format": self.format,
+                "range": ""}
+        if img is not None and live:
+            w, h, bpl = img.width(), img.height(), img.bytesPerLine()
+            a = np.frombuffer(img.constBits(), np.uint8, h * bpl).reshape(h, bpl)[::8, : w * 3: 24]
+            info["range"] = picture_range(a)
+        return info
 
     def latest(self) -> np.ndarray:
         with self._lock:
