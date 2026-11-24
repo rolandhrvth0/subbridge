@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.1.6-release",
+      "date": "2026-11-24",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.1.6",
+        "en": "SubBridge 1.1.6 is out"
+      },
+      "body": {
+        "hu": "Capture card: az automatikus képformátum mostantól 1440p 60 fps (élesebb felirat), ha a kártya tudja. Ha menet közben megáll a kép (pihenő mód, felbontásváltás, USB-akadás), magától újraindul; kihúzás-bedugás után is magától folytatja. A beállításokban látszik a bejövő kép mérete és fps-e.",
+        "en": "Capture card: the automatic format is now 1440p 60 fps (sharper subtitles) when the card offers it. If the picture stops (rest mode, resolution switch, USB hiccup) it restarts by itself, also after unplugging and plugging back in. Settings now show the incoming picture size and fps."
+      }
+    },
+    {
       "id": "1.1.5-release",
       "date": "2026-11-23",
       "title": {
@@ -258,25 +270,25 @@
     }
   },
   "latest": {
-    "version": "1.1.5",
+    "version": "1.1.6",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Javítva: a capture cardos Játéknézetben nem működött a teljes képernyő (F11, dupla kattintás) és az Esc. Új: a Lossless Scaling (lsfg-vk) 2.0 végleges kiadásának támogatása Linuxon.",
-      "en": "Fixed: full screen (F11, double-click) and Esc did not work in the capture card Game View. New: support for the final lsfg-vk 2.0 release (Lossless Scaling) on Linux."
+      "hu": "Capture card: az automatikus képformátum mostantól 1440p 60 fps (élesebb felirat), ha a kártya tudja. Ha menet közben megáll a kép (pihenő mód, felbontásváltás, USB-akadás), magától újraindul; kihúzás-bedugás után is magától folytatja. A beállításokban látszik a bejövő kép mérete és fps-e.",
+      "en": "Capture card: the automatic format is now 1440p 60 fps (sharper subtitles) when the card offers it. If the picture stops (rest mode, resolution switch, USB hiccup) it restarts by itself, also after unplugging and plugging back in. Settings now show the incoming picture size and fps."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.5-windows-setup.exe",
-        "sha256": "34b395b26a9ed5b19ed957f5572fe97e0cba12567f50ccd2d8ee7bd33e8206f3"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.6-windows-setup.exe",
+        "sha256": "057a4fcb9c65e7dd751118e8a1b167823132c612dd2f7ea18dd1f59f21f13fc0"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.5_amd64.deb",
-        "sha256": "db5b8bbf5508ad3f637f79bd093632b5e525d1177a1390c345b43b939f0a3007"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.6_amd64.deb",
+        "sha256": "2b4ac28a71d5567dce828e4c2501aee01c854c300c99018ffe55c37d6571d775"
       }
     },
     "rollout": {
-      "start": 1795436076,
-      "hours": 0.0,
+      "start": 1795553642,
+      "hours": 24.0,
       "from": 20
     }
   }
