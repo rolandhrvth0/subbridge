@@ -21,7 +21,7 @@ from ..i18n import tr
 _API_SET = False
 
 
-def prepare_graphics(mode: str, low_latency: bool = True) -> str:
+def prepare_graphics(mode: str, low_latency: bool = True, multiplier: int = 2) -> str:
     """Choose the graphics API (and load lsfg-vk) before the first Qt Quick window. Returns the
     frame generation mode really in use (lsfg cannot be loaded once Vulkan is running)."""
     global _API_SET
@@ -41,7 +41,7 @@ def prepare_graphics(mode: str, low_latency: bool = True) -> str:
             # window is destroyed – that would take SubBridge down when the Game View closes
             import os
             os.environ["DISABLE_MANGOHUD"] = "1"
-            if mode == "lsfg" and not fgmodes.enable_lsfg(fi):
+            if mode == "lsfg" and not fgmodes.enable_lsfg(fi, multiplier):
                 mode = "off"
             QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.Vulkan)
         elif sys.platform == "win32":
@@ -49,12 +49,15 @@ def prepare_graphics(mode: str, low_latency: bool = True) -> str:
         prepare_graphics.loaded_lsfg = mode == "lsfg"
     elif mode == "lsfg" and not getattr(prepare_graphics, "loaded_lsfg", False):
         mode = "off"                     # needs a restart of SubBridge
+    elif mode == "lsfg":
+        fgmodes.write_lsfg_conf(fi, multiplier)       # lsfg-vk re-reads its config: 2× / 3× / 4× live
     return mode
 
 
 class GpuGameView(QQuickView):
-    def __init__(self, session, on_close=None, mode: str = "auto", low_latency: bool = True):
-        self.mode = prepare_graphics(mode, low_latency)
+    def __init__(self, session, on_close=None, mode: str = "auto", low_latency: bool = True, multiplier: int = 2):
+        self.multiplier = multiplier
+        self.mode = prepare_graphics(mode, low_latency, multiplier)
         self.low_latency = low_latency
         super().__init__()
         self.session = session

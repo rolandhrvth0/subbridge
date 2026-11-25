@@ -473,6 +473,13 @@ class MainWindow(QMainWindow):
 
     def _card_watch(self):
         """Capture card stream died (console rest mode, HDMI mode switch, USB reset): restart it in place."""
+        gv = self.gameview
+        if gv is not None and getattr(gv, "closed", False):       # the DLSS 5 view's window was closed
+            gv.close()
+            sess = self.devices.sessions.get(self.profile.device_id)
+            if sess is not None:
+                sess.set_audio(self.profile.device_audio_id, False)
+            self.gameview = None
         if self.profile.source_kind != "device":
             return
         sess = self.devices.sessions.get(self.profile.device_id)
@@ -583,16 +590,33 @@ class MainWindow(QMainWindow):
         sess = self.devices.sessions.get(self.profile.device_id)
         if not sess:
             return
+        from .. import neural
+        if isinstance(self.gameview, neural.NrView):
+            return                                    # its window is the worker's own (F11 there)
+        if self.gameview is None and self.profile.neural and neural.view_available():
+            try:
+                fi_mult = self.profile.fg_multiplier if self.profile.framegen in ("auto", "lsfg") else 0
+                self.gameview = neural.NrView(sess, self.overlay, self.phone_panel, neural=True, lsfg_mult=fi_mult)
+                self.gameview.set_look(self.profile.nr_style, self.profile.nr_intensity, self.profile.nr_skin)
+                sess.audio_out_id = self.profile.device_audio_out
+                sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)
+                logging.getLogger(__name__).info("Game View: GPU-only DLSS 5 view (lsfg %s×)", fi_mult)
+                return
+            except Exception:  # noqa: BLE001
+                logging.getLogger(__name__).exception("DLSS 5 view failed, using the normal Game View")
+                self.gameview = None
         if self.gameview is None:
             def closed():
                 sess.set_audio(self.profile.device_audio_id, False)
+                sess.set_neural(False)
                 self.gameview = None
             self.gameview = None
             try:
                 from .gameview_gpu import GpuGameView, gpu_available
                 if gpu_available():
                     self.gameview = GpuGameView(sess, on_close=closed, mode=self.profile.framegen,
-                                                low_latency=self.profile.low_latency)
+                                                low_latency=self.profile.low_latency,
+                                                multiplier=self.profile.fg_multiplier)
             except Exception:  # noqa: BLE001  – no Qt Quick / GPU: the classic view still works
                 import logging
                 logging.getLogger(__name__).exception("GPU Game View failed, using the classic one")
@@ -603,6 +627,8 @@ class MainWindow(QMainWindow):
             self.gameview.scale = self.profile.overlay_scale
             sess.audio_out_id = self.profile.device_audio_out
             sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)
+            if sess.set_neural(self.profile.neural):
+                logging.getLogger(__name__).info("Game View: experimental DLSS 5 neural rendering on")
         self.gameview.show()
         self.gameview.raise_()
         self.gameview.activateWindow()
@@ -937,6 +963,8 @@ class MainWindow(QMainWindow):
             self.engine.stop()
         self.profile = p
         self._save_profile()
+        if hasattr(self.gameview, "set_look"):          # DLSS 5 view: the look changes live
+            self.gameview.set_look(p.nr_style, p.nr_intensity, p.nr_skin)
         self._update_overlay_ui()
         self.apply_theme()
         self._update_translator()

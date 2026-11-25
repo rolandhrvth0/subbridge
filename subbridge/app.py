@@ -174,6 +174,9 @@ def _crash_safety(app):
 
 
 def main(argv=None):
+    # GIL hand-off every 0.5 ms instead of 5 ms: the GUI thread passes each capture-card frame to the Game
+    # View and must not wait behind the OCR / overlay threads (Game View micro-stutter)
+    sys.setswitchinterval(0.0005)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         handlers=[logging.FileHandler(config_dir() / "subbridge.log", encoding="utf-8"),
                                   logging.StreamHandler()])

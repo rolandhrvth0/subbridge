@@ -49,6 +49,11 @@ class Profile:
     learn_mode: bool = False
     low_latency: bool = True             # capture card: 60 fps formats first, no vsync wait, small audio buffers
     device_audio_out: str = ""           # where the card sound plays ("" = system default output)
+    fg_multiplier: int = 2               # lsfg: 2/3/4 × the game's 30 fps = 60/90/120 fps
+    neural: bool = False                 # experimental DLSS 5 neural rendering (only with a local sb-nr install)
+    nr_style: int = 1                    # DLSS 5 look: 0 Standard, 1 Natural (NVIDIA's), 2 Cinematic
+    nr_intensity: float = 0.75           # 0.25 .. 1.0
+    nr_skin: bool = True                 # faces keep the game's own detail
     framegen: str = "auto"               # Game View frame generation: auto|lsfg|afmf|smooth|builtin|off (fgmodes)             # show the original (small) under the translation on the game
 
     @classmethod

@@ -414,6 +414,29 @@ class SettingsDialog(QDialog):
             self.cmb_fg.addItem(tr(f"fg_{k}") if k != "off" else tr("fg_offopt"), k)
         self.cmb_fg.setCurrentIndex(max(0, self.cmb_fg.findData(self.p.framegen)))
         self._row(f, tr("fg_mode"), self.cmb_fg, tr("fg_mode_hint"))
+        self.cmb_fgx = QComboBox()
+        for m in (2, 3, 4):
+            self.cmb_fgx.addItem(tr(f"fg_x{m}"), m)
+        self.cmb_fgx.setCurrentIndex(max(0, self.cmb_fgx.findData(self.p.fg_multiplier)))
+        self.cmb_fgx.setEnabled("lsfg" in fi.choices())
+        self._row(f, tr("fg_x"), self.cmb_fgx, tr("fg_x_hint"))
+        from .. import neural
+        self.chk_nr = None
+        if neural.available():                       # only on a machine with a local sb-nr install
+            self.chk_nr = QCheckBox(tr("nr_on"), checked=self.p.neural)
+            self._row(f, "", self.chk_nr, tr("nr_hint"))
+            self.cmb_nr_style = QComboBox()
+            for k in (1, 2, 0):
+                self.cmb_nr_style.addItem(tr(f"nr_style{k}"), k)
+            self.cmb_nr_style.setCurrentIndex(max(0, self.cmb_nr_style.findData(self.p.nr_style)))
+            self._row(f, tr("nr_style"), self.cmb_nr_style)
+            self.cmb_nr_int = QComboBox()
+            for v in (0.25, 0.5, 0.75, 1.0):
+                self.cmb_nr_int.addItem(f"{int(v * 100)} %", v)
+            self.cmb_nr_int.setCurrentIndex(max(0, self.cmb_nr_int.findData(self.p.nr_intensity)))
+            self._row(f, tr("nr_int"), self.cmb_nr_int)
+            self.chk_nr_skin = QCheckBox(tr("nr_skin"), checked=self.p.nr_skin)
+            self._row(f, "", self.chk_nr_skin, tr("nr_skin_hint"))
         return w
 
     def _page_glossary(self):
@@ -548,6 +571,12 @@ class SettingsDialog(QDialog):
         p.device_audio_out = self.cmb_audio_out.currentData() or ""
         p.device_audio = self.chk_card_sound.isChecked()
         p.framegen = self.cmb_fg.currentData() or "auto"
+        p.fg_multiplier = int(self.cmb_fgx.currentData() or 2)
+        if self.chk_nr is not None:
+            p.neural = self.chk_nr.isChecked()
+            p.nr_style = int(self.cmb_nr_style.currentData())
+            p.nr_intensity = float(self.cmb_nr_int.currentData())
+            p.nr_skin = self.chk_nr_skin.isChecked()
         card_changed = card_changed or p.low_latency != self.chk_ll.isChecked()   # format choice depends on it
         p.low_latency = self.chk_ll.isChecked()
         p.overlay_scale = float(self.cmb_ov_size.currentData() or 1.0)

@@ -58,6 +58,8 @@ def test_close_releases_camera(qapp_offscreen):
                               setCamera=lambda x: sess_calls.append(("cam", x)))
     s = device.DeviceSession.__new__(device.DeviceSession)
     s.camera, s.session, s._ll_audio, s._extra_sink = cam, capsess, None, None
+    s._converter = SimpleNamespace(stop=lambda: calls.append("conv"))
+    s._nr = None
     s.sink = SimpleNamespace(videoFrameChanged=SimpleNamespace(disconnect=lambda f: None))
     s._on_frame = lambda f: None
     device.DeviceSession.close(s)
@@ -105,3 +107,43 @@ def test_qml_never_compares_with_null():
     for f in Path(device.__file__).parents[1].glob("gui/*.qml"):
         txt = f.read_text()
         assert "!== null" not in txt and "=== null" not in txt, f
+
+
+def test_raw_copy_then_convert_matches(qapp_offscreen):
+    y = np.full((32, 64), 180, np.uint8)
+    uv = np.full((16, 64), 128, np.uint8)
+    f = _frame(PF.Format_NV12, [y, uv])
+    raw = device.frame_raw(f)
+    assert raw is not None and raw[1].flags.owndata or raw[1].base is not None
+    a = device.raw_to_rgb(raw)
+    b = device.frame_to_rgb(_frame(PF.Format_NV12, [y, uv]))
+    assert a.shape == (32, 64, 3) and np.array_equal(a, b)
+
+
+def test_converter_thread_stores_latest():
+    import threading
+    got = []
+    ev = threading.Event()
+    c = device._Converter(lambda img, t: (got.append((img.width(), t)), ev.set()))
+    y = np.zeros((32 * 3 // 2, 64), np.uint8)
+    c.put((PF.Format_NV12, y, 64, 32), 1.5)
+    assert ev.wait(2) and got[-1] == (64, 1.5)
+    c.stop()
+
+
+def test_dedupe_never_drops_two_in_a_row():
+    """Static scene: every frame looks like a repeat – the view must still get every second card frame."""
+    s = device.DeviceSession.__new__(device.DeviceSession)
+    got = []
+    from types import SimpleNamespace
+    s._extra_sink = SimpleNamespace(setVideoFrame=lambda f: got.append(f))
+    s._dedupe, s._dropped_last, s._nr, s._nrview = True, False, None, None
+    s._is_repeat = lambda f: True
+    s._pace_in = s._pace_out = lambda now: None
+    s._fg_cb, s._conv_t, s._t = None, 1e18, 0.0
+    s._fps_n, s._fps_t0, s.fps = 0, 1e18, 0.0
+    s.frame_ready = SimpleNamespace(emit=lambda: None)
+    frame = SimpleNamespace(isValid=lambda: True)
+    for _ in range(60):
+        device.DeviceSession._on_frame_inner(s, frame)
+    assert len(got) == 30

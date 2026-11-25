@@ -114,7 +114,13 @@ def _frame_rgb_cpu(frame: QVideoFrame) -> np.ndarray | None:
     shader and first creates a thread-local OpenGL context; when that fails (bundled Qt + GLX on some
     drivers) Qt calls qFatal and the whole app aborts – no Python exception to catch. So never let raw
     card frames reach toImage(). Returns None for formats not handled here."""
-    import cv2
+    return raw_to_rgb(frame_raw(frame))
+
+
+def frame_raw(frame: QVideoFrame):
+    """Copy the mapped driver buffer (~1 ms at 1440p) so the conversion can run on another thread:
+    the frame handler runs on the GUI thread, and every ms spent there delays the next card frame
+    (Game View micro-stutter). Returns (kind, array, w, h) or None."""
     pf = frame.pixelFormat()
     w, h = frame.width(), frame.height()
     if pf not in (_PF.Format_NV12, _PF.Format_NV21, _PF.Format_YUYV, _PF.Format_UYVY, _PF.Format_YUV420P,
@@ -124,31 +130,41 @@ def _frame_rgb_cpu(frame: QVideoFrame) -> np.ndarray | None:
         return None
     try:
         if pf == _PF.Format_Jpeg:
-            raw = np.frombuffer(bytes(frame.bits(0)[:frame.mappedBytes(0)]), np.uint8)
-            bgr = cv2.imdecode(raw, cv2.IMREAD_COLOR)
-            return None if bgr is None else cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+            return ("jpeg", np.frombuffer(bytes(frame.bits(0)[:frame.mappedBytes(0)]), np.uint8), w, h)
         if pf in _PACKED:
-            px = _plane(frame, 0, h)[:, : w * 4].reshape(h, w, 4)
-            return np.ascontiguousarray(px[:, :, list(_PACKED[pf])])
+            return (_PACKED[pf], np.array(_plane(frame, 0, h)[:, : w * 4]).reshape(h, w, 4), w, h)
         if pf in (_PF.Format_YUYV, _PF.Format_UYVY):
-            px = np.ascontiguousarray(_plane(frame, 0, h)[:, : w * 2]).reshape(h, w, 2)
-            code = cv2.COLOR_YUV2RGB_YUYV if pf == _PF.Format_YUYV else cv2.COLOR_YUV2RGB_UYVY
-            return cv2.cvtColor(px, code)
+            return (pf, np.array(_plane(frame, 0, h)[:, : w * 2]).reshape(h, w, 2), w, h)
         if pf in (_PF.Format_NV12, _PF.Format_NV21):
-            y = _plane(frame, 0, h)[:, :w]
-            uv = _plane(frame, 1, h // 2)[:, :w]
-            code = cv2.COLOR_YUV2RGB_NV12 if pf == _PF.Format_NV12 else cv2.COLOR_YUV2RGB_NV21
-            return cv2.cvtColor(np.ascontiguousarray(np.vstack([y, uv])), code)
-        # planar 4:2:0 (I420 / YV12)
+            return (pf, np.vstack([_plane(frame, 0, h)[:, :w], _plane(frame, 1, h // 2)[:, :w]]), w, h)
         y = _plane(frame, 0, h)[:, :w].reshape(-1)
         u = _plane(frame, 1, h // 2)[:, : w // 2].reshape(-1)
         v = _plane(frame, 2, h // 2)[:, : w // 2].reshape(-1)
-        code = cv2.COLOR_YUV2RGB_I420 if pf == _PF.Format_YUV420P else cv2.COLOR_YUV2RGB_YV12
-        return cv2.cvtColor(np.concatenate([y, u, v]).reshape(h * 3 // 2, w), code)
+        return (pf, np.concatenate([y, u, v]).reshape(h * 3 // 2, w), w, h)
     except Exception:  # noqa: BLE001
         return None
     finally:
         frame.unmap()
+
+
+def raw_to_rgb(raw) -> np.ndarray | None:
+    """Second half of the CPU conversion (cv2 releases the GIL – safe and cheap on a worker thread)."""
+    if raw is None:
+        return None
+    import cv2
+    kind, a, w, h = raw
+    try:
+        if isinstance(kind, str):                                  # jpeg
+            bgr = cv2.imdecode(a, cv2.IMREAD_COLOR)
+            return None if bgr is None else cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+        if isinstance(kind, tuple):                                # packed 32-bit, kind = R,G,B indexes
+            return np.ascontiguousarray(a[:, :, list(kind)])
+        codes = {_PF.Format_YUYV: cv2.COLOR_YUV2RGB_YUYV, _PF.Format_UYVY: cv2.COLOR_YUV2RGB_UYVY,
+                 _PF.Format_NV12: cv2.COLOR_YUV2RGB_NV12, _PF.Format_NV21: cv2.COLOR_YUV2RGB_NV21,
+                 _PF.Format_YUV420P: cv2.COLOR_YUV2RGB_I420, _PF.Format_YV12: cv2.COLOR_YUV2RGB_YV12}
+        return cv2.cvtColor(a, codes[kind])
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def rgb_to_qimage(rgb: np.ndarray) -> QImage:
@@ -331,9 +347,43 @@ class LowLatencyAudio:
         self.src = self.sink = self.io_in = self.io_out = None
 
 
+class _Converter:
+    """One worker thread converting the newest raw card frame to RGB (older pending ones are dropped)."""
+
+    def __init__(self, store):
+        self._store = store
+        self._cv = threading.Condition()
+        self._job = None
+        self._alive = True
+        threading.Thread(target=self._run, name="card-convert", daemon=True).start()
+
+    def put(self, raw, t: float):
+        with self._cv:
+            self._job = (raw, t)
+            self._cv.notify()
+
+    def stop(self):
+        with self._cv:
+            self._alive = False
+            self._cv.notify()
+
+    def _run(self):
+        while True:
+            with self._cv:
+                while self._alive and self._job is None:
+                    self._cv.wait()
+                if not self._alive:
+                    return
+                (raw, t), self._job = self._job, None
+            rgb = raw_to_rgb(raw)
+            if rgb is not None:
+                self._store(rgb_to_qimage(rgb), t)
+
+
 class DeviceSession(QObject):
     """One open device. Lives in the GUI thread (Qt Multimedia objects must)."""
     frame_ready = Signal()
+    nr_frame = Signal(object)            # experimental neural rendering: processed picture (worker -> GUI thread)
 
     def __init__(self, device_id: str, audio_id: str = "", play_audio: bool = False, fmt_key: str = "",
                  low_latency: bool = True, audio_out_id: str = ""):
@@ -364,6 +414,12 @@ class DeviceSession(QObject):
         self.sink.videoFrameChanged.connect(self._on_frame)
         self._lock = threading.Lock()
         self._img: QImage | None = None
+        self._dropped_last = False
+        self._nr = None
+        self._nrview = None
+        self.nr_frame.connect(self._show_nr)
+        self._conv_t = 0.0
+        self._converter = _Converter(self._store)
         self._size: tuple[int, int] | None = None
         self._t = 0.0
         self.error = ""
@@ -514,9 +570,23 @@ class DeviceSession(QObject):
         if now - self._fps_t0 >= 2.0:
             self.fps, self._fps_n, self._fps_t0 = self._fps_n / (now - self._fps_t0), 0, now
         self._pace_in(now)
-        if self._extra_sink is not None and not (self._dedupe and self._is_repeat(frame)):
-            self._extra_sink.setVideoFrame(frame)
-            self._pace_out(now)
+        if self._extra_sink is not None or self._nrview is not None:
+            # 60 Hz card, 30 fps game: drop the repeated half – but NEVER two card frames in a row. When the
+            # player stands still, two real pictures are nearly identical and used to be dropped too: frame
+            # generation then got 15–20 uneven pictures/s (stutter exactly when stopping).
+            drop = ((self._dedupe or self._nr is not None or self._nrview is not None)
+                    and not self._dropped_last and self._is_repeat(frame))
+            self._dropped_last = drop
+            if not drop and self._nrview is not None:
+                if self._nrview.put_frame(frame):            # GPU-only DLSS 5 view: one copy, the rest on the GPU
+                    self._pace_out(now)
+            elif not drop and self._extra_sink is not None:
+                raw = frame_raw(frame) if self._nr is not None else None
+                if raw is not None:
+                    self._nr.put(raw)                    # shown when the worker hands it back (_show_nr)
+                else:
+                    self._extra_sink.setVideoFrame(frame)
+                self._pace_out(now)
         now = time.time()
         if self._fg_cb is not None:
             img = frame_to_qimage(frame)
@@ -528,15 +598,57 @@ class DeviceSession(QObject):
                         self._size = (img.width(), img.height())
                 self.frame_ready.emit()
                 return
-        # Convert right here, while the driver buffer is guaranteed valid, at most ~10×/s (OCR needs 4–8):
-        # reading a kept QVideoFrame later from another moment/thread can crash on recycled V4L2 buffers.
-        if now - self._t >= 0.09:
-            img = frame_to_qimage(frame)
-            if not img.isNull():
-                with self._lock:
-                    self._img, self._t = img, now
-                    self._size = (img.width(), img.height())
+        # At most ~10×/s (OCR needs 4–8): copy the driver buffer here, while it is guaranteed valid (a kept
+        # QVideoFrame can crash on recycled V4L2 buffers), and convert on the worker thread – the GUI thread
+        # must hand the next card frame to the Game View on time.
+        if now - self._conv_t >= 0.09:
+            self._conv_t = now
+            raw = frame_raw(frame)
+            if raw is not None:
+                self._converter.put(raw, now)
+            else:                                            # exotic format: old path
+                img = frame_to_qimage(frame)
+                if not img.isNull():
+                    self._store(img, now)
         self.frame_ready.emit()
+
+    # --- experimental: DLSS 5 neural rendering (subbridge/neural.py), local installs only
+    def set_neural(self, on: bool) -> bool:
+        from .. import neural
+        if on and self._nr is None and neural.available():
+            self._nr = neural.NeuralStage(lambda a: self.nr_frame.emit(a))
+        elif not on and self._nr is not None:
+            self._nr.stop()
+            self._nr = None
+        return self._nr is not None
+
+    def set_nrview(self, view):
+        self._nrview = view
+        self._dropped_last = False
+        self._last_sig = None
+
+    def neural_info(self) -> str:
+        n = self._nr
+        if n is None:
+            return ""
+        w = n.worker
+        if w is None or w.starting:
+            return "DLSS 5: indul…"
+        if not w.ok:
+            return f"DLSS 5: hiba ({w.error})"
+        return f"DLSS 5: {w.ms:.1f} ms/kép"
+
+    def _show_nr(self, rgba):
+        if self._extra_sink is None or rgba is None:
+            return
+        h, w = rgba.shape[:2]
+        img = QImage(rgba.data, w, h, w * 4, QImage.Format_RGBA8888).copy()
+        self._extra_sink.setVideoFrame(QVideoFrame(img))
+
+    def _store(self, img: QImage, t: float):
+        with self._lock:
+            self._img, self._t = img, t
+            self._size = (img.width(), img.height())
 
     def stalled(self, after: float = 4.0) -> bool:
         """No frame for a while although the device is open: the console went to rest mode, the HDMI
@@ -602,6 +714,8 @@ class DeviceSession(QObject):
     def close(self):
         if self.camera is None:          # already closed
             return
+        self._converter.stop()
+        self.set_neural(False)
         self._extra_sink = None
         if self._ll_audio is not None:
             self._ll_audio.stop()

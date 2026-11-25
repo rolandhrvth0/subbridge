@@ -183,17 +183,13 @@ def info() -> FgInfo:
     return _info
 
 
-def enable_lsfg(fi: FgInfo, multiplier: int = 2) -> bool:
-    """Load the lsfg-vk layer for this process's Vulkan windows (the Game View). Must run before the
-    first Vulkan instance is created. Writes SubBridge's own lsfg profile; the user's file stays as is."""
-    if not fi.lsfg_ok:
-        return False
+
+def write_lsfg_conf(fi: FgInfo, multiplier: int = 2, names: set | None = None):
+    """SubBridge's own lsfg-vk profile (the user's file stays as is). multiplier 2/3/4 = 30 -> 60/90/120 fps."""
     from .paths import config_dir
-    names = {Path(sys.executable).name, Path(sys.argv[0]).name, "subbridge", "SubBridge", "python3", "python"}
-    try:
-        names.add(Path("/proc/self/comm").read_text().strip())
-    except OSError:
-        pass
+    multiplier = max(2, min(4, int(multiplier or 2)))
+    if names is None:
+        names = {Path(sys.executable).name, Path(sys.argv[0]).name, "subbridge", "SubBridge", "python3", "python"}
     conf = config_dir() / "lsfg-vk.toml"
     release = lsfg_is_release(fi.lsfg_json)
     lines = ["version = 2", "[global]", f"dll = '{fi.lsfg_dll}'", "allow_fp16 = true", "",
@@ -205,10 +201,24 @@ def enable_lsfg(fi: FgInfo, multiplier: int = 2) -> bool:
     if not release:
         lines.append("pacing = 'none'")          # the dev builds knew only this one
     conf.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def enable_lsfg(fi: FgInfo, multiplier: int = 2) -> bool:
+    """Load the lsfg-vk layer for this process's Vulkan windows (the Game View). Must run before the
+    first Vulkan instance is created. Writes SubBridge's own lsfg profile; the user's file stays as is."""
+    if not fi.lsfg_ok:
+        return False
+    names = {Path(sys.executable).name, Path(sys.argv[0]).name, "subbridge", "SubBridge", "python3", "python"}
+    try:
+        names.add(Path("/proc/self/comm").read_text().strip())
+    except OSError:
+        pass
+    write_lsfg_conf(fi, multiplier, names)
     os.environ["VK_ADD_LAYER_PATH"] = os.pathsep.join(
         [str(Path(fi.lsfg_json).parent)] + [p for p in os.environ.get("VK_ADD_LAYER_PATH", "").split(os.pathsep) if p])
     layers = [x for x in os.environ.get("VK_INSTANCE_LAYERS", "").split(":") if x]
     if LSFG_LAYER not in layers:
         os.environ["VK_INSTANCE_LAYERS"] = ":".join(layers + [LSFG_LAYER])
-    os.environ["LSFGVK_CONFIG"] = str(conf)
+    from .paths import config_dir as _cd
+    os.environ["LSFGVK_CONFIG"] = str(_cd() / "lsfg-vk.toml")
     return True
