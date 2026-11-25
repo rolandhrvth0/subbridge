@@ -419,6 +419,8 @@ class DeviceSession(QObject):
         self._restart_t = now
         self.error = ""
         self._last_sig = None
+        if self.camera is None:
+            return False
         try:
             self.camera.stop()
             self.camera.start()
@@ -455,10 +457,14 @@ class DeviceSession(QObject):
             sz = self._size
         if sz:
             return sz
+        if self.camera is None:
+            return 1920, 1080
         r = self.camera.cameraFormat().resolution()
         return (r.width() or 1920), (r.height() or 1080)
 
     def close(self):
+        if self.camera is None:          # already closed
+            return
         self._extra_sink = None
         if self._ll_audio is not None:
             self._ll_audio.stop()
@@ -470,6 +476,17 @@ class DeviceSession(QObject):
         self.camera.stop()
         self.session.setAudioOutput(None)
         self.session.setAudioInput(None)
+        # Release the V4L2 device NOW: a stopped QCamera that is still attached keeps the device open,
+        # and a new session on the same card (settings saved, audio changed) then gets no frames at all.
+        self.session.setVideoSink(None)
+        self.session.setCamera(None)
+        cam, self.camera = self.camera, None
+        cam.deleteLater()
+        try:
+            from PySide6.QtCore import QCoreApplication, QEvent
+            QCoreApplication.sendPostedEvents(cam, QEvent.DeferredDelete)
+        except Exception:  # noqa: BLE001
+            pass
 
 
 class DeviceCapture(CaptureSource):

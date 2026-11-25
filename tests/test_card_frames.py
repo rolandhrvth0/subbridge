@@ -45,3 +45,21 @@ def test_yuyv_and_packed_cpu(qapp_offscreen, monkeypatch):
     px[..., 2] = 255  # memory B,G,R,X -> red
     rgb = device.frame_to_rgb(_frame(PF.Format_XBGR8888, [px.reshape(32, 256)]))
     assert rgb[..., 0].mean() == 255 and rgb[..., 2].mean() == 0
+
+
+def test_close_releases_camera(qapp_offscreen):
+    """Saving settings reopens the card: the old QCamera must be detached, or the new one stays black."""
+    from types import SimpleNamespace
+    calls = []
+    cam = SimpleNamespace(stop=lambda: calls.append("stop"), deleteLater=lambda: calls.append("del"))
+    sess_calls = []
+    capsess = SimpleNamespace(setAudioOutput=lambda x: None, setAudioInput=lambda x: None,
+                              setVideoSink=lambda x: sess_calls.append(("sink", x)),
+                              setCamera=lambda x: sess_calls.append(("cam", x)))
+    s = device.DeviceSession.__new__(device.DeviceSession)
+    s.camera, s.session, s._ll_audio, s._extra_sink = cam, capsess, None, None
+    s.sink = SimpleNamespace(videoFrameChanged=SimpleNamespace(disconnect=lambda f: None))
+    s._on_frame = lambda f: None
+    device.DeviceSession.close(s)
+    assert ("cam", None) in sess_calls and "del" in calls and s.camera is None
+    device.DeviceSession.close(s)  # second close is a no-op

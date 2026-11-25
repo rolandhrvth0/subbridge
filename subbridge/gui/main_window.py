@@ -476,7 +476,17 @@ class MainWindow(QMainWindow):
         if self.profile.source_kind != "device":
             return
         sess = self.devices.sessions.get(self.profile.device_id)
-        if sess is not None and sess.stalled() and sess.restart():
+        if sess is None or not sess.stalled():
+            return
+        if sess._restarts >= 3 and not getattr(sess, "_reopened", False):
+            # in-place stop/start did not bring the picture back: close the card and open it fresh
+            logging.getLogger(__name__).info("capture card: still no frames, reopening the device")
+            self.reopen_device()
+            new = self.devices.sessions.get(self.profile.device_id)
+            if new is not None:
+                new._reopened = True
+            return
+        if sess.restart():
             logging.getLogger(__name__).info("capture card: no frames, stream restarted (try %d)", sess._restarts)
 
     def _update_overlay_ui(self):
