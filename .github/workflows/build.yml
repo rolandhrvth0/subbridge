@@ -57,14 +57,24 @@ jobs:
       - name: Tesseract (bundled next to the app)
         shell: pwsh
         run: |
-          # the Chocolatey feed has outages (503 / timeouts): retry instead of failing the release
+          # 1st: the official UB Mannheim build straight from GitHub (the Chocolatey feed had a long 503 outage)
           $ok = $false
-          for ($i = 1; $i -le 6 -and -not $ok; $i++) {
+          $url = "https://github.com/UB-Mannheim/tesseract/releases/download/v5.4.0.20240606/tesseract-ocr-w64-setup-5.4.0.20240606.exe"
+          for ($i = 1; $i -le 3 -and -not $ok; $i++) {
+            try {
+              Invoke-WebRequest -Uri $url -OutFile tess-setup.exe
+              Start-Process -FilePath .\tess-setup.exe -ArgumentList '/S', '/D=C:\Program Files\Tesseract-OCR' -Wait
+              if (Test-Path "C:\Program Files\Tesseract-OCR\tesseract.exe") { $ok = $true }
+            } catch { Write-Host "direct download attempt $i failed: $_" }
+            if (-not $ok) { Start-Sleep -Seconds 20 }
+          }
+          # 2nd: Chocolatey as a fallback
+          for ($i = 1; $i -le 3 -and -not $ok; $i++) {
             choco install tesseract -y --no-progress
             if ($LASTEXITCODE -eq 0 -and (Test-Path "C:\Program Files\Tesseract-OCR\tesseract.exe")) { $ok = $true }
             else { Write-Host "choco attempt $i failed, retrying in 45 s"; Start-Sleep -Seconds 45 }
           }
-          if (-not $ok) { throw "Tesseract install failed after retries" }
+          if (-not $ok) { throw "Tesseract install failed" }
           New-Item -ItemType Directory -Force packaging/bundle | Out-Null
           Copy-Item -Recurse "C:\Program Files\Tesseract-OCR" packaging/bundle/tesseract
           New-Item -ItemType Directory -Force packaging/bundle/tessdata | Out-Null

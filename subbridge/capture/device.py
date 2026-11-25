@@ -456,7 +456,55 @@ class DeviceSession(QObject):
         """Frame generation: every frame as an RGB QImage (converted here, while the buffer is valid)."""
         self._fg_cb = cb
 
+    # --- pacing diagnostics (one log line per 30 s): where do Game View micro-stutters come from?
+    def _pace_reset(self):
+        self._pz = {"t0": time.time(), "in": 0, "in_late": 0, "in_max": 0.0, "out": 0, "out_late": 0,
+                    "out_max": 0.0, "work_max": 0.0, "last_in": 0.0, "last_out": 0.0, "pairs": 0, "singles": 0,
+                    "run": 0}
+
+    def _pace_in(self, now: float):
+        z = getattr(self, "_pz", None)
+        if z is None:
+            self._pace_reset()
+            z = self._pz
+        if z["last_in"]:
+            gap = now - z["last_in"]
+            z["in_max"] = max(z["in_max"], gap)
+            if gap > 0.024:                                  # a 60 Hz card frame came >1.4 frames late
+                z["in_late"] += 1
+        z["last_in"], z["in"] = now, z["in"] + 1
+        if now - z["t0"] >= 30:
+            import logging
+            logging.getLogger(__name__).info(
+                "pacing: card %d fr (late %d, max gap %.0f ms) -> view %d fr (gaps>40ms %d, max %.0f ms; "
+                "repeats seen: pairs %d singles %d), slowest frame handling %.1f ms",
+                z["in"], z["in_late"], z["in_max"] * 1000, z["out"], z["out_late"], z["out_max"] * 1000,
+                z["pairs"], z["singles"], z["work_max"] * 1000)
+            self._pace_reset()
+
+    def _pace_out(self, now: float):
+        z = self._pz
+        if z["last_out"]:
+            gap = now - z["last_out"]
+            z["out_max"] = max(z["out_max"], gap)
+            if gap > 0.040:                                  # a 30 fps picture missing / held twice as long
+                z["out_late"] += 1
+            if gap < 0.025:
+                z["singles"] += 1                            # new picture after only one card frame
+            else:
+                z["pairs"] += 1
+        z["last_out"], z["out"] = now, z["out"] + 1
+
     def _on_frame(self, frame: QVideoFrame):
+        t_start = time.perf_counter()
+        try:
+            self._on_frame_inner(frame)
+        finally:
+            z = getattr(self, "_pz", None)
+            if z is not None:
+                z["work_max"] = max(z["work_max"], time.perf_counter() - t_start)
+
+    def _on_frame_inner(self, frame: QVideoFrame):
         if not frame.isValid():
             return
         now = time.time()
@@ -465,8 +513,10 @@ class DeviceSession(QObject):
         self._fps_n += 1
         if now - self._fps_t0 >= 2.0:
             self.fps, self._fps_n, self._fps_t0 = self._fps_n / (now - self._fps_t0), 0, now
+        self._pace_in(now)
         if self._extra_sink is not None and not (self._dedupe and self._is_repeat(frame)):
             self._extra_sink.setVideoFrame(frame)
+            self._pace_out(now)
         now = time.time()
         if self._fg_cb is not None:
             img = frame_to_qimage(frame)
