@@ -77,7 +77,7 @@ class PhonePanel(QWidget):
 
     def show_state(self, state: dict | None, area: QRect, phone: QRect):
         """area: where the panel may go (screen or Game View); phone: the phone's rect in the same space."""
-        if not state:
+        if not state or not state.get("items"):        # never an empty white card
             self._key = None
             self.hide()
             return

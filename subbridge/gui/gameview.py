@@ -229,7 +229,7 @@ class GameView(QWidget):
         from .phonepanel import PhonePanel
         if not hasattr(self, "phone_panel"):
             self.phone_panel = PhonePanel(self.view.viewport())
-        if not state:
+        if not state or not state.get("items"):        # phone home screen / menus: nothing to translate
             self.phone_panel.show_state(None, QRect(), QRect())
             return
         x0, y0, x1, y1 = state["rect"]

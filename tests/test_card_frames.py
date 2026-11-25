@@ -88,3 +88,11 @@ def test_pipewire_loopback_cmd(monkeypatch):
     assert "target.object=alsa_input.card" in cmd and "target.object=alsa_output.phones" in cmd
     lb.stop()
     assert seen.get("term")
+
+
+def test_phone_card_hidden_without_items(qapp_offscreen):
+    from PySide6.QtCore import QRect
+    from subbridge.gui.phonepanel import PhonePanel
+    p = PhonePanel()
+    p.show_state({"header": "PHONE", "items": [], "rect": (0, 0, 10, 10)}, QRect(0, 0, 1920, 1080), QRect(0, 0, 400, 800))
+    assert not p.isVisible()

@@ -137,7 +137,7 @@ class GpuGameView(QQuickView):
         self.root.setProperty("boxes", out)
 
     def show_phone(self, state):
-        if not state:
+        if not state or not state.get("items"):        # phone home screen / menus: nothing to translate
             self.root.setProperty("phone", None)
             return
         x0, y0, x1, y1 = state["rect"]
