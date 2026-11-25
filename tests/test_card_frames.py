@@ -1,0 +1,47 @@
+"""Capture-card frames must be converted on the CPU: QVideoFrame.toImage() opens a GL context and Qt
+aborts the whole app when that fails (1.2.0 crash with a real JVA11 card)."""
+import numpy as np
+from PySide6.QtCore import QSize
+from PySide6.QtMultimedia import QVideoFrame, QVideoFrameFormat
+
+from subbridge.capture import device
+
+PF = QVideoFrameFormat.PixelFormat
+
+
+def _frame(pf, planes):
+    f = QVideoFrame(QVideoFrameFormat(QSize(64, 32), pf))
+    assert f.map(QVideoFrame.MapMode.WriteOnly)
+    for i, data in enumerate(planes):
+        bpl = f.bytesPerLine(i)
+        buf = np.frombuffer(f.bits(i), np.uint8, count=bpl * data.shape[0]).reshape(data.shape[0], bpl)
+        buf[:, : data.shape[1]] = data
+    f.unmap()
+    return f
+
+
+def _no_toimage(monkeypatch):
+    def boom(self):
+        raise AssertionError("toImage() must not be used for card formats")
+    monkeypatch.setattr(QVideoFrame, "toImage", boom)
+
+
+def test_nv12_grey_cpu(qapp_offscreen, monkeypatch):
+    _no_toimage(monkeypatch)
+    y = np.full((32, 64), 126, np.uint8)
+    uv = np.full((16, 64), 128, np.uint8)
+    rgb = device.frame_to_rgb(_frame(PF.Format_NV12, [y, uv]))
+    assert rgb.shape == (32, 64, 3)
+    assert abs(int(rgb[..., 0].mean()) - int(rgb[..., 2].mean())) <= 2
+    img = device.frame_to_qimage(_frame(PF.Format_NV12, [y, uv]))
+    assert img.width() == 64 and img.height() == 32
+
+
+def test_yuyv_and_packed_cpu(qapp_offscreen, monkeypatch):
+    _no_toimage(monkeypatch)
+    yuyv = np.tile(np.array([200, 128], np.uint8), (32, 64))
+    assert device.frame_to_rgb(_frame(PF.Format_YUYV, [yuyv])).mean() > 150
+    px = np.zeros((32, 64, 4), np.uint8)
+    px[..., 2] = 255  # memory B,G,R,X -> red
+    rgb = device.frame_to_rgb(_frame(PF.Format_XBGR8888, [px.reshape(32, 256)]))
+    assert rgb[..., 0].mean() == 255 and rgb[..., 2].mean() == 0

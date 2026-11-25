@@ -84,9 +84,82 @@ def usb2_limited(dev) -> bool:
     return bool(fmts) and max(f.resolution().height() for f in fmts) <= 720
 
 
+_PF = QVideoFrameFormat.PixelFormat
+# byte order in memory of the packed 32-bit formats -> index of R, G, B
+_PACKED = {_PF.Format_BGRX8888: (2, 1, 0), _PF.Format_BGRA8888: (2, 1, 0),
+           _PF.Format_XRGB8888: (1, 2, 3), _PF.Format_ARGB8888: (1, 2, 3),
+           _PF.Format_RGBX8888: (0, 1, 2), _PF.Format_RGBA8888: (0, 1, 2),
+           # measured on a JVA11 card (V4L2 BGR0 reported as XBGR8888): memory is B, G, R, X
+           _PF.Format_XBGR8888: (2, 1, 0), _PF.Format_ABGR8888: (2, 1, 0)}
+
+
+def _plane(frame: QVideoFrame, i: int, rows: int) -> np.ndarray:
+    bpl = frame.bytesPerLine(i)
+    return np.frombuffer(frame.bits(i), np.uint8, count=bpl * rows).reshape(rows, bpl)
+
+
+def _frame_rgb_cpu(frame: QVideoFrame) -> np.ndarray | None:
+    """Raw capture-card formats converted on the CPU. QVideoFrame.toImage() converts YUV with a GPU
+    shader and first creates a thread-local OpenGL context; when that fails (bundled Qt + GLX on some
+    drivers) Qt calls qFatal and the whole app aborts – no Python exception to catch. So never let raw
+    card frames reach toImage(). Returns None for formats not handled here."""
+    import cv2
+    pf = frame.pixelFormat()
+    w, h = frame.width(), frame.height()
+    if pf not in (_PF.Format_NV12, _PF.Format_NV21, _PF.Format_YUYV, _PF.Format_UYVY, _PF.Format_YUV420P,
+                  _PF.Format_YV12, _PF.Format_Jpeg) and pf not in _PACKED:
+        return None
+    if not frame.map(QVideoFrame.MapMode.ReadOnly):
+        return None
+    try:
+        if pf == _PF.Format_Jpeg:
+            raw = np.frombuffer(bytes(frame.bits(0)[:frame.mappedBytes(0)]), np.uint8)
+            bgr = cv2.imdecode(raw, cv2.IMREAD_COLOR)
+            return None if bgr is None else cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+        if pf in _PACKED:
+            px = _plane(frame, 0, h)[:, : w * 4].reshape(h, w, 4)
+            return np.ascontiguousarray(px[:, :, list(_PACKED[pf])])
+        if pf in (_PF.Format_YUYV, _PF.Format_UYVY):
+            px = np.ascontiguousarray(_plane(frame, 0, h)[:, : w * 2]).reshape(h, w, 2)
+            code = cv2.COLOR_YUV2RGB_YUYV if pf == _PF.Format_YUYV else cv2.COLOR_YUV2RGB_UYVY
+            return cv2.cvtColor(px, code)
+        if pf in (_PF.Format_NV12, _PF.Format_NV21):
+            y = _plane(frame, 0, h)[:, :w]
+            uv = _plane(frame, 1, h // 2)[:, :w]
+            code = cv2.COLOR_YUV2RGB_NV12 if pf == _PF.Format_NV12 else cv2.COLOR_YUV2RGB_NV21
+            return cv2.cvtColor(np.ascontiguousarray(np.vstack([y, uv])), code)
+        # planar 4:2:0 (I420 / YV12)
+        y = _plane(frame, 0, h)[:, :w].reshape(-1)
+        u = _plane(frame, 1, h // 2)[:, : w // 2].reshape(-1)
+        v = _plane(frame, 2, h // 2)[:, : w // 2].reshape(-1)
+        code = cv2.COLOR_YUV2RGB_I420 if pf == _PF.Format_YUV420P else cv2.COLOR_YUV2RGB_YV12
+        return cv2.cvtColor(np.concatenate([y, u, v]).reshape(h * 3 // 2, w), code)
+    except Exception:  # noqa: BLE001
+        return None
+    finally:
+        frame.unmap()
+
+
+def rgb_to_qimage(rgb: np.ndarray) -> QImage:
+    h, w = rgb.shape[:2]
+    return QImage(rgb.data, w, h, w * 3, QImage.Format_RGB888).copy()
+
+
+def frame_to_qimage(frame: QVideoFrame) -> QImage:
+    """RGB888 QImage of a frame; CPU conversion first, toImage() only for exotic formats."""
+    rgb = _frame_rgb_cpu(frame)
+    if rgb is not None:
+        return rgb_to_qimage(rgb)
+    img = frame.toImage()
+    return img if img.isNull() else img.convertToFormat(QImage.Format_RGB888)
+
+
 def frame_to_rgb(frame: QVideoFrame) -> np.ndarray | None:
     if frame is None or not frame.isValid() or frame.width() <= 0 or frame.height() <= 0:
         return None
+    rgb = _frame_rgb_cpu(frame)
+    if rgb is not None:
+        return rgb
     img = frame.toImage()
     if img.isNull():
         return None
@@ -309,9 +382,8 @@ class DeviceSession(QObject):
             self._extra_sink.setVideoFrame(frame)
         now = time.time()
         if self._fg_cb is not None:
-            img = frame.toImage()
+            img = frame_to_qimage(frame)
             if not img.isNull():
-                img = img.convertToFormat(QImage.Format_RGB888)
                 self._fg_cb(img)
                 if now - self._t >= 0.09:
                     with self._lock:
@@ -322,9 +394,8 @@ class DeviceSession(QObject):
         # Convert right here, while the driver buffer is guaranteed valid, at most ~10×/s (OCR needs 4–8):
         # reading a kept QVideoFrame later from another moment/thread can crash on recycled V4L2 buffers.
         if now - self._t >= 0.09:
-            img = frame.toImage()
+            img = frame_to_qimage(frame)
             if not img.isNull():
-                img = img.convertToFormat(QImage.Format_RGB888)
                 with self._lock:
                     self._img, self._t = img, now
                     self._size = (img.width(), img.height())
