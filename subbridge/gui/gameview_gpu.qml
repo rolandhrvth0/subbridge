@@ -67,7 +67,7 @@ Rectangle {
         // translated in-game phone: a chat card next to the phone in the picture
         Rectangle {
             id: card
-            visible: root.phone !== null
+            visible: !!root.phone
             z: 20
             radius: 14
             color: "#fafafc"

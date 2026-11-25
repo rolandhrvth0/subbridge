@@ -96,3 +96,12 @@ def test_phone_card_hidden_without_items(qapp_offscreen):
     p = PhonePanel()
     p.show_state({"header": "PHONE", "items": [], "rect": (0, 0, 10, 10)}, QRect(0, 0, 1920, 1080), QRect(0, 0, 400, 800))
     assert not p.isVisible()
+
+
+def test_qml_never_compares_with_null():
+    """Python None set on a QML 'var' property arrives as undefined: 'x !== null' stays true and the
+    phone card never disappeared (1.2.3). Use truthiness (!!x) instead."""
+    from pathlib import Path
+    for f in Path(device.__file__).parents[1].glob("gui/*.qml"):
+        txt = f.read_text()
+        assert "!== null" not in txt and "=== null" not in txt, f
