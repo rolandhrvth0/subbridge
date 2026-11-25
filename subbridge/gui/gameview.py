@@ -130,8 +130,7 @@ class GameView(QWidget):
 
     # ------------------------------------------------------------------ frame generation
     def set_framegen(self, on: bool):
-        from ..framegen import available
-        on = on and available()
+        on = False      # CPU interpolation removed in 1.2.3 (smeary, laggy); real frame gen = lsfg/AFMF/Smooth Motion
         if on and self.fg_worker is None:
             self.fg_worker = _FrameGenWorker(self)
             self.fg_worker.ready.connect(self._fg_frames)

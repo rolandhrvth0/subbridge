@@ -44,7 +44,7 @@ def test_true_60_passes_through():
 
 
 def test_gameview_framegen(qapp_offscreen):
-    from PySide6.QtGui import QImage
+    """CPU interpolation was removed in 1.2.3: the classic Game View never turns it on, not even with G."""
     from subbridge.gui.gameview import GameView
 
     class Sess:
@@ -55,16 +55,7 @@ def test_gameview_framegen(qapp_offscreen):
 
     s = Sess()
     v = GameView(s)
-    assert s.cb is not None and v.fg_worker is not None
-    for i in range(50):
-        a = _scene(i)
-        img = QImage(a.data, 640, 360, 640 * 3, QImage.Format_RGB888).copy()
-        s.cb(img); s.cb(img)
-        qapp_offscreen.processEvents()
-        v.fg_worker.msleep(5)
-    for _ in range(20):
-        qapp_offscreen.processEvents()
-        v.fg_worker.msleep(10)
-    assert not v.fg_item.pixmap().isNull()
+    v.set_framegen(True)
+    assert s.cb is None and v.fg_worker is None
     v.close()
-    assert s.cb is None
+

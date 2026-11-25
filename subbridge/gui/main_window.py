@@ -558,7 +558,7 @@ class MainWindow(QMainWindow):
             p = self.profile
             try:
                 sess = self.devices.sessions[dev_id] = DeviceSession(dev_id, p.device_audio_id, False, p.device_format,
-                                                                               p.low_latency)
+                                                                               p.low_latency, p.device_audio_out)
                 if sess.usb2:
                     self._show_alert(tr("err_card_usb2"), "capture_card")
             except CaptureError as e:
@@ -598,9 +598,10 @@ class MainWindow(QMainWindow):
                 logging.getLogger(__name__).exception("GPU Game View failed, using the classic one")
                 self.gameview = None
             if self.gameview is None:
-                sess.framegen_wanted = self.profile.framegen == "builtin"
+                sess.framegen_wanted = False
                 self.gameview = GameView(sess, on_close=closed)
             self.gameview.scale = self.profile.overlay_scale
+            sess.audio_out_id = self.profile.device_audio_out
             sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)
         self.gameview.show()
         self.gameview.raise_()

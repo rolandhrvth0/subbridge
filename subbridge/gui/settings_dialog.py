@@ -390,13 +390,19 @@ class SettingsDialog(QDialog):
             self._signal_timer = QTimer(self, interval=1000, timeout=lambda: self._update_signal(sess))
             self._signal_timer.start()
             self._update_signal(sess)
-        from ..capture.device import list_audio_inputs
+        from ..capture.device import list_audio_inputs, list_audio_outputs
         self.cmb_audio = QComboBox()
         self.cmb_audio.addItem(tr("card_audio_auto"), "")
         for a in list_audio_inputs():
             self.cmb_audio.addItem(a["name"], a["id"])
         self.cmb_audio.setCurrentIndex(max(0, self.cmb_audio.findData(self.p.device_audio_id)))
         self._row(f, tr("card_audio"), self.cmb_audio)
+        self.cmb_audio_out = QComboBox()
+        self.cmb_audio_out.addItem(tr("card_audio_out_default"), "")
+        for a in list_audio_outputs():
+            self.cmb_audio_out.addItem(a["name"], a["id"])
+        self.cmb_audio_out.setCurrentIndex(max(0, self.cmb_audio_out.findData(self.p.device_audio_out)))
+        self._row(f, tr("card_audio_out"), self.cmb_audio_out)
         self.chk_card_sound = QCheckBox(tr("card_sound"), checked=self.p.device_audio)
         self._row(f, "", self.chk_card_sound, tr("card_sound_hint"))
         self.chk_ll = QCheckBox(tr("card_ll"), checked=self.p.low_latency)
@@ -535,9 +541,11 @@ class SettingsDialog(QDialog):
         p.overlay = self.chk_ov.isChecked()
         p.game_phone = self.chk_gphone.isChecked()
         p.zones = [z for z in self.zones if len(z.get("region", [])) == 4]
-        card_changed = (self.cmb_fmt.currentData(), self.cmb_audio.currentData()) != (p.device_format, p.device_audio_id)
+        card_changed = ((self.cmb_fmt.currentData(), self.cmb_audio.currentData(), self.cmb_audio_out.currentData())
+                        != (p.device_format, p.device_audio_id, p.device_audio_out))
         p.device_format = self.cmb_fmt.currentData() or ""
         p.device_audio_id = self.cmb_audio.currentData() or ""
+        p.device_audio_out = self.cmb_audio_out.currentData() or ""
         p.device_audio = self.chk_card_sound.isChecked()
         p.framegen = self.cmb_fg.currentData() or "auto"
         card_changed = card_changed or p.low_latency != self.chk_ll.isChecked()   # format choice depends on it

@@ -48,6 +48,7 @@ class Profile:
     overlay_scale: float = 1.0
     learn_mode: bool = False
     low_latency: bool = True             # capture card: 60 fps formats first, no vsync wait, small audio buffers
+    device_audio_out: str = ""           # where the card sound plays ("" = system default output)
     framegen: str = "auto"               # Game View frame generation: auto|lsfg|afmf|smooth|builtin|off (fgmodes)             # show the original (small) under the translation on the game
 
     @classmethod
@@ -56,6 +57,8 @@ class Profile:
         d = {k: v for k, v in (d or {}).items() if k in names}
         if isinstance(d.get("framegen"), bool):          # 1.1.x: on/off switch for the CPU interpolation
             d["framegen"] = "auto" if d["framegen"] else "off"
+        if d.get("framegen") == "builtin":               # CPU interpolation removed in 1.2.3
+            d["framegen"] = "auto"
         return cls(**d)
 
 

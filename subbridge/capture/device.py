@@ -22,6 +22,17 @@ def list_devices() -> list[dict]:
             for d in QMediaDevices.videoInputs()]
 
 
+def list_audio_outputs() -> list[dict]:
+    return [{"id": bytes(d.id()).decode(errors="ignore"), "name": d.description()}
+            for d in QMediaDevices.audioOutputs()]
+
+
+def _audio_output(out_id: str):
+    """The chosen speakers/headphones, else the system default (also when the chosen one is unplugged)."""
+    return next((d for d in QMediaDevices.audioOutputs() if bytes(d.id()).decode(errors="ignore") == out_id),
+                None) if out_id else None
+
+
 def list_audio_inputs() -> list[dict]:
     return [{"id": bytes(d.id()).decode(errors="ignore"), "name": d.description()}
             for d in QMediaDevices.audioInputs()]
@@ -206,14 +217,15 @@ class LowLatencyAudio:
     """Card sound straight to the speakers with ~30 ms buffers (Qt's built-in passthrough buffers far
     more, so the sound lags behind the picture). Old data is dropped rather than queued: lag never grows."""
 
-    def __init__(self, in_dev):
+    def __init__(self, in_dev, out_dev=None):
         self.in_dev = in_dev
+        self.out_dev = out_dev
         self.src = self.sink = self.io_in = self.io_out = None
 
     def start(self) -> bool:
         from PySide6.QtMultimedia import QAudioSink, QAudioSource
         fmt = self.in_dev.preferredFormat()
-        out_dev = QMediaDevices.defaultAudioOutput()
+        out_dev = self.out_dev or QMediaDevices.defaultAudioOutput()
         if not out_dev.isFormatSupported(fmt):
             fmt = out_dev.preferredFormat()
             if not self.in_dev.isFormatSupported(fmt):
@@ -256,7 +268,7 @@ class DeviceSession(QObject):
     frame_ready = Signal()
 
     def __init__(self, device_id: str, audio_id: str = "", play_audio: bool = False, fmt_key: str = "",
-                 low_latency: bool = True):
+                 low_latency: bool = True, audio_out_id: str = ""):
         super().__init__()
         dev = next((d for d in QMediaDevices.videoInputs() if bytes(d.id()).decode(errors="ignore") == device_id), None)
         if dev is None:
@@ -294,6 +306,7 @@ class DeviceSession(QObject):
         self._restarts = 0
         self._restart_t = 0.0
         self.audio_in = self.audio_out = None
+        self.audio_out_id = audio_out_id
         self.set_audio(audio_id, play_audio)
         self.camera.start()
 
@@ -309,7 +322,7 @@ class DeviceSession(QObject):
                 self.session.setAudioInput(None)
                 self.session.setAudioOutput(None)
                 self.audio_in = self.audio_out = None
-                self._ll_audio = LowLatencyAudio(dev)
+                self._ll_audio = LowLatencyAudio(dev, _audio_output(self.audio_out_id))
                 if self._ll_audio.start():
                     return
                 self._ll_audio = None
@@ -324,7 +337,8 @@ class DeviceSession(QObject):
         if dev is None:
             return
         self.audio_in = QAudioInput(dev)
-        self.audio_out = QAudioOutput()
+        out = _audio_output(self.audio_out_id)
+        self.audio_out = QAudioOutput(out) if out is not None else QAudioOutput()
         self.session.setAudioInput(self.audio_in)
         self.session.setAudioOutput(self.audio_out)
 

@@ -49,7 +49,7 @@ class FgInfo:
                 out.append("afmf")
             if self.gpu.vendor == "nvidia":
                 out.append("smooth")
-        out += ["builtin", "off"]
+        out.append("off")      # the CPU interpolation ("builtin") was removed in 1.2.3: smeary and laggy
         return out
 
     def resolve(self, mode: str) -> str:

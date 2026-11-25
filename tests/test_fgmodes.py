@@ -11,8 +11,8 @@ def test_resolve_falls_back():
     fi = fgmodes.FgInfo(fgmodes.Gpu("intel"), "", "", "")
     assert fi.resolve("auto") == "off"
     assert fi.resolve("lsfg") == "off"              # not installed here
-    assert fi.resolve("builtin") == "builtin"
-    assert "builtin" in fi.choices() and "off" in fi.choices()
+    assert fi.resolve("builtin") != "builtin"          # removed in 1.2.3
+    assert "builtin" not in fi.choices() and "off" in fi.choices()
 
 
 def test_resolve_prefers_vendor_tech(monkeypatch):
@@ -64,3 +64,8 @@ def test_repeated_frames_are_dropped(qapp_offscreen):
     assert not s._is_repeat(fr(a))
     assert s._is_repeat(fr(a))             # the card's second copy of the same game picture
     assert not s._is_repeat(fr(b))         # a new picture
+
+
+def test_builtin_profile_migrates_to_auto():
+    from subbridge.config import Profile
+    assert Profile.from_dict({"name": "x", "framegen": "builtin"}).framegen == "auto"
