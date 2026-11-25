@@ -57,7 +57,14 @@ jobs:
       - name: Tesseract (bundled next to the app)
         shell: pwsh
         run: |
-          choco install tesseract -y --no-progress
+          # the Chocolatey feed has outages (503 / timeouts): retry instead of failing the release
+          $ok = $false
+          for ($i = 1; $i -le 6 -and -not $ok; $i++) {
+            choco install tesseract -y --no-progress
+            if ($LASTEXITCODE -eq 0 -and (Test-Path "C:\Program Files\Tesseract-OCR\tesseract.exe")) { $ok = $true }
+            else { Write-Host "choco attempt $i failed, retrying in 45 s"; Start-Sleep -Seconds 45 }
+          }
+          if (-not $ok) { throw "Tesseract install failed after retries" }
           New-Item -ItemType Directory -Force packaging/bundle | Out-Null
           Copy-Item -Recurse "C:\Program Files\Tesseract-OCR" packaging/bundle/tesseract
           New-Item -ItemType Directory -Force packaging/bundle/tessdata | Out-Null
