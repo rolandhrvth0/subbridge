@@ -1,6 +1,30 @@
 {
   "news": [
     {
+      "id": "1.2.0-release",
+      "date": "2026-11-25",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.2.0",
+        "en": "SubBridge 1.2.0 is out"
+      },
+      "body": {
+        "hu": "SubBridge 1.2 – GTA VI kiadás. Fordítási memória: több mint 15 000 előre, egyenként lefordított GTA VI párbeszédsor; ha ilyen sor jön, a kész magyar mondat azonnal, internet nélkül jelenik meg, egységes nevekkel és tegezéssel (OCR-hibákat és beszélőneveket is tűr). A márka- és helyneveket a gépi fordító sem fordítja le szó szerint. Új logó és új „Vice night” színek az asztali appban, a telefonos oldalon és Androidon; GTA VI jelvény a fejlécben, új súgórész. Capture card: 1440p 60 fps alapból, magától újraindul, ha megáll a kép. A SubBridge független, nem hivatalos program, nincs kapcsolatban a Rockstar Games-szel vagy a Take-Two-val.",
+        "en": "SubBridge 1.2 – GTA VI edition. Translation memory: more than 15,000 GTA VI dialogue lines translated one by one in advance; when one appears the finished translation shows instantly and offline, with consistent names and tone (tolerant of OCR errors and speaker names). Brand and place names are no longer translated literally. New logo and 'Vice night' colours on desktop, the phone page and Android; GTA VI badge in the header and a new help section. Capture card: 1440p 60 fps by default, restarts by itself if the picture stops. SubBridge is independent and unofficial, not affiliated with Rockstar Games or Take-Two."
+      }
+    },
+    {
+      "id": "1.2.0-release",
+      "date": "2026-11-25",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.2.0",
+        "en": "SubBridge 1.2.0 is out"
+      },
+      "body": {
+        "hu": "SubBridge 1.2 – GTA VI kiadás. Fordítási memória: több mint 15 000 előre, egyenként lefordított GTA VI párbeszédsor; ha ilyen sor jön, a kész magyar mondat azonnal, internet nélkül jelenik meg, egységes nevekkel és tegezéssel (OCR-hibákat és beszélőneveket is tűr). A márka- és helyneveket a gépi fordító sem fordítja le szó szerint. Új logó és új „Vice night” színek az asztali appban, a telefonos oldalon és Androidon; GTA VI jelvény a fejlécben, új súgórész. Capture card: 1440p 60 fps alapból, magától újraindul, ha megáll a kép. A SubBridge független, nem hivatalos program, nincs kapcsolatban a Rockstar Games-szel vagy a Take-Two-val.",
+        "en": "SubBridge 1.2 – GTA VI edition. Translation memory: more than 15,000 GTA VI dialogue lines translated one by one in advance; when one appears the finished translation shows instantly and offline, with consistent names and tone (tolerant of OCR errors and speaker names). Brand and place names are no longer translated literally. New logo and 'Vice night' colours on desktop, the phone page and Android; GTA VI badge in the header and a new help section. Capture card: 1440p 60 fps by default, restarts by itself if the picture stops. SubBridge is independent and unofficial, not affiliated with Rockstar Games or Take-Two."
+      }
+    },
+    {
       "id": "1.1.6-release",
       "date": "2026-11-24",
       "title": {
@@ -270,24 +294,24 @@
     }
   },
   "latest": {
-    "version": "1.1.6",
+    "version": "1.2.0",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "Capture card: az automatikus képformátum mostantól 1440p 60 fps (élesebb felirat), ha a kártya tudja. Ha menet közben megáll a kép (pihenő mód, felbontásváltás, USB-akadás), magától újraindul; kihúzás-bedugás után is magától folytatja. A beállításokban látszik a bejövő kép mérete és fps-e.",
-      "en": "Capture card: the automatic format is now 1440p 60 fps (sharper subtitles) when the card offers it. If the picture stops (rest mode, resolution switch, USB hiccup) it restarts by itself, also after unplugging and plugging back in. Settings now show the incoming picture size and fps."
+      "hu": "SubBridge 1.2 – GTA VI kiadás. Fordítási memória: több mint 15 000 előre, egyenként lefordított GTA VI párbeszédsor; ha ilyen sor jön, a kész magyar mondat azonnal, internet nélkül jelenik meg, egységes nevekkel és tegezéssel (OCR-hibákat és beszélőneveket is tűr). A márka- és helyneveket a gépi fordító sem fordítja le szó szerint. Új logó és új „Vice night” színek az asztali appban, a telefonos oldalon és Androidon; GTA VI jelvény a fejlécben, új súgórész. Capture card: 1440p 60 fps alapból, magától újraindul, ha megáll a kép. A SubBridge független, nem hivatalos program, nincs kapcsolatban a Rockstar Games-szel vagy a Take-Two-val.",
+      "en": "SubBridge 1.2 – GTA VI edition. Translation memory: more than 15,000 GTA VI dialogue lines translated one by one in advance; when one appears the finished translation shows instantly and offline, with consistent names and tone (tolerant of OCR errors and speaker names). Brand and place names are no longer translated literally. New logo and 'Vice night' colours on desktop, the phone page and Android; GTA VI badge in the header and a new help section. Capture card: 1440p 60 fps by default, restarts by itself if the picture stops. SubBridge is independent and unofficial, not affiliated with Rockstar Games or Take-Two."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.1.6-windows-setup.exe",
-        "sha256": "057a4fcb9c65e7dd751118e8a1b167823132c612dd2f7ea18dd1f59f21f13fc0"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.2.0-windows-setup.exe",
+        "sha256": "f06f7daf5ad5468a8f50ac9a07ac0714e98aaa1fd4f875e4c0131434dfb94976"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.1.6_amd64.deb",
-        "sha256": "2b4ac28a71d5567dce828e4c2501aee01c854c300c99018ffe55c37d6571d775"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.2.0_amd64.deb",
+        "sha256": "e89a3161830b2ef8a8cf34d6d88dd8b1782daea7cc3329bd99829a7c34936ed8"
       }
     },
     "rollout": {
-      "start": 1795553642,
+      "start": 1795571208,
       "hours": 24.0,
       "from": 20
     }
