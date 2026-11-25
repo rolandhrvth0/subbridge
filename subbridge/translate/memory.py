@@ -1,4 +1,4 @@
-"""Dialogue translation memory: hand-checked translations of the game's own subtitle lines, used before
+"""Dialogue translation memory: pre-translated (one by one) lines of the game's own subtitle lines, used before
 any translation engine (instant, offline, consistent names and tone).
 
 Keys are short hashes of an OCR-tolerant "fold" of the English line, so the pack does not contain the

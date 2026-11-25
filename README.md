@@ -22,7 +22,7 @@ Independent, unofficial program; not affiliated with or endorsed by Rockstar Gam
 
 A SubBridge kiolvassa a GTA VI angol feliratát a képből, lefordítja magyarra, és megmutatja
 **a játék képén az eredeti helyén**, **a telefonodon** – vagy mindkettőn. A felismerés és a fordítás a GTA VI-ra van
-hangolva: a játék több ezer párbeszédsora előre, kézzel ellenőrizve le van fordítva (fordítási memória,
+hangolva: a játék több mint 15 000 párbeszédsora előre, egyenként le van fordítva (fordítási memória,
 `subbridge/assets/packs/lines-hu.json` – az angol szöveg nincs benne, csak OCR-tűrő kulcsok), a többit élőben fordítja.
 Más, feliratos játékokkal is működik, csak ott nincs előre fordított memória.
 

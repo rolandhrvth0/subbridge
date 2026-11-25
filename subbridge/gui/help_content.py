@@ -15,7 +15,7 @@ HELP = {
 ("gta", "GTA VI-hoz hangolva", """
 <p>A {app} kifejezetten a <b>GTA VI</b>-hoz készült: a felismerés a játék feliratdobozaihoz és betűtípusához van hangolva, a fordító pedig ismeri a játék szereplőit, helyszíneit és szlengjét.</p>
 <ul>
-<li><b>Fordítási memória:</b> a játék több ezer párbeszédsorát előre, kézzel ellenőrizve fordítottuk le. Ha egy ilyen sor jelenik meg, azonnal és internet nélkül a kész magyar mondatot látod – egységes nevekkel és tegezéssel.</li>
+<li><b>Fordítási memória:</b> a játék több ezer párbeszédsorát előre, egyenként fordítottuk le. Ha egy ilyen sor jelenik meg, azonnal és internet nélkül a kész magyar mondatot látod – egységes nevekkel és tegezéssel.</li>
 <li><b>Szleng és nevek:</b> a frissítések között is bővül (a program magától letölti), nem kell hozzá új verzió.</li>
 <li><b>Ami nincs a memóriában</b> (járókelők, rádió, ritka sorok), azt a választott fordító fordítja élőben.</li>
 </ul>
@@ -107,7 +107,7 @@ HELP = {
 ("gta", "Tuned for GTA VI", """
 <p>{app} is built specifically for <b>GTA VI</b>: recognition is tuned to the game's subtitle boxes and font, and the translator knows the game's characters, places and slang.</p>
 <ul>
-<li><b>Translation memory:</b> thousands of the game's dialogue lines are translated in advance and checked by hand. When such a line appears you see the finished translation instantly and offline, with consistent names and tone.</li>
+<li><b>Translation memory:</b> more than 15,000 of the game's dialogue lines are translated one by one in advance. When such a line appears you see the finished translation instantly and offline, with consistent names and tone.</li>
 <li><b>Slang and names</b> keep growing between releases (downloaded automatically, no new version needed).</li>
 <li><b>Anything not in the memory</b> (passers-by, radio, rare lines) is translated live by the translator you chose.</li>
 </ul>
