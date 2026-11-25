@@ -213,6 +213,74 @@ def guess_audio(video_name: str):
     return None
 
 
+def _clean_env() -> dict:
+    """Environment for system tools started from the PyInstaller build (its bundled libs must not leak)."""
+    import os
+    env = dict(os.environ)
+    for k in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
+        orig = env.pop(k + "_ORIG", None)
+        if orig is not None:
+            env[k] = orig
+        elif getattr(__import__("sys"), "frozen", False):
+            env.pop(k, None)
+    return env
+
+
+def _die_with_parent():
+    """Child process: get SIGTERM when SubBridge exits or crashes (no orphan sound loop)."""
+    try:
+        import ctypes
+        import signal
+        ctypes.CDLL("libc.so.6", use_errno=True).prctl(1, signal.SIGTERM)   # PR_SET_PDEATHSIG
+    except Exception:  # noqa: BLE001
+        pass
+
+
+class PipeWireLoopback:
+    """Linux: card sound -> speakers inside PipeWire itself (pw-loopback, ~20 ms). Qt's QAudioSink with
+    small buffers underruns constantly under PipeWire (thousands of xruns = silence), big buffers lag."""
+
+    def __init__(self, in_dev, out_dev=None):
+        self.in_id = bytes(in_dev.id()).decode(errors="ignore")
+        self.out_id = bytes(out_dev.id()).decode(errors="ignore") if out_dev is not None else ""
+        self.proc = None
+
+    @staticmethod
+    def available() -> bool:
+        import shutil
+        import sys
+        return sys.platform.startswith("linux") and shutil.which("pw-loopback") is not None
+
+    def start(self) -> bool:
+        import subprocess
+        cap = f"target.object={self.in_id} node.name=subbridge-card-in node.description=SubBridge"
+        play = "node.name=subbridge-card-out node.description=SubBridge media.role=Game"
+        if self.out_id:
+            play += f" target.object={self.out_id}"
+        try:
+            self.proc = subprocess.Popen(["pw-loopback", "--latency=20ms", f"--capture-props={cap}",
+                                          f"--playback-props={play}"], env=_clean_env(),
+                                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                         stderr=subprocess.DEVNULL, preexec_fn=_die_with_parent)
+        except OSError:
+            self.proc = None
+            return False
+        time.sleep(0.15)
+        if self.proc.poll() is not None:              # exited at once: unknown node, no PipeWire
+            self.proc = None
+            return False
+        return True
+
+    def stop(self):
+        p, self.proc = self.proc, None
+        if p is not None and p.poll() is None:
+            p.terminate()
+            try:
+                p.wait(1.0)
+            except Exception:  # noqa: BLE001
+                p.kill()
+
+
 class LowLatencyAudio:
     """Card sound straight to the speakers with ~30 ms buffers (Qt's built-in passthrough buffers far
     more, so the sound lags behind the picture). Old data is dropped rather than queued: lag never grows."""
@@ -322,7 +390,12 @@ class DeviceSession(QObject):
                 self.session.setAudioInput(None)
                 self.session.setAudioOutput(None)
                 self.audio_in = self.audio_out = None
-                self._ll_audio = LowLatencyAudio(dev, _audio_output(self.audio_out_id))
+                out = _audio_output(self.audio_out_id)
+                if PipeWireLoopback.available():
+                    self._ll_audio = PipeWireLoopback(dev, out)
+                    if self._ll_audio.start():
+                        return
+                self._ll_audio = LowLatencyAudio(dev, out)
                 if self._ll_audio.start():
                     return
                 self._ll_audio = None

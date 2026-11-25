@@ -63,3 +63,28 @@ def test_close_releases_camera(qapp_offscreen):
     device.DeviceSession.close(s)
     assert ("cam", None) in sess_calls and "del" in calls and s.camera is None
     device.DeviceSession.close(s)  # second close is a no-op
+
+
+def test_pipewire_loopback_cmd(monkeypatch):
+    import subprocess
+    from types import SimpleNamespace
+    seen = {}
+
+    class P:
+        def __init__(self, cmd, **kw):
+            seen["cmd"], seen["env"] = cmd, kw.get("env")
+        def poll(self):
+            return None
+        def terminate(self):
+            seen["term"] = True
+        def wait(self, t):
+            return 0
+    monkeypatch.setattr(subprocess, "Popen", P)
+    dev = SimpleNamespace(id=lambda: b"alsa_input.card")
+    out = SimpleNamespace(id=lambda: b"alsa_output.phones")
+    lb = device.PipeWireLoopback(dev, out)
+    assert lb.start()
+    cmd = " ".join(seen["cmd"])
+    assert "target.object=alsa_input.card" in cmd and "target.object=alsa_output.phones" in cmd
+    lb.stop()
+    assert seen.get("term")
