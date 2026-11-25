@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.2.6-release",
+      "date": "2026-11-25",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.2.6",
+        "en": "SubBridge 1.2.6 is out"
+      },
+      "body": {
+        "hu": "SubBridge 1.2.6 – capture card javítások: 1) a program kifagyott, amint megjött a kártya képe – most a processzor alakítja át a képet, stabilan (1080p60/1440p60 mérve); 2) beállítások mentése után fekete maradt a kép – a kártya most rendesen újranyílik, és ha a kép elmenne, magától újranyitja; 3) Linuxon nem szólt a kártya hangja – most a PipeWire viszi közvetlenül (~20 ms); 4) új beállítás: hol szóljon a hang (fülhallgató / hangszóró), érthetőbb bemenetválasztó; 5) a telefonos fordítókártya eltűnik, amint bezárod a telefont, és üres kártya nem jelenik meg a főmenünél; 6) a processzoros képkocka-generálás kikerült (maszatos volt és késett) – a valódi frame gen a Lossless Scaling (Linux), AMD AFMF és NVIDIA Smooth Motion.",
+        "en": "SubBridge 1.2.6 – capture card fixes: 1) the app crashed as soon as the card's picture arrived – frames are now converted on the CPU, stable at 1080p60/1440p60; 2) after saving settings the picture stayed black – the card now reopens properly and reopens itself if the picture stops; 3) no card sound on Linux – now routed inside PipeWire (~20 ms); 4) new setting: where the sound plays (headphones / speakers), clearer input picker; 5) the phone translation card disappears when the phone is closed, no empty card on the home screen; 6) CPU frame interpolation removed (smeary and laggy) – real frame generation is Lossless Scaling (Linux), AMD AFMF and NVIDIA Smooth Motion."
+      }
+    },
+    {
       "id": "1.2.0-release",
       "date": "2026-11-25",
       "title": {
@@ -294,25 +306,25 @@
     }
   },
   "latest": {
-    "version": "1.2.0",
+    "version": "1.2.6",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "SubBridge 1.2 – GTA VI kiadás. Fordítási memória: több mint 15 000 előre, egyenként lefordított GTA VI párbeszédsor; ha ilyen sor jön, a kész magyar mondat azonnal, internet nélkül jelenik meg, egységes nevekkel és tegezéssel (OCR-hibákat és beszélőneveket is tűr). A márka- és helyneveket a gépi fordító sem fordítja le szó szerint. Új logó és új „Vice night” színek az asztali appban, a telefonos oldalon és Androidon; GTA VI jelvény a fejlécben, új súgórész. Capture card: 1440p 60 fps alapból, magától újraindul, ha megáll a kép. A SubBridge független, nem hivatalos program, nincs kapcsolatban a Rockstar Games-szel vagy a Take-Two-val.",
-      "en": "SubBridge 1.2 – GTA VI edition. Translation memory: more than 15,000 GTA VI dialogue lines translated one by one in advance; when one appears the finished translation shows instantly and offline, with consistent names and tone (tolerant of OCR errors and speaker names). Brand and place names are no longer translated literally. New logo and 'Vice night' colours on desktop, the phone page and Android; GTA VI badge in the header and a new help section. Capture card: 1440p 60 fps by default, restarts by itself if the picture stops. SubBridge is independent and unofficial, not affiliated with Rockstar Games or Take-Two."
+      "hu": "SubBridge 1.2.6 – capture card javítások: 1) a program kifagyott, amint megjött a kártya képe – most a processzor alakítja át a képet, stabilan (1080p60/1440p60 mérve); 2) beállítások mentése után fekete maradt a kép – a kártya most rendesen újranyílik, és ha a kép elmenne, magától újranyitja; 3) Linuxon nem szólt a kártya hangja – most a PipeWire viszi közvetlenül (~20 ms); 4) új beállítás: hol szóljon a hang (fülhallgató / hangszóró), érthetőbb bemenetválasztó; 5) a telefonos fordítókártya eltűnik, amint bezárod a telefont, és üres kártya nem jelenik meg a főmenünél; 6) a processzoros képkocka-generálás kikerült (maszatos volt és késett) – a valódi frame gen a Lossless Scaling (Linux), AMD AFMF és NVIDIA Smooth Motion.",
+      "en": "SubBridge 1.2.6 – capture card fixes: 1) the app crashed as soon as the card's picture arrived – frames are now converted on the CPU, stable at 1080p60/1440p60; 2) after saving settings the picture stayed black – the card now reopens properly and reopens itself if the picture stops; 3) no card sound on Linux – now routed inside PipeWire (~20 ms); 4) new setting: where the sound plays (headphones / speakers), clearer input picker; 5) the phone translation card disappears when the phone is closed, no empty card on the home screen; 6) CPU frame interpolation removed (smeary and laggy) – real frame generation is Lossless Scaling (Linux), AMD AFMF and NVIDIA Smooth Motion."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.2.0-windows-setup.exe",
-        "sha256": "f06f7daf5ad5468a8f50ac9a07ac0714e98aaa1fd4f875e4c0131434dfb94976"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.2.6-windows-setup.exe",
+        "sha256": "41869d59465c29f3c1041006b8c7b1c31900bc2d5f5762a686645695975fe8bf"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.2.0_amd64.deb",
-        "sha256": "e89a3161830b2ef8a8cf34d6d88dd8b1782daea7cc3329bd99829a7c34936ed8"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.2.6_amd64.deb",
+        "sha256": "47b1491dbcc59b55173bc90f6ff018a0f71b2555cfad42c48f1e1d5b0c3ed0cb"
       }
     },
     "rollout": {
-      "start": 1795571208,
-      "hours": 24.0,
+      "start": 1795638405,
+      "hours": 0.0,
       "from": 20
     }
   }
