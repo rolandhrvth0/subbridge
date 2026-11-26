@@ -421,6 +421,8 @@ class SettingsDialog(QDialog):
         self.cmb_fgx.setCurrentIndex(max(0, self.cmb_fgx.findData(self.p.fg_multiplier)))
         self.cmb_fgx.setEnabled("lsfg" in fi.choices())
         self._row(f, tr("fg_x"), self.cmb_fgx, tr("fg_x_hint"))
+        self.chk_ask = QCheckBox(tr("ld_ask_setting"), checked=self.p.ask_launch)
+        self._row(f, "", self.chk_ask)
         self.chk_up = QCheckBox(tr("up_on"), checked=self.p.upscale)
         self._row(f, "", self.chk_up, tr("up_hint"))
         from .. import neural, nrsetup
@@ -622,6 +624,7 @@ class SettingsDialog(QDialog):
         p.framegen = self.cmb_fg.currentData() or "auto"
         p.fg_multiplier = int(self.cmb_fgx.currentData() or 2)
         p.upscale = self.chk_up.isChecked()
+        p.ask_launch = self.chk_ask.isChecked()
         if self.chk_nr is not None:
             p.neural = self.chk_nr.isChecked()
             p.nr_style = int(self.cmb_nr_style.currentData())

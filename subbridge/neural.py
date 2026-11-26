@@ -58,7 +58,8 @@ class NeuralWorker:
         env["NR_GPU"] = env.get("NR_GPU", "0")
         env["DISABLE_MANGOHUD"] = "1"
         d = nr_dir()
-        self.proc = subprocess.Popen([str(d / "sb-nr"), str(d), str(width), str(height), str(self._shm_path)],
+        from . import nrsetup
+        self.proc = subprocess.Popen([str(nrsetup.worker("sb-nr")), str(d), str(width), str(height), str(self._shm_path)],
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                      text=True, bufsize=1, env=env, preexec_fn=_die_with_parent)
         self._ready = threading.Event()
@@ -89,6 +90,22 @@ class NeuralWorker:
     @property
     def starting(self) -> bool:
         return not self._ready.is_set()
+
+    def set_look(self, style: int, intensity: float, skin: bool) -> bool:
+        if not self.ok or self.proc.poll() is not None:
+            return False
+        with self._lock:
+            try:
+                self.proc.stdin.write(f"c {float(intensity):.2f} {int(style)} 1 1 {1 if skin else 0}\n")
+                self.proc.stdin.flush()
+                while True:
+                    line = self.proc.stdout.readline()
+                    if not line:
+                        return False
+                    if line.strip() == "look":
+                        return True
+            except (BrokenPipeError, OSError):
+                return False
 
     def process(self, rgba: np.ndarray) -> np.ndarray | None:
         if not self.ok or self.proc.poll() is not None:

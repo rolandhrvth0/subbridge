@@ -813,6 +813,13 @@ class MainWindow(QMainWindow):
         from .. import neural
         if isinstance(self.gameview, neural.NrView):
             return                                    # its window is the worker's own (F11 there)
+        if self.gameview is None and self.profile.ask_launch and not getattr(self, "_launch_skip", False):
+            from .launch_dialog import LaunchDialog
+            dlg = LaunchDialog(self, sess)
+            if dlg.exec() != LaunchDialog.Accepted:
+                return
+            dlg.apply()
+            self._save_profile()
         # the Vulkan worker view (exact BT.709 conversion, vsync, frame generation on its own swapchain) whenever it is
         # installed – the picture looks like a proper video player's; DLSS 5 is a switch inside it
         if self.gameview is None and neural.view_available():

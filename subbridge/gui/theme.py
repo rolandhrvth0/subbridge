@@ -93,7 +93,12 @@ QScrollBar:vertical {{ background: transparent; width: 10px; margin: 2px; }}
 QScrollBar::handle:vertical {{ background: {c['line']}; border-radius: 4px; min-height: 30px; }}
 QScrollBar::handle:vertical:hover {{ background: {c['muted']}; }}
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{ height: 0; background: none; }}
-QRadioButton {{ spacing: 10px; padding: 6px 0; }}
+QRadioButton {{ spacing: 10px; padding: 6px 0; font-weight: 550; }}
+QRadioButton::indicator {{ width: 18px; height: 18px; border-radius: 9px; border: 2px solid {c['muted']}; background: {c['surface']}; }}
+QRadioButton::indicator:hover {{ border-color: {c['accent']}; }}
+QRadioButton::indicator:checked {{ border: 2px solid {c['accent']}; background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 {c['accent']}, stop:0.55 {c['accent']}, stop:0.6 {c['surface']}, stop:1 {c['surface']}); }}
+QRadioButton:disabled {{ color: {c['muted']}; }}
+QPushButton#seg:checked {{ background: {c['accent']}; color: {c['accent_ink']}; border-color: {c['accent']}; }}
 QProgressBar {{ background: {c['surface2']}; border: 0; border-radius: 3px; height: 6px; text-align: center; }}
 QProgressBar::chunk {{ background: {c['accent']}; border-radius: 3px; }}
 QScrollArea {{ border: 0; background: transparent; }}

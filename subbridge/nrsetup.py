@@ -44,12 +44,13 @@ def data_dir() -> Path:
     return Path(os.environ.get("SUBBRIDGE_NR_DIR", str(base / "subbridge" / "nr")))
 
 
-def worker() -> Path:
-    """The worker binary, executable (a packaged data file may lose its +x bit: then a copy in the data dir)."""
-    src = bundle_dir() / "sb-nrview"
+def worker(name: str = "sb-nrview") -> Path:
+    """A worker binary, executable (a packaged data file may lose its +x bit: then a copy in the data dir).
+    sb-nrview: the Vulkan Game View; sb-nr: one picture in, one out (the launcher's preview)."""
+    src = bundle_dir() / name
     if src.is_file() and os.access(src, os.X_OK):
         return src
-    dst = data_dir() / "sb-nrview"
+    dst = data_dir() / name
     if src.is_file() and (not dst.is_file() or dst.stat().st_size != src.stat().st_size):
         try:
             dst.parent.mkdir(parents=True, exist_ok=True)

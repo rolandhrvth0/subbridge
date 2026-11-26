@@ -55,6 +55,7 @@ class Profile:
     nr_intensity: float = 0.75           # 0.25 .. 1.0
     nr_stable: bool = True               # DLSS 5 history + motion estimate: no flicker, ~10 ms more latency
     nr_skin: bool = True                 # faces keep the game's own detail
+    ask_launch: bool = True              # show "Start the Game View" (mode + preview + frame gen) every time
     upscale: bool = True                 # Game View bigger than the card picture: GPU upscaling + sharpening
     framegen: str = "auto"               # Game View frame generation: auto|lsfg|afmf|smooth|builtin|off (fgmodes)             # show the original (small) under the translation on the game
 
