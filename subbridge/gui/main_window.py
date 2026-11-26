@@ -813,15 +813,19 @@ class MainWindow(QMainWindow):
         from .. import neural
         if isinstance(self.gameview, neural.NrView):
             return                                    # its window is the worker's own (F11 there)
-        if self.gameview is None and self.profile.neural and neural.view_available():
+        # the Vulkan worker view (exact BT.709 conversion, vsync, frame generation on its own swapchain) whenever it is
+        # installed – the picture looks like a proper video player's; DLSS 5 is a switch inside it
+        if self.gameview is None and neural.view_available():
             try:
                 fi_mult = self.profile.fg_multiplier if self.profile.framegen in ("auto", "lsfg") else 0
-                self.gameview = neural.NrView(sess, self.overlay, self.phone_panel, neural=True, lsfg_mult=fi_mult,
+                self.gameview = neural.NrView(sess, self.overlay, self.phone_panel, neural=bool(self.profile.neural),
+                                              lsfg_mult=fi_mult,
                                               stable=self.profile.nr_stable)
                 self.gameview.set_look(self.profile.nr_style, self.profile.nr_intensity, self.profile.nr_skin)
                 sess.audio_out_id = self.profile.device_audio_out
                 sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)
-                logging.getLogger(__name__).info("Game View: GPU-only DLSS 5 view (lsfg %s×)", fi_mult)
+                logging.getLogger(__name__).info("Game View: Vulkan worker view (DLSS 5 %s, lsfg %s×)",
+                                                 "on" if self.profile.neural else "off", fi_mult)
                 return
             except Exception:  # noqa: BLE001
                 logging.getLogger(__name__).exception("DLSS 5 view failed, using the normal Game View")
