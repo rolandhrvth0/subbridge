@@ -687,11 +687,17 @@ class MainWindow(QMainWindow):
         """Capture card stream died (console rest mode, HDMI mode switch, USB reset): restart it in place."""
         gv = self.gameview
         if gv is not None and getattr(gv, "closed", False):       # the DLSS 5 view's window was closed
+            crashed = getattr(gv, "crashed", False)
             gv.close()
             sess = self.devices.sessions.get(self.profile.device_id)
             if sess is not None:
                 sess.set_audio(self.profile.device_audio_id, False)
             self.gameview = None
+            now = time.time()
+            if crashed and now - getattr(self, "_nr_restart_t", 0) > 20:   # once per 20 s, never in a loop
+                self._nr_restart_t = now
+                logging.getLogger(__name__).info("restarting the DLSS 5 Game View")
+                self.open_gameview()
         if self.profile.source_kind != "device":
             return
         sess = self.devices.sessions.get(self.profile.device_id)

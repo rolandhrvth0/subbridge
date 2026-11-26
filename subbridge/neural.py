@@ -230,9 +230,15 @@ class NrView:
                 env["VK_INSTANCE_LAYERS"] = fgmodes.LSFG_LAYER
                 env["LSFGVK_CONFIG"] = str(config_dir() / "lsfg-vk.toml")
         d = nr_dir()
+        from .paths import config_dir
+        self._errlog = open(config_dir() / "sb-nrview.log", "a", encoding="utf-8", errors="replace")
+        self._errlog.write(f"\n--- {time.strftime('%Y-%m-%d %H:%M:%S')} start {self.w}x{self.h} stable={stable}\n")
+        self._errlog.flush()
+        self.crashed = False
+        self._user_closed = False
         self.proc = subprocess.Popen([str(d / "sb-nrview"), str(d), str(self.w), str(self.h), str(self._shm_path),
                                       "1" if neural else "0"],
-                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self._errlog,
                                      text=True, bufsize=1, env=env, preexec_fn=_die_with_parent)
         threading.Thread(target=self._reader, daemon=True, name="nrview-reader").start()
         session.set_nrview(self)
@@ -279,7 +285,17 @@ class NrView:
             elif line.startswith("err"):
                 log.warning("DLSS 5 Game View: %s", line)
             elif line == "closed":
+                self._user_closed = True
                 break
+        code = self.proc.wait()
+        if not self._user_closed and not self.closed:
+            self.crashed = True                              # not closed by the user: the window restarts it
+            log.warning("DLSS 5 Game View stopped unexpectedly (exit %s) – see sb-nrview.log", code)
+        try:
+            self._errlog.write(f"--- {time.strftime('%H:%M:%S')} exit {code} user_closed={self._user_closed}\n")
+            self._errlog.flush()
+        except Exception:  # noqa: BLE001
+            pass
         self.closed = True
         cb, self.on_close = self.on_close, None
         if cb:
