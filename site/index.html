@@ -128,6 +128,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: 
   <div class="links">
     <a href="#how"><span data-hu>Hogyan működik</span><span data-en>How it works</span></a>
     <a href="#need"><span data-hu>Mi kell hozzá</span><span data-en>What you need</span></a>
+    <a href="#live"><span data-hu>Élő</span><span data-en>Live</span></a>
     <a href="#faq"><span data-hu>GYIK</span><span data-en>FAQ</span></a>
     <button id="lang" type="button">EN</button>
     <a class="cta" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a>
@@ -223,6 +224,17 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: 
       <p data-hu>Nincs regisztráció, nincs előfizetés. A fordítás internet nélkül is megy.</p><p data-en>No sign-up, no subscription. Translation works without internet too.</p></div>
   </div>
 </div></section>
+
+<section id="live" style="background:#0a0a0b;color:#f5f5f7"><div class="wrap" style="max-width:1280px">
+  <h2 data-hu style="color:#fff">Nézd élőben.</h2><h2 data-en style="color:#fff">Watch it live.</h2>
+  <p class="sub" data-hu style="color:#a1a1a6">GTA VI magyar felirattal, ahogy a SubBridge-dzsel játszva kinéz – csevegéssel, és a korábbi adások is visszanézhetők. A DLSS 5-ös kép a műsorvezető saját gépén futó kísérlet, nem része a letölthető programnak.</p>
+  <p class="sub" data-en style="color:#a1a1a6">GTA VI with Hungarian subtitles, as it looks when you play with SubBridge – with chat, and past streams to replay. The DLSS 5 picture is an experiment on the streamer's own PC, not part of the download.</p>
+  <div id="sblive"></div>
+</div></section>
+<script src="/live/hls.min.js" defer></script>
+<script src="/live/player.js?v=2" defer></script>
+<script src="/live/live-widget.js?v=2" defer></script>
+<script>addEventListener("DOMContentLoaded", () => SBLive.mount(document.getElementById("sblive"), { base: "/live/" }));</script>
 
 <section id="download" style="background:#fff"><div class="wrap">
   <h2 data-hu>Letöltés</h2><h2 data-en>Download</h2>
