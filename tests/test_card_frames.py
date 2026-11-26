@@ -147,3 +147,10 @@ def test_dedupe_never_drops_two_in_a_row():
     for _ in range(60):
         device.DeviceSession._on_frame_inner(s, frame)
     assert len(got) == 30
+
+
+def test_microphones_are_never_card_audio():
+    assert device.is_mic("Samsung USB C Earphones Analóg sztereó")
+    assert device.is_mic("Iriun Webcam Mono")
+    assert not device.is_mic("JVA11-Capture Analóg sztereó")
+    assert not device.is_mic("Cam Link 4K Analog Stereo")

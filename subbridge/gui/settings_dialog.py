@@ -393,7 +393,8 @@ class SettingsDialog(QDialog):
         from ..capture.device import list_audio_inputs, list_audio_outputs
         self.cmb_audio = QComboBox()
         self.cmb_audio.addItem(tr("card_audio_auto"), "")
-        for a in list_audio_inputs():
+        from ..capture.device import card_audio_inputs
+        for a in card_audio_inputs():
             self.cmb_audio.addItem(a["name"], a["id"])
         self.cmb_audio.setCurrentIndex(max(0, self.cmb_audio.findData(self.p.device_audio_id)))
         self._row(f, tr("card_audio"), self.cmb_audio)

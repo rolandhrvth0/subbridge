@@ -208,6 +208,22 @@ def picture_range(sample: np.ndarray) -> str:
     return "limited" if 10 <= lo <= 24 and 225 <= hi <= 240 else "ok"
 
 
+_MIC_WORDS = ("mic", "mikrofon", "earphone", "headset", "headphone", "fülhallgató", "webcam", "echo-cancel",
+              "iriun", "built-in", "analog input", "beépített")
+
+
+def is_mic(description: str) -> bool:
+    """A microphone / headset input – never the game's sound."""
+    d = description.lower()
+    return any(w in d for w in _MIC_WORDS) and not any(w in d for w in ("capture", "hdmi", "uvc", "jva", "cam link"))
+
+
+def card_audio_inputs() -> list[dict]:
+    """Inputs offered for the card's sound: capture devices only (a headset microphone was chosen by mistake
+    twice – the game then has no sound at all)."""
+    return [a for a in list_audio_inputs() if not is_mic(a["name"])]
+
+
 def guess_audio(video_name: str):
     """The card's own sound input (UVC cards add a USB audio device with a matching name)."""
     ins = list(QMediaDevices.audioInputs())
@@ -440,8 +456,9 @@ class DeviceSession(QObject):
             self._ll_audio.stop()
             self._ll_audio = None
         if play and getattr(self, "low_latency", False):
-            dev = next((d for d in QMediaDevices.audioInputs() if bytes(d.id()).decode(errors="ignore") == audio_id), None) \
-                or guess_audio(self.name)
+            dev = next((d for d in QMediaDevices.audioInputs() if bytes(d.id()).decode(errors="ignore") == audio_id), None)
+            if dev is None or is_mic(dev.description()):     # a microphone is never the game's sound: use the card's
+                dev = guess_audio(self.name) or dev
             if dev is not None:
                 self.session.setAudioInput(None)
                 self.session.setAudioOutput(None)
@@ -574,8 +591,13 @@ class DeviceSession(QObject):
             # 60 Hz card, 30 fps game: drop the repeated half – but NEVER two card frames in a row. When the
             # player stands still, two real pictures are nearly identical and used to be dropped too: frame
             # generation then got 15–20 uneven pictures/s (stutter exactly when stopping).
-            drop = ((self._dedupe or self._nr is not None or self._nrview is not None)
-                    and not self._dropped_last and self._is_repeat(frame))
+            if self._nrview is not None:
+                # DLSS 5 view: exactly every second card frame – an even 30 fps for frame generation and a GPU load
+                # that fits (a game at ~45 fps gave the network more than a second of work per second: choppy)
+                self._nr_tick = not getattr(self, "_nr_tick", False)
+                drop = self._nr_tick
+            else:
+                drop = (self._dedupe or self._nr is not None) and not self._dropped_last and self._is_repeat(frame)
             self._dropped_last = drop
             if not drop and self._nrview is not None:
                 if self._nrview.put_frame(frame):            # GPU-only DLSS 5 view: one copy, the rest on the GPU
