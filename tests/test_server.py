@@ -68,3 +68,22 @@ def test_lockout_after_failures(server):
         asyncio.run(hello(server.port, {"pin": "999999"}))
     msgs = asyncio.run(hello(server.port, {"pin": "123456"}))
     assert msgs[0]["reason"] == "locked"
+
+
+def test_overlay_page_served():
+    import asyncio
+    import aiohttp
+    from subbridge.server.server import SubtitleServer
+    srv = SubtitleServer(18799, "123456", "tok")
+    assert srv.start()
+    try:
+        async def go():
+            async with aiohttp.ClientSession() as s:
+                async with s.get("http://127.0.0.1:18799/overlay") as r:
+                    assert r.status == 200 and "OBS" in await r.text()
+                async with s.ws_connect("http://127.0.0.1:18799/ws?view=overlay") as ws:
+                    m = await ws.receive_json(timeout=5)
+                    assert m["type"] == "auth" and m["ok"]
+        asyncio.run(go())
+    finally:
+        srv.stop()

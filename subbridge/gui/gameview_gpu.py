@@ -93,6 +93,7 @@ class GpuGameView(QQuickView):
         src = fmt.split(":")[0].replace("x", "×") if fmt else ""
         parts = [p for p in (src, tr("ll_on") if self.low_latency else "") if p]
         fg = {"lsfg": tr("fg_lsfg_on"), "afmf": tr("fg_afmf_hint"), "smooth": tr("fg_smooth_hint"),
+              "lossless": tr("fg_lossless_on"),
                 "builtin": tr("fg_builtin_on"), "off": ""}.get(self.mode, "")
         if fg and self.mode != "off":
             fg += "  ·  " + tr("fg_lag_note")
@@ -175,7 +176,26 @@ class GpuGameView(QQuickView):
         return self.visibility() == QWindow.Visibility.FullScreen
 
     def toggle_full(self):
-        self.showNormal() if self._is_full() else self.showFullScreen()
+        if self._is_full():
+            self.showNormal()
+            return
+        self.showFullScreen()
+        if self.mode == "lossless":
+            self._lossless_on()
+
+    def _lossless_on(self):
+        """Windows: start Lossless Scaling if needed and press its scale hotkey once the full-screen Game View
+        has the focus (Lossless Scaling scales the focused window)."""
+        from .. import fgmodes
+        fi = fgmodes.info()
+        if getattr(self, "_ls_sent", False) or not fgmodes.start_lossless(fi.ls_exe):
+            return
+
+        def press():
+            if self._is_full() and self.isActive():
+                fgmodes.send_lossless_hotkey()
+                self._ls_sent = True
+        QTimer.singleShot(1800, press)
 
     def activateWindow(self):
         self.requestActivate()

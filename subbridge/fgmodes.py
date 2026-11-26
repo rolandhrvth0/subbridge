@@ -5,6 +5,8 @@ graphics card (Vulkan on Linux, Direct3D 11 on Windows) so their technology can 
 
   lsfg      Linux, any GPU: Lossless Scaling's frame generation through the lsfg-vk Vulkan layer
             (needs lsfg-vk 2.x and the user's own Lossless.dll from Lossless Scaling on Steam)
+  lossless  Windows, any GPU: the Lossless Scaling app itself (Steam) – SubBridge starts it when needed and
+            sends its scaling hotkey once the Game View is full screen
   afmf      Windows + AMD Radeon: AMD Fluid Motion Frames, switched on in AMD Software (Adrenalin)
   smooth    Windows + NVIDIA RTX 40/50: NVIDIA Smooth Motion, switched on in the NVIDIA app
   builtin   SubBridge's own CPU interpolation (experimental fallback)
@@ -35,6 +37,7 @@ class FgInfo:
     lsfg_json: str = ""       # layer manifest
     lsfg_dll: str = ""        # Lossless.dll
     lsfg_gpu: str = ""        # gpu name from the user's own lsfg profile (multi-GPU systems)
+    ls_exe: str = ""          # Windows: LosslessScaling.exe
 
     @property
     def lsfg_ok(self) -> bool:
@@ -45,6 +48,8 @@ class FgInfo:
         if sys.platform.startswith("linux") and self.lsfg_ok:
             out.append("lsfg")
         if sys.platform == "win32":
+            if self.ls_exe:
+                out.append("lossless")
             if self.gpu.vendor == "amd":
                 out.append("afmf")
             if self.gpu.vendor == "nvidia":
@@ -60,6 +65,8 @@ class FgInfo:
         # proc addr for vkCreateSwapchainKHR"), so those stay opt-in
         if sys.platform.startswith("linux") and self.lsfg_ok and lsfg_is_release(self.lsfg_json):
             return "lsfg"
+        if sys.platform == "win32" and self.ls_exe:
+            return "lossless"                  # any GPU, 2-4x, nothing to switch on in the driver
         if sys.platform == "win32" and self.gpu.vendor == "amd":
             return "afmf"
         if sys.platform == "win32" and self.gpu.vendor == "nvidia":
@@ -179,7 +186,7 @@ def info() -> FgInfo:
     global _info
     if _info is None:
         lj, dll, g = find_lsfg() if sys.platform.startswith("linux") else ("", "", "")
-        _info = FgInfo(detect_gpu(), lj, dll, g)
+        _info = FgInfo(detect_gpu(), lj, dll, g, find_lossless_windows())
     return _info
 
 
@@ -222,3 +229,86 @@ def enable_lsfg(fi: FgInfo, multiplier: int = 2) -> bool:
     from .paths import config_dir as _cd
     os.environ["LSFGVK_CONFIG"] = str(_cd() / "lsfg-vk.toml")
     return True
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Windows: the Lossless Scaling app
+def _steam_libraries_windows() -> list[Path]:
+    roots: list[Path] = []
+    try:
+        import winreg
+        for hive, key in ((winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"),
+                          (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam")):
+            try:
+                with winreg.OpenKey(hive, key) as k:
+                    for name in ("SteamPath", "InstallPath"):
+                        try:
+                            roots.append(Path(winreg.QueryValueEx(k, name)[0]))
+                        except OSError:
+                            pass
+            except OSError:
+                pass
+    except ImportError:
+        return []
+    roots.append(Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")) / "Steam")
+    libs: list[Path] = []
+    for r in roots:
+        if r not in libs:
+            libs.append(r)
+        vdf = r / "steamapps" / "libraryfolders.vdf"
+        try:
+            for m in re.finditer(r'"path"\s+"([^"]+)"', vdf.read_text(encoding="utf-8", errors="ignore")):
+                p = Path(m.group(1).replace("\\\\", "\\"))
+                if p not in libs:
+                    libs.append(p)
+        except OSError:
+            pass
+    return libs
+
+
+def find_lossless_windows() -> str:
+    if sys.platform != "win32":
+        return ""
+    for lib in _steam_libraries_windows():
+        exe = lib / "steamapps" / "common" / "Lossless Scaling" / "LosslessScaling.exe"
+        if exe.is_file():
+            return str(exe)
+    return ""
+
+
+def lossless_running() -> bool:
+    if sys.platform != "win32":
+        return False
+    try:
+        import subprocess
+        out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq LosslessScaling.exe", "/NH"], capture_output=True,
+                             text=True, timeout=5, creationflags=0x08000000).stdout
+        return "LosslessScaling.exe" in out
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def start_lossless(exe: str) -> bool:
+    """Start Lossless Scaling minimised if it is not running (it then waits in the tray for its hotkey)."""
+    if not exe or lossless_running():
+        return bool(exe)
+    try:
+        import subprocess
+        subprocess.Popen([exe], cwd=str(Path(exe).parent), creationflags=0x00000008)   # DETACHED_PROCESS
+        return True
+    except OSError:
+        return False
+
+
+def send_lossless_hotkey(keys: str = "ctrl+alt+s"):
+    """Press Lossless Scaling's scale hotkey (its default: Ctrl+Alt+S) for the focused window."""
+    if sys.platform != "win32":
+        return
+    import ctypes
+    vk = {"ctrl": 0x11, "alt": 0x12, "shift": 0x10, "win": 0x5B}
+    codes = [vk.get(k, None) or ord(k.upper()) for k in keys.lower().split("+")]
+    user32 = ctypes.windll.user32
+    for c in codes:
+        user32.keybd_event(c, 0, 0, 0)
+    for c in reversed(codes):
+        user32.keybd_event(c, 0, 2, 0)            # KEYEVENTF_KEYUP

@@ -72,6 +72,7 @@ class SubtitleServer:
         app = web.Application()
         app.router.add_get("/ws", self._ws)
         app.router.add_get("/", self._index)
+        app.router.add_get("/overlay", self._overlay)
         app.router.add_get("/api/info", self._info)
         app.router.add_static("/static/", WEB_DIR, show_index=False)
         for name in ("manifest.webmanifest", "sw.js"):
@@ -106,6 +107,10 @@ class SubtitleServer:
     async def _index(self, _request):
         return web.FileResponse(WEB_DIR / "index.html")
 
+    async def _overlay(self, _request):
+        """OBS browser source: transparent page with only the current subtitle(s)."""
+        return web.FileResponse(WEB_DIR / "overlay.html", headers={"Cache-Control": "no-cache"})
+
     async def _info(self, _request):
         return web.json_response({"name": "SubBridge", "pin_required": self.require_pin})
 
@@ -120,7 +125,10 @@ class SubtitleServer:
         ws = web.WebSocketResponse(heartbeat=15, max_msg_size=64 * 1024)
         await ws.prepare(request)
         ip = request.remote or "?"
-        authed = not self.require_pin
+        # the OBS subtitle page on this same PC needs no PIN (a read-only view of the subtitles); everything else,
+        # the phone page opened on the PC too, still logs in
+        local = ip in ("127.0.0.1", "::1", "::ffff:127.0.0.1")
+        authed = not self.require_pin or (local and request.query.get("view") == "overlay")
         try:
             if not authed:
                 msg = await ws.receive(timeout=30)

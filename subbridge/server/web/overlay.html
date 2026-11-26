@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SubBridge – OBS felirat</title>
+<style>
+  @font-face { font-family: "Inter"; src: url("/static/fonts/inter-latin-ext.woff2") format("woff2"); font-weight: 100 900; unicode-range: U+0100-024F; }
+  @font-face { font-family: "Inter"; src: url("/static/fonts/inter-latin.woff2") format("woff2"); font-weight: 100 900; }
+  :root { --size: 44px; --bg: rgba(10, 10, 14, .62); --pad: .28em .6em; --gap: .3em; --bottom: 7vh; }
+  html, body { margin: 0; height: 100%; background: transparent !important; overflow: hidden; }
+  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  #stack { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center;
+           gap: var(--gap); padding: 0 6vw; }
+  body.bottom #stack { bottom: var(--bottom); }
+  body.top #stack { top: var(--bottom); }
+  body.middle #stack { top: 50%; transform: translateY(-50%); }
+  .line { max-width: 100%; box-sizing: border-box; padding: var(--pad); border-radius: .35em; background: var(--bg);
+          color: #fff; font-size: var(--size); font-weight: 600; line-height: 1.22; text-align: center;
+          text-shadow: 0 .04em .12em rgba(0,0,0,.55); opacity: 0; transform: translateY(.18em);
+          transition: opacity .18s ease, transform .18s ease; }
+  .line.in { opacity: 1; transform: none; }
+  .line.out { opacity: 0; transition-duration: .16s; }
+  .who { font-weight: 800; margin-right: .3em; }
+  .orig { display: block; font-size: .5em; font-weight: 500; opacity: .72; margin-top: .15em; }
+  body.noorig .orig { display: none; }
+  body.nobg .line { background: none; text-shadow: 0 0 .12em #000, 0 0 .3em #000, 0 .05em .1em #000; }
+</style>
+</head>
+<body class="bottom noorig">
+<div id="stack"></div>
+<script>
+(() => {
+  // URL settings (all optional): k=<token> (another PC), size=44, pos=bottom|top|middle, bg=0..1, orig=1,
+  // offset=7 (vh from the edge), names=0 (hide speaker names)
+  const q = new URLSearchParams(location.search);
+  const root = document.documentElement.style, body = document.body;
+  if (q.get("size")) root.setProperty("--size", Math.max(12, Math.min(160, +q.get("size"))) + "px");
+  if (q.get("offset")) root.setProperty("--bottom", Math.max(0, Math.min(45, +q.get("offset"))) + "vh");
+  const bg = q.has("bg") ? Math.max(0, Math.min(1, +q.get("bg"))) : null;
+  if (bg !== null) { if (bg === 0) body.classList.add("nobg"); else root.setProperty("--bg", `rgba(10,10,14,${bg})`); }
+  body.classList.remove("bottom"); body.classList.add(["top", "middle"].includes(q.get("pos")) ? q.get("pos") : "bottom");
+  if (q.get("orig") === "1") body.classList.remove("noorig");
+  const names = q.get("names") !== "0";
+
+  const PALETTE = ["#ff8a4c", "#5fd3ff", "#ffd166", "#b28dff", "#7ee8a1", "#ff6f9f", "#9ad0ff", "#ffb4a2"];
+  const colours = {};
+  const colourOf = s => colours[s] || (colours[s] = PALETTE[Object.keys(colours).length % PALETTE.length]);
+  const lines = new Map();     // id -> message
+  let visible = [];
+  const stack = document.getElementById("stack");
+  const shown = new Map();     // id -> element
+  const esc = s => String(s || "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+  function render() {
+    const want = visible.filter(id => lines.has(id) && (lines.get(id).text || "").trim()).slice(-3);
+    for (const [id, el] of shown) {
+      if (!want.includes(id)) {
+        shown.delete(id); el.classList.add("out"); el.classList.remove("in");
+        setTimeout(() => el.remove(), 180);
+      }
+    }
+    for (const id of want) {
+      const m = lines.get(id);
+      const html = (names && m.speaker ? `<span class="who" style="color:${colourOf(m.speaker)}">${esc(m.speaker)}:</span>` : "")
+        + esc(m.text) + (m.original ? `<span class="orig">${esc(m.original)}</span>` : "");
+      let el = shown.get(id);
+      if (!el) {
+        el = document.createElement("div"); el.className = "line"; stack.appendChild(el); shown.set(id, el);
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
+      }
+      if (el.innerHTML !== html) el.innerHTML = html;
+    }
+    for (const id of want) stack.appendChild(shown.get(id));      // keep the game's order
+  }
+
+  function connect() {
+    const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws?view=overlay");
+    ws.onopen = () => ws.send(JSON.stringify({type: "hello", device: "OBS", token: q.get("k") || localStorage.getItem("sb_token") || ""}));
+    ws.onmessage = ev => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.type === "auth" && m.ok && m.token) localStorage.setItem("sb_token", m.token);
+      else if (m.type === "history") { (m.items || []).forEach(x => lines.set(x.id, x)); visible = m.visible || []; render(); }
+      else if (m.type === "line") { lines.set(m.id, m); if (lines.size > 120) lines.delete(lines.keys().next().value); render(); }
+      else if (m.type === "visible") { visible = m.ids || []; render(); }
+    };
+    ws.onclose = () => { visible = []; render(); setTimeout(connect, 1500); };
+  }
+  connect();
+})();
+</script>
+</body>
+</html>
