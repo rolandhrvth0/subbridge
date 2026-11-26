@@ -258,6 +258,14 @@ class NrView:
         self.crashed = False
         self._user_closed = False
         from . import nrsetup
+        self.direct = None
+        dp = session.direct_params() if hasattr(session, "direct_params") else None
+        if dp is not None and (dp[1], dp[2]) == (self.w, self.h):
+            self.direct = dp
+            env["SB_V4L2"], env["SB_V4L2_FPS"] = dp[0], str(dp[3])
+            session.begin_direct()
+            self._errlog.write(f"direct capture {dp}\n")
+            self._errlog.flush()
         self.proc = subprocess.Popen([str(nrsetup.worker()), str(d), str(self.w), str(self.h), str(self._shm_path),
                                       "1" if neural else "0"],
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self._errlog,
@@ -295,6 +303,20 @@ class NrView:
                     if self._pending is not None:
                         self._inflight, self._pending = self._pending, None
                         self._send(f"f {self._inflight}")
+            elif line.startswith("o "):
+                st = self._stats
+                st["in"] += 1
+                try:
+                    slot = int(line[2:]) & 1
+                    from PySide6.QtMultimedia import QVideoFrameFormat
+                    a = self._slots[slot].copy().reshape(self.h * 3 // 2, self.w)
+                    self.session.direct_frame((QVideoFrameFormat.PixelFormat.Format_NV12, a, self.w, self.h))
+                except Exception:  # noqa: BLE001
+                    log.exception("direct frame")
+            elif line in ("stall", "nocard"):
+                log.warning("DLSS 5 view: no picture from the card (%s) – the worker reopens it", line)
+            elif line.startswith("card"):
+                log.info("DLSS 5 view: reading the card directly (%s)", line[5:])
             elif line.startswith("win"):
                 self.xid = int(line.split()[-1])
                 log.info("DLSS 5 Game View window 0x%x", self.xid)
@@ -319,6 +341,7 @@ class NrView:
         except Exception:  # noqa: BLE001
             pass
         self.closed = True
+        self._end_direct()
         cb, self.on_close = self.on_close, None
         if cb:
             cb()
@@ -428,6 +451,11 @@ class NrView:
     def activateWindow(self):
         pass
 
+    def _end_direct(self):
+        if self.direct is not None:
+            self.direct = None
+            self.session.direct_done.emit()                     # Qt camera calls belong to the GUI thread
+
     def close(self):
         if self.closed:
             return
@@ -438,6 +466,7 @@ class NrView:
             self.proc.wait(2)
         except Exception:  # noqa: BLE001
             self.proc.kill()
+        self._end_direct()
         self.closed = True
         self.overlay.update([])
         try:

@@ -5,11 +5,15 @@
 // window is closed. The picture never comes back to the CPU: upload NV12 -> GPU convert -> NR -> blit -> present.
 // Frame generation (lsfg-vk) attaches to this program's swapchain as a Vulkan layer.
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <linux/videodev2.h>
+#include <sys/ioctl.h>
+#include <poll.h>
 #include <string>
 #include <sys/mman.h>
 #include <sys/select.h>
@@ -28,6 +32,71 @@ static xcb_atom_t atom(xcb_connection_t* c, const char* name) {
     auto r = xcb_intern_atom_reply(c, xcb_intern_atom(c, 0, std::strlen(name), name), nullptr);
     xcb_atom_t a = r ? r->atom : 0; free(r); return a;
 }
+
+// Direct capture (SB_V4L2=/dev/videoN): the worker reads the card itself, so nothing in SubBridge's Python process
+// (OCR, translation, GUI) can delay a frame. NV12, mmap buffers, newest frame wins. Every SB_SHARE_MS the frame
+// is also copied (tightly packed) to shm slot 0 and "o 0" is printed: SubBridge reads its subtitles from that.
+struct Card {
+    int fd = -1; uint32_t w{}, h{}, bpl{}, fps{};
+    struct B { void* p; size_t n; }; std::vector<B> bufs;
+    std::string path;
+    std::chrono::steady_clock::time_point last_frame, opened;
+    static int xioctl(int fd, unsigned long r, void* a) { int e; do e = ioctl(fd, r, a); while (e < 0 && errno == EINTR); return e; }
+    bool open_dev() {
+        close_dev();
+        fd = ::open(path.c_str(), O_RDWR | O_NONBLOCK);
+        if (fd < 0) return false;
+        v4l2_format f{}; f.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        f.fmt.pix.width = w; f.fmt.pix.height = h; f.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12; f.fmt.pix.field = V4L2_FIELD_NONE;
+        if (xioctl(fd, VIDIOC_S_FMT, &f) < 0 || f.fmt.pix.pixelformat != V4L2_PIX_FMT_NV12 || f.fmt.pix.width != w ||
+            f.fmt.pix.height != h) { close_dev(); return false; }
+        bpl = f.fmt.pix.bytesperline ? f.fmt.pix.bytesperline : w;
+        v4l2_streamparm sp{}; sp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        sp.parm.capture.timeperframe.numerator = 1; sp.parm.capture.timeperframe.denominator = fps;
+        xioctl(fd, VIDIOC_S_PARM, &sp);
+        v4l2_requestbuffers rb{}; rb.count = 4; rb.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; rb.memory = V4L2_MEMORY_MMAP;
+        if (xioctl(fd, VIDIOC_REQBUFS, &rb) < 0 || rb.count < 2) { close_dev(); return false; }
+        for (uint32_t i = 0; i < rb.count; ++i) {
+            v4l2_buffer b{}; b.type = rb.type; b.memory = V4L2_MEMORY_MMAP; b.index = i;
+            if (xioctl(fd, VIDIOC_QUERYBUF, &b) < 0) { close_dev(); return false; }
+            void* p = mmap(nullptr, b.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, b.m.offset);
+            if (p == MAP_FAILED) { close_dev(); return false; }
+            bufs.push_back({p, b.length});
+            xioctl(fd, VIDIOC_QBUF, &b);
+        }
+        v4l2_buf_type t = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        if (xioctl(fd, VIDIOC_STREAMON, &t) < 0) { close_dev(); return false; }
+        opened = last_frame = std::chrono::steady_clock::now();
+        return true;
+    }
+    void close_dev() {
+        if (fd >= 0) { v4l2_buf_type t = V4L2_BUF_TYPE_VIDEO_CAPTURE; xioctl(fd, VIDIOC_STREAMOFF, &t); }
+        for (auto& b : bufs) munmap(b.p, b.n);
+        bufs.clear();
+        if (fd >= 0) ::close(fd);
+        fd = -1;
+    }
+    // newest complete frame copied (tight NV12) into dst; returns false if none was waiting
+    bool grab(uint8_t* dst) {
+        v4l2_buffer b{}, got{}; bool have = false;
+        for (;;) {
+            b = {}; b.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; b.memory = V4L2_MEMORY_MMAP;
+            if (xioctl(fd, VIDIOC_DQBUF, &b) < 0) break;
+            if (have) xioctl(fd, VIDIOC_QBUF, &got);          // an older one: give it straight back
+            got = b; have = true;
+        }
+        if (!have) return false;
+        const uint8_t* src = static_cast<const uint8_t*>(bufs[got.index].p);
+        const bool ok = !(got.flags & V4L2_BUF_FLAG_ERROR) && got.bytesused >= size_t(bpl) * h * 3 / 2;
+        if (ok) {
+            if (bpl == w) std::memcpy(dst, src, size_t(w) * h * 3 / 2);
+            else for (uint32_t y = 0; y < h * 3 / 2; ++y) std::memcpy(dst + size_t(y) * w, src + size_t(y) * bpl, w);
+            last_frame = std::chrono::steady_clock::now();
+        }
+        xioctl(fd, VIDIOC_QBUF, &got);
+        return ok;
+    }
+};
 
 struct App {
     // window
@@ -382,11 +451,55 @@ int main(int argc, char** argv) {
         };
 
         const int xfd = xcb_get_file_descriptor(a.xc);
+        Card card;
+        const char* dev = getenv("SB_V4L2");
+        const bool direct = dev && *dev;
+        const int share_ms = getenv("SB_SHARE_MS") ? std::max(20, std::atoi(getenv("SB_SHARE_MS"))) : 66;
+        int share_slot = 0, cur = 0, reopen_tries = 0;
+        unsigned long long seq = 0;
+        auto last_share = std::chrono::steady_clock::now(), last_try = last_share;
+        bool stalled_said = false;
+        if (direct) {
+            card.path = dev; card.w = a.w; card.h = a.h;
+            card.fps = getenv("SB_V4L2_FPS") ? std::max(1, std::atoi(getenv("SB_V4L2_FPS"))) : 30;
+            std::printf(card.open_dev() ? "card %u %u %u\n" : "nocard\n", card.w, card.h, card.fps);
+        }
         while (running) {
             fd_set rd; FD_ZERO(&rd); FD_SET(0, &rd); FD_SET(xfd, &rd);
-            timeval tv{0, 200000};
-            select(std::max(0, xfd) + 1, &rd, nullptr, nullptr, &tv);
+            int maxfd = xfd;
+            if (card.fd >= 0) { FD_SET(card.fd, &rd); maxfd = std::max(maxfd, card.fd); }
+            timeval tv{0, direct ? 100000 : 200000};
+            select(maxfd + 1, &rd, nullptr, nullptr, &tv);
             bool redraw = false;
+            if (direct) {
+                const auto now = std::chrono::steady_clock::now();
+                if (card.fd >= 0 && FD_ISSET(card.fd, &rd)) {
+                    const int slot = cur ^ 1;
+                    if (card.grab(static_cast<uint8_t*>(stage[slot].mapped))) {
+                        reopen_tries = 0;
+                        if (stalled_said) { std::printf("card ok\n"); stalled_said = false; }
+                        // a 60 Hz signal: show every second picture – an even 30 fps cadence (the network's budget)
+                        if (card.fps <= 40 || (seq++ & 1) == 0) {
+                            cur = slot; last_slot = slot; have_frame = true;
+                            if (std::chrono::duration<double, std::milli>(now - last_share).count() >= share_ms) {
+                                share_slot ^= 1;
+                                std::memcpy(a.shm + a.slot_bytes * share_slot, stage[slot].mapped, a.slot_bytes);
+                                std::printf("o %d\n", share_slot);
+                                last_share = now;
+                            }
+                            draw(slot, true);
+                        }
+                    }
+                }
+                // no picture for 4 s (console asleep, resolution change, USB reset): reopen, backing off
+                const double idle = std::chrono::duration<double>(now - card.last_frame).count();
+                const double since = std::chrono::duration<double>(now - last_try).count();
+                if ((card.fd < 0 || idle > 4.0) && since > (reopen_tries < 3 ? 4.0 : 20.0)) {
+                    if (!stalled_said) { std::printf("stall\n"); stalled_said = true; }
+                    last_try = now; ++reopen_tries;
+                    if (card.open_dev()) std::printf("card %u %u %u\n", card.w, card.h, card.fps);
+                }
+            }
             while (xcb_generic_event_t* ev = xcb_poll_for_event(a.xc)) {
                 switch (ev->response_type & 0x7f) {
                 case XCB_CLIENT_MESSAGE:
@@ -442,6 +555,7 @@ int main(int argc, char** argv) {
             }
             if (redraw && have_frame) { draw(last_slot, fresh_look); fresh_look = false; }
         }
+        card.close_dev();
         std::printf("closed\n");
         vkDeviceWaitIdle(a.dev);
     } catch (const std::exception& e) {

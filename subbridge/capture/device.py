@@ -5,6 +5,7 @@ The device is opened once and shared: the engine reads the newest frame on deman
 window (for cards without HDMI passthrough) shows the same stream with sound."""
 from __future__ import annotations
 
+import os
 import threading
 import time
 
@@ -400,6 +401,7 @@ class DeviceSession(QObject):
     """One open device. Lives in the GUI thread (Qt Multimedia objects must)."""
     frame_ready = Signal()
     nr_frame = Signal(object)            # experimental neural rendering: processed picture (worker -> GUI thread)
+    direct_done = Signal()               # the worker let the card go (any thread -> GUI thread: restart our stream)
 
     def __init__(self, device_id: str, audio_id: str = "", play_audio: bool = False, fmt_key: str = "",
                  low_latency: bool = True, audio_out_id: str = ""):
@@ -434,6 +436,7 @@ class DeviceSession(QObject):
         self._nr = None
         self._nrview = None
         self.nr_frame.connect(self._show_nr)
+        self.direct_done.connect(self.end_direct)
         self._conv_t = 0.0
         self._converter = _Converter(self._store)
         self._size: tuple[int, int] | None = None
@@ -644,6 +647,56 @@ class DeviceSession(QObject):
             self._nr = None
         return self._nr is not None
 
+    # --- direct capture: the DLSS 5 / Vulkan view reads the card itself (no Python in the picture's path)
+    def direct_params(self):
+        """(device path, width, height, fps) when the worker can take the card over, else None."""
+        if self.camera is None or not str(self.device_id).startswith("/dev/video") or os.environ.get("SB_NO_DIRECT"):
+            return None
+        f = self.camera.cameraFormat()
+        if f.isNull() or f.pixelFormat() != _PF.Format_NV12:
+            return None
+        r = f.resolution()
+        return self.device_id, r.width(), r.height(), max(1, round(f.maxFrameRate() or 30))
+
+    def begin_direct(self):
+        """Hand the card to the worker. Stopping is not enough – a QCamera keeps the V4L2 device open as long
+        as it exists – so the camera is destroyed and made again (same format) when the worker lets go."""
+        from PySide6.QtCore import QCoreApplication, QEvent
+        self._direct = True
+        self._cam_dev, self._cam_fmt = self.camera.cameraDevice(), self.camera.cameraFormat()
+        self.camera.stop()
+        self.session.setCamera(None)
+        cam, self.camera = self.camera, None
+        self._direct_cam_gone = True
+        cam.deleteLater()
+        QCoreApplication.sendPostedEvents(cam, QEvent.DeferredDelete)
+
+    def end_direct(self):
+        if not getattr(self, "_direct", False):
+            return
+        self._direct = False
+        if getattr(self, "_closed", False):
+            return
+        self.camera = QCamera(self._cam_dev)
+        if not self._cam_fmt.isNull():
+            self.camera.setCameraFormat(self._cam_fmt)
+        self.camera.errorOccurred.connect(lambda _e, msg: setattr(self, "error", msg))
+        self.session.setCamera(self.camera)
+        self.camera.start()
+
+    def direct_frame(self, raw):
+        """Worker thread: a copy of a picture the worker read (for subtitles, ~15×/s)."""
+        now = time.time()
+        self._last_frame = now
+        self._restarts = 0
+        self._fps_n += 1
+        if now - self._fps_t0 >= 2.0:
+            self.fps, self._fps_n, self._fps_t0 = self._fps_n / (now - self._fps_t0), 0, now
+        rgb = raw_to_rgb(raw)
+        if rgb is not None:
+            self._store(rgb_to_qimage(rgb), now)
+            self.frame_ready.emit()
+
     def set_nrview(self, view):
         self._nrview = view
         self._dropped_last = False
@@ -690,7 +743,7 @@ class DeviceSession(QObject):
         self._restart_t = now
         self.error = ""
         self._last_sig = None
-        if self.camera is None:
+        if self.camera is None or getattr(self, "_direct", False):    # direct: the worker reopens the card itself
             return False
         try:
             self.camera.stop()
@@ -734,7 +787,8 @@ class DeviceSession(QObject):
         return (r.width() or 1920), (r.height() or 1080)
 
     def close(self):
-        if self.camera is None:          # already closed
+        self._closed = True
+        if self.camera is None:          # already closed (or the DLSS 5 view holds the card: nothing of ours is open)
             return
         self._converter.stop()
         self.set_neural(False)
