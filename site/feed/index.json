@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "1.3.1-release",
+      "date": "2026-11-26",
+      "title": {
+        "hu": "Megjelent a SubBridge 1.3.1",
+        "en": "SubBridge 1.3.1 is out"
+      },
+      "body": {
+        "hu": "SubBridge 1.3.1 – új, kísérleti funkció: DLSS 5 neurális renderelés a capture card Játéknézetében (Linux + AMD Radeon RX 9000, Mesa 26.2+). Az NVIDIA fájljai nincsenek benne: a saját nvngx_dlssnr.dll fájlodat töltöd be a Beállítások → Capture card oldalon, a SubBridge kiolvassa és ellenőrzi belőle a modellt (a DLL-t nem futtatja). Stílus (Természetes / Filmes / Standard), erősség, arcvédelem és villogásmentes mód állítható. A Játéknézet ezeken a gépeken saját Vulkanos megjelenítővel fut (pontos színek, vszinkron, Lossless Scaling).",
+        "en": "SubBridge 1.3.1 – new, experimental: DLSS 5 neural rendering in the capture card Game View (Linux + AMD Radeon RX 9000, Mesa 26.2+). None of NVIDIA's files ship with it: you load your own nvngx_dlssnr.dll under Settings → Capture card, and SubBridge extracts and verifies the model in it (the DLL is never run). Style (Natural / Cinematic / Standard), strength, face protection and a flicker-free mode can be set. On these PCs the Game View uses its own Vulkan renderer (exact colours, vsync, Lossless Scaling)."
+      }
+    },
+    {
       "id": "1.3.0-release",
       "date": "2026-11-26",
       "title": {
@@ -318,24 +330,24 @@
     }
   },
   "latest": {
-    "version": "1.3.0",
+    "version": "1.3.1",
     "url": "https://rolandhrvth.hu/subbridge/#download",
     "notes": {
-      "hu": "SubBridge 1.3.0 – teljesen új, letisztult kinézet: oldalsáv, áttekintés, játékválasztó (egyelőre GTA VI), világos és sötét mód. Új: OBS-feliratoldal streameléshez (Telefon és OBS oldal, átlátszó háttér, csak a magyar felirat). Capture card: felskálázás és élesítés a Játéknézetben nagyobb képernyőn (pl. 4K tévé), egyenletesebb megjelenítés (vszinkron), 60/90/120 fps-es képkocka-generálás választható, a mikrofon soha nem kerül a kártya hangja helyére, kisebb akadás megálláskor. Windowson a Lossless Scaling alkalmazás magától elindul és bekapcsol teljes képernyős Játéknézetnél. Pontosabb tájékoztatás: a felirat a gépen és a telefonon jelenik meg, a PS5 tévéképén nem; a kész fordítások egyelőre a GTA VI-hoz vannak.",
-      "en": "SubBridge 1.3.0 – a completely new, clean look: sidebar, overview, game picker (GTA VI for now), light and dark mode. New: OBS subtitle page for streaming (Phone and OBS page, transparent background, only the translation). Capture card: upscaling and sharpening in the Game View on bigger screens (e.g. a 4K TV), smoother presentation (vsync), 60/90/120 fps frame generation to choose from, a microphone is never used as the card's sound, less stutter when you stop moving. On Windows the Lossless Scaling app starts and switches on by itself in a full-screen Game View. Clearer info: the translation shows on the PC and the phone, not on the PS5's TV picture; ready-made translations are for GTA VI for now."
+      "hu": "SubBridge 1.3.1 – új, kísérleti funkció: DLSS 5 neurális renderelés a capture card Játéknézetében (Linux + AMD Radeon RX 9000, Mesa 26.2+). Az NVIDIA fájljai nincsenek benne: a saját nvngx_dlssnr.dll fájlodat töltöd be a Beállítások → Capture card oldalon, a SubBridge kiolvassa és ellenőrzi belőle a modellt (a DLL-t nem futtatja). Stílus (Természetes / Filmes / Standard), erősség, arcvédelem és villogásmentes mód állítható. A Játéknézet ezeken a gépeken saját Vulkanos megjelenítővel fut (pontos színek, vszinkron, Lossless Scaling).",
+      "en": "SubBridge 1.3.1 – new, experimental: DLSS 5 neural rendering in the capture card Game View (Linux + AMD Radeon RX 9000, Mesa 26.2+). None of NVIDIA's files ship with it: you load your own nvngx_dlssnr.dll under Settings → Capture card, and SubBridge extracts and verifies the model in it (the DLL is never run). Style (Natural / Cinematic / Standard), strength, face protection and a flicker-free mode can be set. On these PCs the Game View uses its own Vulkan renderer (exact colours, vsync, Lossless Scaling)."
     },
     "files": {
       "windows": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.3.0-windows-setup.exe",
-        "sha256": "7a422b8c85b079a9cfe082fc93dac0d0a780f65d0bf1975da0597b5d8c92f646"
+        "url": "https://rolandhrvth.hu/subbridge/dl/SubBridge-1.3.1-windows-setup.exe",
+        "sha256": "4a1db06fd8df9ad2316dbd99c9d19f0ba360b83e6d6560d3f81d5d71e52e4ab5"
       },
       "linux-deb": {
-        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.3.0_amd64.deb",
-        "sha256": "f5c1df68152971cc7d01593396e1196a8d7684b9178d457b4f749379caca86e9"
+        "url": "https://rolandhrvth.hu/subbridge/dl/subbridge_1.3.1_amd64.deb",
+        "sha256": "ff0a1133ad096e1c38352fee88f042d2599e2937ff1170e8b4267aa2d4e433b6"
       }
     },
     "rollout": {
-      "start": 1795726969,
+      "start": 1795733503,
       "hours": 24.0,
       "from": 20
     }
