@@ -54,3 +54,9 @@ distributed with it; install it separately if you use it.
 "Skyscrapers Overlooking Sea" – https://www.pexels.com/photo/skyscrapers-overlooking-sea-15312055/
 Pexels License (https://www.pexels.com/license/): free to use, including commercially; modification allowed;
 attribution not required. Cropped and colour-adjusted. Not game artwork; no affiliation with any game publisher.
+
+## DLSSNR-AMD (packaging/nr: sb-nrview worker runtime, shaders, model tools)
+https://gitlab.com/mochizuki0323/DLSSNR-AMD – MIT License, Copyright (c) 2026 mochizuki0323 (full text in
+packaging/nr/LICENSE-DLSSNR-AMD.txt). Independent project, not affiliated with NVIDIA or AMD. SubBridge ships none
+of NVIDIA's files or weights: the user loads their own nvngx_dlssnr.dll, from which the model is extracted and
+verified locally. DLSS is a trademark of NVIDIA Corporation.

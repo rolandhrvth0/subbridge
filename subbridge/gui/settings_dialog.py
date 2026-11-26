@@ -423,9 +423,22 @@ class SettingsDialog(QDialog):
         self._row(f, tr("fg_x"), self.cmb_fgx, tr("fg_x_hint"))
         self.chk_up = QCheckBox(tr("up_on"), checked=self.p.upscale)
         self._row(f, "", self.chk_up, tr("up_hint"))
-        from .. import neural
+        from .. import neural, nrsetup
         self.chk_nr = None
-        if neural.available():                       # only on a machine with a local sb-nr install
+        ok, why = nrsetup.probe() if nrsetup.platform_ok() else (False, tr("nr_linux_only"))
+        if not ok:
+            self._row(f, tr("nr_title"), QLabel(tr("nr_unsupported", why=why), objectName="small", wordWrap=True))
+        elif not neural.available():
+            box = QVBoxLayout()
+            box.addWidget(QLabel(tr("nr_setup_hint", gpu=why.split(" | ")[0]), objectName="small", wordWrap=True))
+            btn = QPushButton(tr("nr_load_dll"))
+            btn.clicked.connect(self._nr_load_dll)
+            row = QHBoxLayout()
+            row.addWidget(btn)
+            row.addStretch(1)
+            box.addLayout(row)
+            self._row(f, tr("nr_title"), box)
+        if neural.available():
             self.chk_nr = QCheckBox(tr("nr_on"), checked=self.p.neural)
             self._row(f, "", self.chk_nr, tr("nr_hint"))
             self.cmb_nr_style = QComboBox()
@@ -443,6 +456,37 @@ class SettingsDialog(QDialog):
             self.chk_nr_stable = QCheckBox(tr("nr_stable"), checked=self.p.nr_stable)
             self._row(f, "", self.chk_nr_stable, tr("nr_stable_hint"))
         return w
+
+    def _nr_load_dll(self):
+        """Pick the user's own nvngx_dlssnr.dll (or a .zip with it), extract and verify the model."""
+        import threading
+        from PySide6.QtWidgets import QFileDialog, QMessageBox, QProgressDialog
+        from .. import nrsetup
+        path, _ = QFileDialog.getOpenFileName(self, tr("nr_load_dll"), "", "nvngx_dlssnr (*.dll *.zip)")
+        if not path:
+            return
+        dlg = QProgressDialog(tr("nr_extracting"), None, 0, 100, self)
+        dlg.setWindowTitle(tr("nr_title"))
+        dlg.setMinimumDuration(0)
+        dlg.setAutoClose(False)
+        dlg.setValue(0)
+        state = {"pct": 0, "text": "", "done": None}
+
+        def work():
+            state["done"] = nrsetup.setup_from_dll(path, lambda p, t: state.update(pct=p, text=t))
+        threading.Thread(target=work, daemon=True).start()
+
+        def tick():
+            dlg.setValue(state["pct"])
+            dlg.setLabelText(state["text"] or tr("nr_extracting"))
+            if state["done"] is None:
+                QTimer.singleShot(200, tick)
+                return
+            dlg.close()
+            ok, msg = state["done"]
+            (QMessageBox.information if ok else QMessageBox.warning)(self, tr("nr_title"), msg + (
+                "\n\n" + tr("nr_reopen") if ok else ""))
+        QTimer.singleShot(200, tick)
 
     def _page_glossary(self):
         w, v, _ = self._page(tr("s_glossary"), tr("s_glossary_sub"))

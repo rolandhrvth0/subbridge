@@ -17,6 +17,9 @@ datas = [
     (str(PKG / "gui" / "gameview_gpu.qml"), "subbridge/gui"),
     (str(PKG / "gui" / "shaders"), "subbridge/gui/shaders"),
 ]
+if sys.platform.startswith("linux") and (ROOT / "packaging" / "nr" / "sb-nrview").exists():
+    # DLSS 5 / Vulkan Game View worker (DLSSNR-AMD runtime, MIT) – no NVIDIA files; the user loads their own DLL
+    datas.append((str(ROOT / "packaging" / "nr"), "subbridge/nr"))
 if (BUNDLE / "tessdata").exists():
     datas.append((str(BUNDLE / "tessdata"), "subbridge/tessdata"))
 if win and (BUNDLE / "tesseract").exists():

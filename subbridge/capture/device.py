@@ -637,7 +637,7 @@ class DeviceSession(QObject):
     # --- experimental: DLSS 5 neural rendering (subbridge/neural.py), local installs only
     def set_neural(self, on: bool) -> bool:
         from .. import neural
-        if on and self._nr is None and neural.available():
+        if on and self._nr is None and neural.available() and (neural.nr_dir() / "sb-nr").is_file():   # old dev path
             self._nr = neural.NeuralStage(lambda a: self.nr_frame.emit(a))
         elif not on and self._nr is not None:
             self._nr.stop()

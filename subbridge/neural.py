@@ -25,13 +25,14 @@ log = logging.getLogger(__name__)
 
 
 def nr_dir() -> Path:
-    return Path(os.environ.get("SUBBRIDGE_NR_DIR", str(Path.home() / ".local/share/subbridge/nr")))
+    from .nrsetup import data_dir
+    return data_dir()
 
 
 def available() -> bool:
-    d = nr_dir()
-    return (sys.platform.startswith("linux") and (d / "sb-nr").is_file()
-            and (d / "dlssnr-amd" / "CC_SMALL_FP8.bin").is_file())
+    """DLSS 5 can be switched on: Linux, the worker shipped, the user's model extracted."""
+    from . import nrsetup
+    return nrsetup.platform_ok() and nrsetup.worker().is_file() and nrsetup.model_ready()
 
 
 class NeuralWorker:
@@ -182,7 +183,9 @@ class NeuralStage:
 # memory (one copy), and everything else - colour conversion, DLSS 5, scaling, presenting, frame generation - runs
 # on the graphics card. Subtitles and the phone card are SubBridge's own see-through overlay windows on top.
 def view_available() -> bool:
-    return available() and (nr_dir() / "sb-nrview").is_file()
+    """The Vulkan Game View worker can run (DLSS 5 inside it is optional): Linux, worker present, shaders set up."""
+    from . import nrsetup
+    return nrsetup.platform_ok() and nrsetup.worker().is_file() and (nr_dir() / "dlssnr-amd" / "shaders").is_dir()
 
 
 class NrView:
@@ -236,7 +239,8 @@ class NrView:
         self._errlog.flush()
         self.crashed = False
         self._user_closed = False
-        self.proc = subprocess.Popen([str(d / "sb-nrview"), str(d), str(self.w), str(self.h), str(self._shm_path),
+        from . import nrsetup
+        self.proc = subprocess.Popen([str(nrsetup.worker()), str(d), str(self.w), str(self.h), str(self._shm_path),
                                       "1" if neural else "0"],
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self._errlog,
                                      text=True, bufsize=1, env=env, preexec_fn=_die_with_parent)

@@ -220,6 +220,8 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: 
       <p data-hu>OBS-be egy átlátszó feliratoldal – csak a magyar felirat.</p><p data-en>A transparent subtitle page for OBS – just the translation.</p></div>
     <div class="feat"><h3 data-hu>Simább kép</h3><h3 data-en>Smoother picture</h3>
       <p data-hu>Capture cardnál 30 helyett 60 fps képkocka-generálással, 4K-ra élesítve.</p><p data-en>With a capture card: 60 fps instead of 30 with frame generation, sharpened up to 4K.</p></div>
+    <div class="feat"><h3 data-hu>DLSS 5 <span style="color:var(--accent);font-size:13px">kísérleti</span></h3><h3 data-en>DLSS 5 <span style="color:var(--accent);font-size:13px">experimental</span></h3>
+      <p data-hu>A capture card képe a DLSS 5 neurális renderelésével – Linuxon, AMD Radeon RX 9000 kártyán. A DLL-t neked kell betöltened.</p><p data-en>The capture card picture through DLSS 5 neural rendering – on Linux with an AMD Radeon RX 9000 card. You load the DLL yourself.</p></div>
     <div class="feat"><h3 data-hu>Offline és ingyenes</h3><h3 data-en>Offline and free</h3>
       <p data-hu>Nincs regisztráció, nincs előfizetés. A fordítás internet nélkül is megy.</p><p data-en>No sign-up, no subscription. Translation works without internet too.</p></div>
   </div>
@@ -268,6 +270,9 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: 
     <details><summary data-hu>Melyik capture card jó?</summary><summary data-en>Which capture card works?</summary>
       <p data-hu>Bármelyik USB-s HDMI-rögzítő, amit a gép webkameraként lát. Kipróbálva: j5create JVA11 (1440p 60 fps). A PS5-ön kapcsold ki a HDR-t és a HDCP-t.</p>
       <p data-en>Any USB HDMI capture device the PC sees as a webcam. Tested: j5create JVA11 (1440p 60 fps). Turn off HDR and HDCP on the PS5.</p></details>
+    <details><summary data-hu>Mi kell a DLSS 5-höz?</summary><summary data-en>What does DLSS 5 need?</summary>
+      <p data-hu>Kísérleti funkció. Kell hozzá: <b>Linux</b> (Ubuntu 24.04 / Linux Mint 22 vagy újabb, Mesa 26.2+), <b>AMD Radeon RX 9000</b> kártya (RDNA4: RX 9060, 9060 XT, 9070, 9070 XT), capture card, és <b>a saját nvngx_dlssnr.dll fájlod</b> (310.9.16 vagy 310.8.0, egy DLSS 5-öt támogató játék mappájából). A DLL-t a Beállítások → Capture card oldalon töltöd be: a SubBridge csak kiolvassa és ellenőrzi belőle a modellt, a fájlt nem futtatja és nem küldi el. Az NVIDIA fájljai nincsenek benne a SubBridge-ben. Windowson és más kártyán egyelőre nem működik.</p>
+      <p data-en>An experimental feature. It needs <b>Linux</b> (Ubuntu 24.04 / Linux Mint 22 or newer, Mesa 26.2+), an <b>AMD Radeon RX 9000</b> card (RDNA4: RX 9060, 9060 XT, 9070, 9070 XT), a capture card, and <b>your own nvngx_dlssnr.dll</b> (310.9.16 or 310.8.0, from the folder of a game with DLSS 5). Load it under Settings → Capture card: SubBridge only reads and verifies the model in it – the file is never run or sent anywhere. None of NVIDIA's files ship with SubBridge. Not available on Windows or other cards for now.</p></details>
     <details><summary data-hu>Biztonságos? Mit küld el?</summary><summary data-en>Is it safe? What does it send?</summary>
       <p data-hu>A kép a gépeden marad. Csak akkor megy ki adat, ha online fordítót választasz (pl. DeepL), vagy ha hibajelentést küldesz.</p>
       <p data-en>The picture stays on your PC. Data only leaves it if you choose an online translator (e.g. DeepL) or send a bug report.</p></details>
@@ -275,7 +280,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: 
 </div></section>
 
 <footer><div class="wrap">
-  <span data-hu>A SubBridge független, nem hivatalos program, nincs kapcsolatban a Rockstar Games-szel vagy a Take-Two-val. A „GTA VI” név csak azt jelzi, melyik játékhoz készült. Fotó: Pexels.</span>
+  <span data-hu>A SubBridge független, nem hivatalos program, nincs kapcsolatban a Rockstar Games-szel vagy a Take-Two-val. A „GTA VI” név csak azt jelzi, melyik játékhoz készült. A DLSS az NVIDIA védjegye; a DLSS 5 futtató a független DLSSNR-AMD projekt (MIT). Fotó: Pexels.</span>
   <span data-en>SubBridge is an independent, unofficial app, not affiliated with Rockstar Games or Take-Two. "GTA VI" only names the game it is made for. Photo: Pexels.</span>
   <span class="r"><a href="https://github.com/rolandhrvth0/subbridge">GitHub</a> · MIT</span>
 </div></footer>
