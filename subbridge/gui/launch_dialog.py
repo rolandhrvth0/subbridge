@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 
 import numpy as np
-from PySide6.QtCore import QObject, Qt, Signal
+from PySide6.QtCore import QObject, Qt, QTimer, Signal
 from PySide6.QtGui import QGuiApplication, QImage, QPixmap
 from PySide6.QtWidgets import (QButtonGroup, QCheckBox, QDialog, QFrame, QHBoxLayout, QLabel, QPushButton,
                                QRadioButton, QVBoxLayout)
@@ -23,14 +23,11 @@ class LaunchDialog(QDialog):
     def __init__(self, main, session):
         super().__init__(main)
         from .. import fgmodes, neural
-        self.main, self.p = main, main.profile
+        self.main, self.p, self.session = main, main.profile, session
         self.setWindowTitle(tr("ld_title"))
         self.setMinimumWidth(1150)
         self.frame = None
-        try:
-            self.frame = session.latest()                       # RGB, the card's current picture
-        except Exception:  # noqa: BLE001
-            pass
+        self._grab()
         self.dlss = neural.available() and self.frame is not None
         self.previews: dict[str, QImage] = {}
         self.bridge = _Bridge()
@@ -132,6 +129,25 @@ class LaunchDialog(QDialog):
         if self.p.neural and neural.available():
             start = {1: "dlss_natural", 2: "dlss_cinematic", 0: "dlss_standard"}.get(self.p.nr_style, "dlss_natural")
         self._select(start)
+        # live: the card's picture ~10 times a second, through DLSS 5 when a DLSS mode is chosen
+        self.timer = QTimer(self, interval=100, timeout=self._tick)
+        self.timer.start()
+
+    def _grab(self) -> bool:
+        try:
+            self.frame = self.session.latest()                  # RGB, the card's current picture
+            return True
+        except Exception:  # noqa: BLE001 – no signal right now: keep the last picture
+            return False
+
+    def _tick(self):
+        if not self._grab():
+            return
+        if self.mode == "native":
+            self._show(self._qimage(self.frame))
+        elif not self._busy:
+            self._busy = True
+            threading.Thread(target=self._compute, args=(self.mode, dict(MODES)[self.mode]), daemon=True).start()
 
     # ---------------------------------------------------------------- preview
     def _select(self, key: str):
@@ -148,8 +164,8 @@ class LaunchDialog(QDialog):
             return
         if key in self.previews:
             self._show(self.previews[key])
-            return
-        self.img.setText(tr("ld_computing"))
+        else:
+            self.img.setText(tr("ld_computing"))
         if not self._busy:
             self._busy = True
             style = dict(MODES)[key]
@@ -159,14 +175,20 @@ class LaunchDialog(QDialog):
         from .. import neural
         try:
             h, w = self.frame.shape[:2]
+            if self.worker is not None and (self.worker.w, self.worker.h) != (w, h):
+                old, self.worker = self.worker, None
+                old.close()
             if self.worker is None:
-                self.worker = neural.NeuralWorker(w, h)
+                self.worker = neural.NeuralWorker(w, h, temporal=self.p.nr_stable)
                 import time
                 t0 = time.time()
                 while self.worker.starting and time.time() - t0 < 60:
                     time.sleep(0.05)
-            self.worker.set_look(style, self.p.nr_intensity, self.p.nr_skin)
-            rgba = np.dstack([self.frame, np.full(self.frame.shape[:2], 255, np.uint8)])
+            if getattr(self, "_look", None) != style:
+                self.worker.set_look(style, self.p.nr_intensity, self.p.nr_skin)
+                self._look = style
+            frame = self.frame
+            rgba = np.dstack([frame, np.full(frame.shape[:2], 255, np.uint8)])
             out = self.worker.process(np.ascontiguousarray(rgba))
             self.bridge.ready.emit(key, None if out is None else np.ascontiguousarray(out[..., :3]))
         except Exception:  # noqa: BLE001
@@ -181,8 +203,8 @@ class LaunchDialog(QDialog):
                 self._show(self.previews[key])
             else:
                 self.img.setText(tr("ld_failed"))
-        elif self.mode not in self.previews and self.mode != "native":
-            self._select(self.mode)                              # the user moved on meanwhile
+        elif self.mode in self.previews:
+            self._show(self.previews[self.mode])
 
     @staticmethod
     def _qimage(rgb: np.ndarray) -> QImage:
@@ -222,6 +244,7 @@ class LaunchDialog(QDialog):
         p.ask_launch = self.chk_ask.isChecked()
 
     def done(self, r):
+        self.timer.stop()
         if self.worker is not None:
             w, self.worker = self.worker, None
             threading.Thread(target=w.close, daemon=True).start()

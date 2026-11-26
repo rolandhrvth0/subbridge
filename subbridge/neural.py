@@ -38,7 +38,7 @@ def available() -> bool:
 class NeuralWorker:
     """One sb-nr process for one frame size. process(rgba) -> rgba (blocking, ~15 ms at 1440p) or None."""
 
-    def __init__(self, width: int, height: int):
+    def __init__(self, width: int, height: int, temporal: bool = False):
         self.w, self.h = width, height
         self.bytes = width * height * 4
         self.ok = False
@@ -57,6 +57,7 @@ class NeuralWorker:
         env = _clean_env()
         env["NR_GPU"] = env.get("NR_GPU", "0")
         env["DISABLE_MANGOHUD"] = "1"
+        env["SB_TEMPORAL"] = "1" if temporal else "0"
         d = nr_dir()
         from . import nrsetup
         self.proc = subprocess.Popen([str(nrsetup.worker("sb-nr")), str(d), str(width), str(height), str(self._shm_path)],
