@@ -392,6 +392,7 @@ class MainWindow(QMainWindow):
         pl1.addStretch(1)
         pl2.addWidget(section(tr("obs_title")))
         obs = Group()
+        self.row_streamer = obs.add(GroupRow("broadcast", tr("obs_streamer")))
         ol = QVBoxLayout()
         ol.setContentsMargins(18, 16, 18, 16)
         ol.setSpacing(10)
@@ -551,6 +552,8 @@ class MainWindow(QMainWindow):
         self.btn_obs_copy.clicked.connect(self._copy_obs)
         self.row_phone.clicked.connect(lambda: self.show_page("phone"))
         self.row_obs.clicked.connect(lambda: self.show_page("phone"))
+        # streamer mode = the on-screen translation off: English stays on your screen, viewers get the OBS page
+        self.row_streamer.clicked.connect(lambda: self.chk_overlay.setChecked(not self.chk_overlay.isChecked()))
         if not getattr(self.settings, "game", ""):
             self.show_page("game")
 
@@ -744,6 +747,8 @@ class MainWindow(QMainWindow):
             self.tile_card.set_state("action", tr("tile_card_how"), c)
         self.row_phone.set_state("action", tr("home_phone_sub"), c)
         self.row_obs.set_state("action", tr("obs_row_sub"), c)
+        self.row_streamer.set_state("on" if not p.overlay else "off",
+                                    tr("obs_streamer_on") if not p.overlay else tr("obs_streamer_off"), c)
 
     def _toggle_gphone(self):
         self.profile.game_phone = not self.profile.game_phone
