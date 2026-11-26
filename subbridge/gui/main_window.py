@@ -625,6 +625,8 @@ class MainWindow(QMainWindow):
                 sess.framegen_wanted = False
                 self.gameview = GameView(sess, on_close=closed)
             self.gameview.scale = self.profile.overlay_scale
+            if getattr(self.gameview, "root", None) is not None:
+                self.gameview.root.setProperty("upscale", bool(self.profile.upscale))
             sess.audio_out_id = self.profile.device_audio_out
             sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)
             if sess.set_neural(self.profile.neural):

@@ -17,20 +17,52 @@ Rectangle {
     readonly property real padX: 22
     readonly property real padY: 6
 
+    // Upscaler: when the window is bigger than the card's picture (1440p card on a 4K TV) the picture is scaled
+    // on the GPU with Catmull-Rom bicubic + contrast-adaptive sharpening instead of plain bilinear. Frame
+    // generation (lsfg-vk / AFMF / Smooth Motion / Lossless Scaling) works on the result.
+    property bool upscale: true
+    property real sharpness: 0.45
+    readonly property real fitK: Math.min(width / Math.max(1, srcW), height / Math.max(1, srcH))
+    readonly property rect fit: Qt.rect((width - srcW * fitK) / 2, (height - srcH * fitK) / 2, srcW * fitK, srcH * fitK)
+    readonly property bool scaling: upscale && fitK > 1.05
+
     VideoOutput {
         id: video
         objectName: "video"
-        anchors.fill: parent
-        fillMode: VideoOutput.PreserveAspectFit
+        x: root.fit.x; y: root.fit.y; width: root.fit.width; height: root.fit.height
+        fillMode: VideoOutput.Stretch
+    }
+    ShaderEffectSource {
+        id: srcTex
+        sourceItem: video
+        hideSource: root.scaling
+        live: root.scaling
+        smooth: true
+        textureSize: Qt.size(root.srcW, root.srcH)
+        visible: false
+    }
+    ShaderEffect {
+        id: up
+        x: root.fit.x; y: root.fit.y; width: root.fit.width; height: root.fit.height
+        visible: root.scaling
+        property variant source: srcTex
+        property size texSize: Qt.size(root.srcW, root.srcH)
+        fragmentShader: "shaders/upscale.frag.qsb"
+        layer.enabled: root.scaling
+        layer.effect: ShaderEffect {
+            property size outSize: Qt.size(up.width, up.height)
+            property real sharpness: root.sharpness
+            fragmentShader: "shaders/sharpen.frag.qsb"
+        }
     }
 
     // picture area inside the window (letterboxed): subtitle boxes are placed in picture pixels * k
     Item {
         id: pic
-        x: video.contentRect.width > 0 ? video.contentRect.x : 0
-        y: video.contentRect.width > 0 ? video.contentRect.y : 0
-        width: video.contentRect.width > 0 ? video.contentRect.width : root.width
-        height: video.contentRect.width > 0 ? video.contentRect.height : root.height
+        x: root.fit.x
+        y: root.fit.y
+        width: root.fit.width
+        height: root.fit.height
         readonly property real k: width / Math.max(1, root.srcW)
 
         Repeater {

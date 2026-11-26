@@ -54,6 +54,7 @@ class Profile:
     nr_style: int = 1                    # DLSS 5 look: 0 Standard, 1 Natural (NVIDIA's), 2 Cinematic
     nr_intensity: float = 0.75           # 0.25 .. 1.0
     nr_skin: bool = True                 # faces keep the game's own detail
+    upscale: bool = True                 # Game View bigger than the card picture: GPU upscaling + sharpening
     framegen: str = "auto"               # Game View frame generation: auto|lsfg|afmf|smooth|builtin|off (fgmodes)             # show the original (small) under the translation on the game
 
     @classmethod

@@ -15,6 +15,7 @@ datas = [
     (str(PKG / "server" / "web"), "subbridge/server/web"),
     (str(PKG / "assets"), "subbridge/assets"),
     (str(PKG / "gui" / "gameview_gpu.qml"), "subbridge/gui"),
+    (str(PKG / "gui" / "shaders"), "subbridge/gui/shaders"),
 ]
 if (BUNDLE / "tessdata").exists():
     datas.append((str(BUNDLE / "tessdata"), "subbridge/tessdata"))
