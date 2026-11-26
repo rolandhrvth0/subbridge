@@ -70,6 +70,7 @@ class Profile:
 
 @dataclass
 class AppSettings:
+    game: str = ""                       # chosen on the start screen ("gta6" – the only supported game for now)
     language: str = "hu"                 # UI language
     port: int = 8765
     pin: str = field(default_factory=lambda: f"{secrets.randbelow(10**6):06d}")

@@ -49,3 +49,8 @@ your own key or server and under their own terms.
 
 The Remote Play client (for example chiaki-ng, AGPL-3.0) is **not** part of SubBridge and is not
 distributed with it; install it separately if you use it.
+
+## Photograph: Miami skyline (subbridge/assets/ui/hero-miami.jpg, tile-miami.jpg)
+"Skyscrapers Overlooking Sea" – https://www.pexels.com/photo/skyscrapers-overlooking-sea-15312055/
+Pexels License (https://www.pexels.com/license/): free to use, including commercially; modification allowed;
+attribution not required. Cropped and colour-adjusted. Not game artwork; no affiliation with any game publisher.
