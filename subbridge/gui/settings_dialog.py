@@ -439,6 +439,8 @@ class SettingsDialog(QDialog):
             self._row(f, tr("nr_int"), self.cmb_nr_int)
             self.chk_nr_skin = QCheckBox(tr("nr_skin"), checked=self.p.nr_skin)
             self._row(f, "", self.chk_nr_skin, tr("nr_skin_hint"))
+            self.chk_nr_stable = QCheckBox(tr("nr_stable"), checked=self.p.nr_stable)
+            self._row(f, "", self.chk_nr_stable, tr("nr_stable_hint"))
         return w
 
     def _page_glossary(self):
@@ -580,6 +582,7 @@ class SettingsDialog(QDialog):
             p.nr_style = int(self.cmb_nr_style.currentData())
             p.nr_intensity = float(self.cmb_nr_int.currentData())
             p.nr_skin = self.chk_nr_skin.isChecked()
+            p.nr_stable = self.chk_nr_stable.isChecked()
         card_changed = card_changed or p.low_latency != self.chk_ll.isChecked()   # format choice depends on it
         p.low_latency = self.chk_ll.isChecked()
         p.overlay_scale = float(self.cmb_ov_size.currentData() or 1.0)

@@ -188,7 +188,8 @@ def view_available() -> bool:
 class NrView:
     """Drop-in for the Game View (close / update_boxes / show_phone / show / raise_ / activateWindow / scale)."""
 
-    def __init__(self, session, overlay, phone_panel, on_close=None, neural: bool = True, lsfg_mult: int = 0):
+    def __init__(self, session, overlay, phone_panel, on_close=None, neural: bool = True, lsfg_mult: int = 0,
+                 stable: bool = True):
         from .capture.device import _clean_env, _die_with_parent
         self.session, self.overlay, self.phone_panel, self.on_close = session, overlay, phone_panel, on_close
         self.scale = 1.0
@@ -218,6 +219,7 @@ class NrView:
         self.closed = False
         env = _clean_env()
         env["DISABLE_MANGOHUD"] = "1"
+        env["SB_TEMPORAL"] = "1" if stable else "0"
         if lsfg_mult >= 2:
             from . import fgmodes
             fi = fgmodes.info()

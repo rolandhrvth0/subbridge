@@ -810,7 +810,8 @@ class MainWindow(QMainWindow):
         if self.gameview is None and self.profile.neural and neural.view_available():
             try:
                 fi_mult = self.profile.fg_multiplier if self.profile.framegen in ("auto", "lsfg") else 0
-                self.gameview = neural.NrView(sess, self.overlay, self.phone_panel, neural=True, lsfg_mult=fi_mult)
+                self.gameview = neural.NrView(sess, self.overlay, self.phone_panel, neural=True, lsfg_mult=fi_mult,
+                                              stable=self.profile.nr_stable)
                 self.gameview.set_look(self.profile.nr_style, self.profile.nr_intensity, self.profile.nr_skin)
                 sess.audio_out_id = self.profile.device_audio_out
                 sess.set_audio(self.profile.device_audio_id, self.profile.device_audio)
