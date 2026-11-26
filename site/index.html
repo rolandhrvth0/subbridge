@@ -4,497 +4,267 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <base href="/subbridge/">
-<title>SubBridge – GTA VI magyar felirat, élőben</title>
-<meta name="description" content="Magyar felirat GTA VI-hoz, élőben: a játék képén az angol helyén és a telefonodon. Több mint 15 000 előre, egyenként lefordított párbeszédsor, szlengszótár, Remote Play és capture card. Ingyenes, offline. Nem hivatalos program.">
-<meta property="og:title" content="SubBridge – GTA VI magyar felirat, élőben">
-<meta property="og:description" content="GTA VI magyarul: a felirat az angol helyén, a játék képén és a telefonodon. Több mint 15 000 előre lefordított sor, szleng, offline. Ingyenes, nyílt forrású.">
-<meta property="og:image" content="https://rolandhrvth.hu/subbridge/img/real-3.jpg">
+<title>SubBridge – GTA VI magyar felirattal</title>
+<meta name="description" content="A SubBridge élőben magyarra fordítja a GTA VI angol feliratát. A magyar szöveg a gépeden, a játék képén jelenik meg – és a telefonodon. Ingyenes.">
+<meta property="og:title" content="SubBridge – GTA VI magyar felirattal">
+<meta property="og:description" content="Élő magyar felirat GTA VI-hoz: a gépeden a játék képén és a telefonodon. Ingyenes, Windows és Linux.">
+<meta property="og:image" content="https://rolandhrvth.hu/subbridge/img/hero.jpg">
 <link rel="canonical" href="https://rolandhrvth.hu/subbridge/">
-<meta name="theme-color" content="#0d0a14">
+<meta name="theme-color" content="#0b0b0f">
 <link rel="icon" href="img/icon-192.png">
 <style>
-@font-face { font-family: Inter; src: url(img/inter-latin.woff2) format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Inter; src: url(img/inter-latin.woff2) format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: Inter; src: url(img/inter-latin-ext.woff2) format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 :root {
-  --bg: #0d0a14; --bg2: #120d1c; --surface: #171122; --surface2: #1f182c; --line: #2a2139; --line2: #382c4a;
-  --text: #f3eff8; --muted: #a79cba; --faint: #776d8a;
-  --accent: #ff4f87; --accent2: #ff9a4c; --accent-ink: #ffffff; --ok: #3ccf91;
-  --r: 18px;
+  --bg: #f5f5f7; --surface: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e2e2e7;
+  --accent: #ff2d55; --accent-h: #e8244b; --dark: #0b0b0f; --r: 22px;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 Inter, system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 Inter, -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; }
 a { color: var(--accent); text-decoration: none; }
-img, video { max-width: 100%; }
-.wrap { max-width: 1160px; margin: 0 auto; padding: 0 22px; }
-
-/* nav */
-nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 78%, transparent);
-  backdrop-filter: saturate(150%) blur(14px); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
-nav .wrap { display: flex; align-items: center; gap: 16px; height: 64px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; color: var(--text); letter-spacing: -.01em; }
-.brand img { width: 30px; height: 30px; border-radius: 8px; }
-nav .links { margin-left: auto; display: flex; gap: 24px; font-size: 14.5px; }
-nav .links a { color: var(--muted); transition: color .15s; }
-nav .links a:hover { color: var(--text); }
-.lang { border: 1px solid var(--line2); border-radius: 9px; padding: 5px 10px; font: 600 12.5px Inter, sans-serif; color: var(--muted);
-  cursor: pointer; background: none; }
-.lang:hover { color: var(--text); border-color: var(--faint); }
-.navcta { padding: 8px 14px !important; font-size: 14px !important; border-radius: 10px !important; }
-
-/* buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 14px 24px; border-radius: 13px;
-  font-weight: 650; font-size: 15.5px; transition: transform .15s, filter .15s, background .15s; }
-.btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.btn.primary { background: linear-gradient(120deg, var(--accent2), var(--accent)); color: var(--accent-ink);
-  box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--accent) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.35); }
-.btn.ghost { border: 1px solid var(--line2); color: var(--text); background: color-mix(in srgb, var(--surface) 60%, transparent); }
-.btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
-
-/* hero */
-header.hero { position: relative; padding: 88px 0 30px; text-align: center; isolation: isolate; }
-header.hero::before { content: ""; position: absolute; inset: -120px 0 auto; height: 720px; z-index: -1;
-  background: radial-gradient(600px 300px at 50% 18%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
-              radial-gradient(900px 500px at 50% 0%, rgba(255,140,70,.10), transparent 70%); }
-.pill { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--text);
-  border: 1px solid var(--line2); background: color-mix(in srgb, var(--surface) 75%, transparent); padding: 6px 14px 6px 6px; border-radius: 99px; }
-.pill b { background: var(--accent); color: var(--accent-ink); border-radius: 99px; padding: 2px 9px; font-size: 11.5px; letter-spacing: .04em; }
-h1 { font-size: clamp(38px, 6.4vw, 72px); line-height: 1.03; letter-spacing: -.035em; margin: 24px auto 18px; max-width: 940px; font-weight: 800; }
-h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.lead { font-size: clamp(17px, 2.1vw, 20px); color: var(--muted); max-width: 720px; margin: 0 auto 32px; }
-.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.facts { display: flex; gap: 10px 26px; justify-content: center; flex-wrap: wrap; margin: 26px 0 0; color: var(--faint); font-size: 14px; }
-.facts span { display: inline-flex; align-items: center; gap: 8px; }
-.facts span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
-
-.stage { position: relative; margin: 58px auto 0; max-width: 1040px; }
-.stage .frame { border-radius: 20px; padding: 10px; background: linear-gradient(180deg, var(--surface2), var(--surface));
-  border: 1px solid var(--line2); box-shadow: 0 60px 140px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.02) inset; }
-.stage video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #000; object-fit: cover; }
-.stage .cap { position: absolute; left: 50%; bottom: -18px; transform: translateX(-50%); white-space: nowrap;
-  font-size: 12.5px; color: var(--muted); background: var(--bg2); border: 1px solid var(--line2); border-radius: 99px; padding: 6px 14px; }
-
-/* sections */
-section { padding: 96px 0; position: relative; }
-.eyebrow { display: inline-block; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-section h2 { font-size: clamp(30px, 4.2vw, 46px); line-height: 1.08; letter-spacing: -.025em; margin: 0 0 14px; font-weight: 780; }
-section .sub { color: var(--muted); max-width: 700px; margin: 0 0 44px; font-size: 17.5px; }
-.center { text-align: center; } .center .sub { margin-left: auto; margin-right: auto; }
-.alt { background: linear-gradient(180deg, var(--bg2), var(--bg)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-
-/* new in 1.1 */
-.news { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.nc { position: relative; padding: 24px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
-.nc::after { content: ""; position: absolute; inset: 0 0 auto; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .7; }
-.nc .num { font-size: 34px; font-weight: 800; letter-spacing: -.03em; color: var(--text); line-height: 1; margin-bottom: 10px; }
-.nc .num small { font-size: 15px; color: var(--accent); font-weight: 700; margin-left: 4px; }
-.nc h3 { margin: 0 0 6px; font-size: 16.5px; }
-.nc p { margin: 0; color: var(--muted); font-size: 14.5px; }
-
-/* how */
-.how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; counter-reset: s; }
-.step { position: relative; padding: 26px 24px 24px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
-.step::before { counter-increment: s; content: "0" counter(s); display: block; font-size: 13px; font-weight: 800; letter-spacing: .1em; color: var(--accent); margin-bottom: 14px; }
-.step h3 { margin: 0 0 8px; font-size: 18px; }
-.step p { margin: 0; color: var(--muted); font-size: 15px; }
-.step .ic, .card .ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 16px;
-  background: color-mix(in srgb, var(--accent) 13%, var(--surface2)); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
-.ic svg { width: 21px; height: 21px; stroke: var(--accent); fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-
-/* split + before/after */
-.split { display: grid; grid-template-columns: 1.08fr .92fr; gap: 56px; align-items: center; }
-.split.rev { grid-template-columns: .92fr 1.08fr; }
-.ba { position: relative; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); }
-.ba img { display: block; width: 100%; }
-.ba .after { position: absolute; inset: 0; clip-path: inset(0 0 0 50%); }
-.ba input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; }
-.ba .bar { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: var(--accent); pointer-events: none; }
-.ba .bar::after { content: ""; position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,.5); }
-.ba .lbl { position: absolute; top: 12px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); }
-.ba .lbl.l { left: 12px; } .ba .lbl.r { right: 12px; }
-.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.checks li { position: relative; padding-left: 30px; color: var(--muted); font-size: 15.5px; }
-.checks.row4 { grid-template-columns: repeat(4, auto); justify-content: start; gap: 12px 34px; }
-@media (max-width: 860px) { .checks.row4 { grid-template-columns: 1fr; } }
-.checks li b { color: var(--text); font-weight: 650; }
-.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%;
-  background: color-mix(in srgb, var(--ok) 18%, transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233ccf91' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center/12px no-repeat; }
-
-/* footage */
-.video { margin: 0 0 18px; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line2); background: #000; box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); }
-.video video { display: block; width: 100%; aspect-ratio: 16 / 9; }
-.video figcaption, .gallery figcaption { font-size: 13px; color: var(--muted); padding: 9px 13px; background: var(--surface); }
-.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.gallery figure { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
-.gallery img, .gallery video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
-
-/* phone */
-.phones { display: flex; gap: 22px; justify-content: center; }
-.phones img { width: 46%; max-width: 250px; border-radius: 30px; border: 1px solid var(--line2); box-shadow: 0 30px 80px -20px rgba(0,0,0,.75); }
-.phones img:nth-child(2) { transform: translateY(34px); }
-
-/* features */
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 24px; transition: border-color .2s, transform .2s; }
-.card:hover { border-color: var(--line2); transform: translateY(-2px); }
-.card h3 { margin: 0 0 6px; font-size: 17px; }
-.card p { margin: 0; color: var(--muted); font-size: 15px; }
-.tag { display: inline-block; font-size: 11px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
-.setups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.tut { border-radius: var(--r); overflow: hidden; border: 1px solid var(--line2); background: #000; box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); }
-.tut video { display: block; width: 100%; aspect-ratio: 16 / 9; }
-
-/* faq */
-.faqtop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.qa { margin-top: 30px; border-top: 1px solid var(--line); }
-.qa details { border-bottom: 1px solid var(--line); }
-.qa summary { cursor: pointer; list-style: none; padding: 19px 40px 19px 2px; font-weight: 620; font-size: 16.5px; position: relative; transition: color .15s; }
-.qa summary::-webkit-details-marker { display: none; }
-.qa summary::after { content: ""; position: absolute; right: 10px; top: 50%; width: 9px; height: 9px; margin-top: -7px;
-  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .18s; }
-.qa details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
-.qa summary:hover { color: var(--accent); }
-.qa p { margin: 0 0 18px; color: var(--muted); font-size: 15px; max-width: 780px; }
-.qa .set { margin: 0 0 18px; padding-left: 20px; color: var(--muted); font-size: 15px; }
-.qa .set li { margin: 3px 0; }
-.qa .set b, .qa p b { color: var(--text); font-weight: 600; }
-
-/* download */
-.dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.dl .card { display: flex; flex-direction: column; gap: 10px; padding: 26px; }
-.dl .card h3 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
-.dl .card h3 svg { width: 22px; height: 22px; fill: var(--text); }
-.dl .card .btn { margin-top: auto; }
-.dl .soon { color: var(--muted); font-size: 13.5px; margin: 0; }
-.privacy { background: radial-gradient(700px 300px at 15% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%), var(--bg2);
-  border-top: 1px solid var(--line); }
-.privacy .row { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; }
-footer { border-top: 1px solid var(--line); padding: 32px 0 54px; color: var(--faint); font-size: 14px; }
-footer .wrap { display: flex; gap: 18px; flex-wrap: wrap; }
-footer .r { margin-left: auto; }
-footer a { color: var(--muted); }
-
+img, video { max-width: 100%; display: block; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
 html:not([lang="en"]) [data-en] { display: none !important; }
 html[lang="en"] [data-hu] { display: none !important; }
-.reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
-.reveal.in { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
-@media (max-width: 980px) { .news { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 860px) {
-  .split, .split.rev, .grid, .how, .setups, .dl, .faqtop, .gallery, .privacy .row { grid-template-columns: 1fr; }
-  nav .links { display: none; }
-  header.hero { padding-top: 56px; }
-  section { padding: 64px 0; }
-  .phones img:nth-child(2) { transform: none; }
+
+/* nav */
+nav { position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(180%) blur(18px); -webkit-backdrop-filter: saturate(180%) blur(18px);
+  background: rgba(11, 11, 15, .72); }
+nav .wrap { display: flex; align-items: center; gap: 22px; height: 54px; }
+nav .logo { display: flex; align-items: center; gap: 9px; color: #fff; font-weight: 700; font-size: 16px; }
+nav .logo img { width: 24px; height: 24px; border-radius: 6px; }
+nav .links { margin-left: auto; display: flex; gap: 22px; align-items: center; }
+nav .links a { color: rgba(255,255,255,.82); font-size: 14px; }
+nav .links a:hover { color: #fff; }
+nav button { background: none; border: 1px solid rgba(255,255,255,.3); color: #fff; border-radius: 8px; padding: 3px 9px; font: 600 12px Inter, sans-serif; cursor: pointer; }
+nav .cta { background: var(--accent); color: #fff !important; padding: 6px 14px; border-radius: 980px; font-weight: 600; }
+
+/* hero */
+.hero { position: relative; color: #fff; background: var(--dark); overflow: hidden; }
+.hero .bg { position: absolute; inset: 0; background: url(img/hero.jpg) center 35% / cover no-repeat; }
+.hero .bg::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(11,11,15,.92) 0%, rgba(11,11,15,.62) 45%, rgba(11,11,15,.15) 100%),
+              linear-gradient(0deg, rgba(11,11,15,1) 0%, rgba(11,11,15,0) 35%); }
+.hero .wrap { position: relative; padding-top: 120px; padding-bottom: 110px; }
+.eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .4px; color: #ff8fa6; text-transform: uppercase; }
+h1 { font-size: clamp(42px, 6.2vw, 76px); line-height: 1.04; letter-spacing: -2px; margin: 10px 0 18px; font-weight: 800; max-width: 760px; }
+.hero p.lead { font-size: clamp(18px, 2vw, 22px); line-height: 1.45; color: rgba(255,255,255,.86); max-width: 620px; margin: 0 0 30px; }
+.btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { display: inline-block; border-radius: 980px; padding: 13px 26px; font-weight: 600; font-size: 16px; transition: background .2s, transform .2s; }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-h); }
+.btn.ghost { color: #fff; border: 1px solid rgba(255,255,255,.4); }
+.btn.ghost:hover { background: rgba(255,255,255,.1); }
+.small { font-size: 13.5px; color: rgba(255,255,255,.6); margin-top: 18px; }
+
+/* video */
+.video { background: var(--dark); padding: 0 0 80px; }
+.frame { border-radius: var(--r); overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.5); background: #000; }
+.cap { color: rgba(255,255,255,.55); font-size: 13.5px; text-align: center; margin-top: 14px; }
+
+/* sections */
+section { padding: 96px 0; }
+h2 { font-size: clamp(32px, 4.4vw, 52px); letter-spacing: -1.2px; line-height: 1.08; margin: 0 0 14px; font-weight: 800; text-align: center; }
+.sub { text-align: center; color: var(--muted); font-size: 19px; max-width: 680px; margin: 0 auto 52px; }
+.note { display: flex; gap: 16px; align-items: flex-start; background: var(--surface); border-radius: var(--r); padding: 26px 30px;
+  box-shadow: 0 1px 0 var(--line); max-width: 860px; margin: -40px auto 0; position: relative; }
+.note .ic { flex: 0 0 40px; height: 40px; border-radius: 12px; background: #ffe4ea; display: grid; place-items: center; color: var(--accent); font-weight: 800; font-size: 20px; }
+.note b { color: var(--text); }
+.note p { margin: 0; color: var(--muted); }
+
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.step { background: var(--surface); border-radius: var(--r); padding: 30px; }
+.step .n { width: 34px; height: 34px; border-radius: 50%; background: var(--text); color: #fff; display: grid; place-items: center; font-weight: 700; margin-bottom: 18px; }
+.step h3 { margin: 0 0 6px; font-size: 21px; letter-spacing: -.3px; }
+.step p { margin: 0; color: var(--muted); font-size: 16px; }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.card { background: var(--surface); border-radius: var(--r); padding: 32px; }
+.card h3 { margin: 0 0 8px; font-size: 22px; letter-spacing: -.3px; }
+.card p { margin: 0 0 10px; color: var(--muted); }
+.card ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
+.card li { margin: 4px 0; }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent); background: #ffe4ea; border-radius: 980px; padding: 3px 10px; margin-bottom: 12px; }
+
+.app { margin-top: 18px; border-radius: var(--r); overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.18); }
+
+.feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.feat { background: var(--surface); border-radius: var(--r); padding: 28px; }
+.feat h3 { margin: 0 0 6px; font-size: 19px; letter-spacing: -.2px; }
+.feat p { margin: 0; color: var(--muted); font-size: 15.5px; }
+
+.dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.dl .card { display: flex; flex-direction: column; gap: 6px; text-align: center; align-items: center; }
+.dl .card .btn { margin-top: 10px; }
+.dl .card .btn.primary { color: #fff; }
+.dl .card .btn.ghost { color: var(--muted); border-color: var(--line); }
+.soon { font-size: 13.5px; color: var(--muted); margin: 0; }
+
+.faq { max-width: 820px; margin: 0 auto; }
+details { background: var(--surface); border-radius: 16px; margin-bottom: 10px; padding: 0 24px; }
+summary { cursor: pointer; list-style: none; padding: 20px 0; font-weight: 650; font-size: 18px; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 24px; line-height: 1; }
+details[open] summary::after { content: "–"; }
+details p { margin: 0 0 20px; color: var(--muted); }
+
+footer { padding: 40px 0 60px; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--line); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: space-between; }
+
+@media (max-width: 820px) {
+  nav .links a:not(.cta) { display: none; }
+  .steps, .two, .feats, .dl { grid-template-columns: 1fr; }
+  .hero .wrap { padding-top: 80px; padding-bottom: 80px; }
+  section { padding: 70px 0; }
 }
-@media (max-width: 520px) { .news { grid-template-columns: 1fr; } .stage .cap { display: none; } }
 </style>
 </head>
 <body>
+
 <nav><div class="wrap">
-  <a class="brand" href="#"><img src="img/icon-192.png" alt="">SubBridge</a>
+  <a class="logo" href="#"><img src="img/icon-192.png" alt="">SubBridge</a>
   <div class="links">
-    <a href="#gta">GTA VI</a>
-    <a href="#new"><span data-hu>Újdonságok</span><span data-en>What's new</span></a>
     <a href="#how"><span data-hu>Hogyan működik</span><span data-en>How it works</span></a>
-    <a href="#features"><span data-hu>Funkciók</span><span data-en>Features</span></a>
+    <a href="#need"><span data-hu>Mi kell hozzá</span><span data-en>What you need</span></a>
     <a href="#faq"><span data-hu>GYIK</span><span data-en>FAQ</span></a>
+    <button id="lang" type="button">EN</button>
+    <a class="cta" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a>
   </div>
-  <button class="lang" id="lang">EN</button>
-  <a class="btn primary navcta" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a>
 </div></nav>
 
-<header class="hero"><div class="wrap">
-  <span class="pill"><b>GTA VI</b><span data-hu>15 000+ előre lefordított magyar sor · szleng · offline</span><span data-en>15,000+ pre-translated lines · slang · offline</span></span>
-  <h1 data-hu>GTA VI <em>magyarul</em>.<br>Élőben, a játék képén.</h1>
-  <h1 data-en>GTA VI <em>in Hungarian</em>.<br>Live, on the game picture.</h1>
-  <p class="lead" data-hu>A SubBridge a GTA VI angol feliratát élőben magyarra fordítja, és pontosan az eredeti helyére teszi – közben a telefonodon is olvashatod. A játék párbeszédsorai közül több mint 15 000-et előre, egyenként fordítottuk le. Ingyenes, és a gépeden fut.</p>
-  <p class="lead" data-en>SubBridge translates GTA VI's English subtitles into Hungarian live and puts them exactly where the original was – and on your phone too. More than 15,000 of the game's dialogue lines are translated one by one in advance. Free, and it runs on your own PC.</p>
-  <div class="cta">
-    <a class="btn primary" href="#download"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg><span data-hu>Ingyenes letöltés</span><span data-en>Free download</span></a>
-    <a class="btn ghost" href="#real"><svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg><span data-hu>Valódi felvétel</span><span data-en>Real footage</span></a>
+<header class="hero">
+  <div class="bg"></div>
+  <div class="wrap">
+    <div class="eyebrow">SubBridge</div>
+    <h1 data-hu>GTA VI magyar felirattal.</h1>
+    <h1 data-en>GTA VI with Hungarian subtitles.</h1>
+    <p class="lead" data-hu>A SubBridge játék közben, élőben lefordítja az angol feliratot. A magyar szöveg ott jelenik meg, ahol az angol volt – a gépeden, és ha szeretnéd, a telefonodon is.</p>
+    <p class="lead" data-en>SubBridge translates the English subtitles live while you play. The translation appears where the English was – on your PC, and on your phone if you like.</p>
+    <div class="btns">
+      <a class="btn primary" href="#download"><span data-hu>Letöltés ingyen</span><span data-en>Download free</span></a>
+      <a class="btn ghost" href="#how"><span data-hu>Hogyan működik?</span><span data-en>How does it work?</span></a>
+    </div>
+    <div class="small" data-hu>Ingyenes · Windows és Linux · Android app · 15 000+ előre lefordított GTA VI párbeszédsor</div>
+    <div class="small" data-en>Free · Windows and Linux · Android app · 15,000+ pre-translated GTA VI dialogue lines</div>
   </div>
-  <div class="facts">
-    <span>Windows 10/11</span><span>Linux</span><span data-hu>Telefon böngészőből</span><span data-en>Phone in the browser</span><span>Offline</span><span data-hu>Nincs fiók, nincs reklám</span><span data-en>No account, no ads</span>
-  </div>
-  <div class="stage">
-    <div class="frame"><video src="img/demo-main.mp4" poster="img/demo-main-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="SubBridge"></video></div>
-    <span class="cap" data-hu>Valódi felvétel · Remote Play · PS5 · a magyar felirat élőben, az angol helyén</span>
-    <span class="cap" data-en>Real footage · Remote Play · PS5 · the translation live, in place of the original</span>
-  </div>
-</div></header>
+</header>
 
-<section id="gta"><div class="wrap">
-  <span class="eyebrow" data-hu>GTA VI-ra hangolva</span><span class="eyebrow" data-en>Tuned for GTA VI</span>
-  <h2 data-hu>Nem általános fordító. Ezt a játékot ismeri.</h2><h2 data-en>Not a generic translator. It knows this game.</h2>
-  <p class="sub" data-hu>Közel 80 óra végigjátszáson tanítottuk: a felismerés a játék feliratdobozaihoz és betűihez, a fordítás a szereplőihez, helyszíneihez és szlengjéhez van igazítva.</p>
-  <p class="sub" data-en>Trained on nearly 80 hours of playthroughs: recognition is tuned to the game's subtitle boxes and font, translation to its characters, places and slang.</p>
-  <div class="news">
-    <div class="nc reveal"><div class="num">15 000+<small data-hu>sor</small><small data-en>lines</small></div>
-      <h3 data-hu>Kész magyar párbeszédek</h3><h3 data-en>Ready-made dialogue</h3>
-      <p data-hu>A gyakori sorokat előre, egyenként fordítottuk le. Ha ilyen jön, azonnal a kész mondatot látod – internet nélkül, egységes nevekkel és tegezéssel.</p><p data-en>Frequent lines are translated one by one in advance. When one appears you see the finished sentence instantly – offline, with consistent names and tone.</p></div>
-    <div class="nc reveal"><div class="num">0<small data-hu>ms fordítás</small><small data-en>ms translating</small></div>
-      <h3 data-hu>Nincs várakozás</h3><h3 data-en>No waiting</h3>
-      <p data-hu>Az előre lefordított sorokhoz nem kell fordítóprogram: amint a SubBridge kiolvasta a feliratot, már ott is a kész magyar mondat.</p><p data-en>Pre-translated lines need no translation engine: as soon as SubBridge has read the subtitle, the finished translation is there.</p></div>
-    <div class="nc reveal"><div class="num">80<small data-hu>óra</small><small data-en>hours</small></div>
-      <h3 data-hu>Valódi játékon mérve</h3><h3 data-en>Measured on the real game</h3>
-      <p data-hu>Több végigjátszáson, különböző feliratbeállításokkal teszteltük: dobozos és doboz nélküli, kicsi és nagy felirat, autózás, sötét jelenetek.</p><p data-en>Tested on several playthroughs with different subtitle settings: boxed and box-less, small and large, driving, dark scenes.</p></div>
-    <div class="nc reveal"><div class="num">140+<small data-hu>szlengszó</small><small data-en>slang terms</small></div>
-      <h3 data-hu>Utcai szleng érthetően</h3><h3 data-en>Street slang, made clear</h3>
-      <p data-hu>„bro”, „finna”, „bussin'” – a szlengszótár érthető magyarra fordítja, és frissítés nélkül is bővül.</p><p data-en>"bro", "finna", "bussin'" – the slang dictionary turns it into plain language and keeps growing without app updates.</p></div>
-  </div>
-</div></section>
+<div class="video"><div class="wrap">
+  <div class="frame"><video src="img/demo-main.mp4?v=2" poster="img/demo-main-poster.jpg?v=2" autoplay muted loop playsinline preload="metadata" aria-label="SubBridge"></video></div>
+  <div class="cap" data-hu>Valódi felvétel · PS5 · capture card · a magyar felirat élőben, az angol helyén</div>
+  <div class="cap" data-en>Real footage · PS5 · capture card · the translation live, in place of the English</div>
+</div></div>
 
-<section id="new" class="alt"><div class="wrap">
-  <span class="eyebrow" data-hu>Újdonságok · 1.1</span><span class="eyebrow" data-en>What's new · 1.1</span>
-  <h2 data-hu>Nyugodt, olvasható, gyors.</h2><h2 data-en>Calm, readable, fast.</h2>
-  <p class="sub" data-hu>A visszajelzéseitek alapján órákig tartó valódi játékfelvételen hangoltuk: több beszélő, autózás, sötét jelenetek, doboz nélküli feliratok.</p>
-  <p class="sub" data-en>Tuned on hours of real gameplay footage based on your feedback: several speakers, driving, dark scenes, box-less subtitles.</p>
-  <div class="news">
-    <div class="nc reveal"><div class="num">0<small data-hu>villanás</small><small data-en>flicker</small></div>
-      <h3 data-hu>Nem ugrál a felirat</h3><h3 data-en>No more jumping text</h3>
-      <p data-hu>Valódi, több beszélős tesztjeleneteinkben minden mondat egyszer, nyugodtan jelent meg – félkész sorok és üres dobozok nélkül.</p><p data-en>In our real multi-speaker test scenes every line showed once, calmly – no half-finished lines, no empty boxes.</p></div>
-    <div class="nc reveal"><div class="num">25×<small data-hu>több sor</small><small data-en>more lines</small></div>
-      <h3 data-hu>Doboz nélküli feliratok</h3><h3 data-en>Box-less subtitles</h3>
-      <p data-hu>Háttér nélküli feliratból a tesztfelvételen 25-ször annyi sort ismer fel, mint eddig – autózás és gyors mozgás közben is.</p><p data-en>On our test footage it reads 25 times as many box-less lines as before – even while driving or with fast camera moves.</p></div>
-    <div class="nc reveal"><div class="num">6<small>ms</small></div>
-      <h3 data-hu>Villámgyors Windowson</h3><h3 data-en>Lightning fast on Windows</h3>
-      <p data-hu>A Windows beépített szövegfelismerőjét használja – a korábbi nagy késés megszűnt.</p><p data-en>Uses the text recogniser built into Windows – the earlier long delay is gone.</p></div>
-    <div class="nc reveal"><div class="num">60<small>fps</small></div>
-      <h3 data-hu>Simított mozgás</h3><h3 data-en>Smooth motion</h3>
-      <p data-hu>Capture carddal 30 → 60 fps a Játéknézetben – AMD, NVIDIA vagy Lossless Scaling frame gennel, a videokártyán.</p><p data-en>With a capture card, 30 → 60 fps in the Game View – with AMD, NVIDIA or Lossless Scaling frame generation, on the GPU.</p></div>
+<div class="wrap">
+  <div class="note">
+    <div class="ic">!</div>
+    <p data-hu><b>Fontos tudni:</b> a SubBridge a számítógépeden fut, ezért a magyar felirat <b>a gépeden</b> (a Remote Play ablakban vagy a capture card képén) és <b>a telefonodon</b> jelenik meg. <b>A PS5 saját tévéképére nem tud írni.</b></p>
+    <p data-en><b>Good to know:</b> SubBridge runs on your computer, so the translation appears <b>on your PC</b> (in the Remote Play window or on the capture card picture) and <b>on your phone</b>. <b>It cannot write onto the PS5's own TV picture.</b></p>
   </div>
-</div></section>
+</div>
 
 <section id="how"><div class="wrap">
-  <div class="center">
-    <span class="eyebrow" data-hu>Hogyan működik</span><span class="eyebrow" data-en>How it works</span>
-    <h2 data-hu>Csak nézi a képet. Mint te.</h2><h2 data-en>It just watches the picture. Like you.</h2>
-    <p class="sub" data-hu>A SubBridge nem nyúl a játékhoz, a konzolhoz vagy a Remote Play programhoz – a gépeden látható képet olvassa, ugyanúgy, ahogy te.</p>
-    <p class="sub" data-en>SubBridge never touches the game, the console or the Remote Play app – it reads the picture on your PC, just like you do.</p>
+  <h2 data-hu>Három lépés.</h2><h2 data-en>Three steps.</h2>
+  <p class="sub" data-hu>Nem kell semmit beállítanod a játékon kívül. A program végigvezet.</p>
+  <p class="sub" data-en>Nothing to set up besides the game. The app walks you through it.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div>
+      <h3 data-hu>Telepítsd</h3><h3 data-en>Install it</h3>
+      <p data-hu>Töltsd le Windowsra vagy Linuxra, és indítsd el. Az első indításkor letölti a fordítót – ez pár perc.</p>
+      <p data-en>Download it for Windows or Linux and start it. On first start it downloads the translator – a few minutes.</p></div>
+    <div class="step"><div class="n">2</div>
+      <h3 data-hu>Válaszd ki a képet</h3><h3 data-en>Pick the picture</h3>
+      <p data-hu>A Remote Play ablakát, vagy ha capture kártyád van, azt. A játékban kapcsold be az angol feliratot.</p>
+      <p data-en>The Remote Play window, or your capture card if you have one. Turn on English subtitles in the game.</p></div>
+    <div class="step"><div class="n">3</div>
+      <h3 data-hu>Nyomd meg: Indítás</h3><h3 data-en>Press Start</h3>
+      <p data-hu>Kész. A felirat magyarul jelenik meg. A telefonodon egy QR-kóddal is követheted.</p>
+      <p data-en>Done. The subtitles show in Hungarian. Follow along on your phone with a QR code too.</p></div>
   </div>
-  <div class="how">
-    <div class="step reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></div>
-      <h3 data-hu>Észreveszi a feliratot</h3><h3 data-en>Spots the subtitle</h3>
-      <p data-hu>Dobozos vagy doboz nélküli, kicsi vagy nagy betűs – a mozgó háttér elől is kiszűri a szöveget.</p><p data-en>Boxed or box-less, small or large text – it even separates the text from a moving background.</p></div>
-    <div class="step reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg></div>
-      <h3 data-hu>Lefordítja</h3><h3 data-en>Translates it</h3>
-      <p data-hu>Offline, a gépeden – szlengszótárral és magyar tegeződés-javítással. Kérésre DeepL vagy Google is.</p><p data-en>Offline, on your PC – with slang dictionaries and language-specific fixes. DeepL or Google optional.</p></div>
-    <div class="step reveal"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-      <h3 data-hu>Megmutatja</h3><h3 data-en>Shows it</h3>
-      <p data-hu>Pontosan az eredeti helyén, a beszélő színével – és közben a telefonodon is, beszélgetésként.</p><p data-en>Exactly where the original was, in the speaker's colour – and on your phone as a conversation.</p></div>
+  <div class="app"><img src="img/app-home.jpg" alt="SubBridge" loading="lazy"></div>
+</div></section>
+
+<section id="need" style="background:#fff"><div class="wrap">
+  <h2 data-hu>Mi kell hozzá?</h2><h2 data-en>What do you need?</h2>
+  <p class="sub" data-hu>Egy számítógép, és a kettő közül az egyik.</p>
+  <p class="sub" data-en>A computer, and one of these two.</p>
+  <div class="two">
+    <div class="card" style="background:var(--bg)"><span class="tag" data-hu>Nem kell hozzá semmi más</span><span class="tag" data-en>Nothing else needed</span>
+      <h3>Remote Play</h3>
+      <p data-hu>A PS5 képét a gépeden nézed Remote Playjel (pl. PS Remote Play vagy chiaki-ng). A magyar felirat pontosan az angol helyére kerül.</p>
+      <p data-en>You watch the PS5 on your PC with Remote Play (e.g. PS Remote Play or chiaki-ng). The translation goes exactly where the English was.</p></div>
+    <div class="card" style="background:var(--bg)"><span class="tag" data-hu>Legjobb képminőség</span><span class="tag" data-en>Best picture</span>
+      <h3>Capture card</h3>
+      <p data-hu>A PS5 HDMI-n a kártyába megy, a gépen a SubBridge Játéknézetében játszol – hanggal, akár 60 fps-re simítva.</p>
+      <p data-en>The PS5 goes into the card over HDMI and you play in SubBridge's Game View on the PC – with sound, smoothed to 60 fps.</p>
+      <ul><li data-hu>Tesztelve: <b>j5create JVA11</b> (1440p 60 fps)</li><li data-en>Tested: <b>j5create JVA11</b> (1440p 60 fps)</li>
+          <li data-hu>A PS5-ön a HDR legyen kikapcsolva</li><li data-en>Turn HDR off on the PS5</li></ul></div>
   </div>
 </div></section>
 
 <section><div class="wrap">
-  <div>
-    <span class="eyebrow" data-hu>A játék képén</span><span class="eyebrow" data-en>On the game picture</span>
-    <h2 data-hu>Az angol helyén magyar.</h2><h2 data-en>Your language, right where the original was.</h2>
-    <p class="sub" data-hu>Húzd a csúszkát! A fordítás pontosan az eredeti feliratdobozba kerül, ugyanolyan stílusban.</p>
-    <p class="sub" data-en>Drag the slider! The translation goes exactly into the original subtitle box, same style.</p>
-    <ul class="checks row4">
-      <li data-hu><b>Beszélőnevek</b> az eredeti színükkel</li><li data-en><b>Speaker names</b> in their original colour</li>
-      <li data-hu><b>Csak akkor rajzol</b>, amikor a játék van elöl</li><li data-en><b>Draws only</b> while the game is in front</li>
-      <li data-hu><b>Bármilyen beállítással</b>: Solid vagy háttér nélküli, Small–Large</li><li data-en><b>Any setting</b>: Solid or no background, Small to Large</li>
-      <li data-hu><b>Tanuló mód</b>: kicsiben az angol eredeti is</li><li data-en><b>Learning mode</b>: the original small underneath</li>
-    </ul>
-  </div>
-  <div class="ba reveal" id="ba" style="margin-top:40px">
-    <img src="img/real-before.jpg" alt="Eredeti angol felirat">
-    <img class="after" src="img/real-after.jpg" alt="Magyar felirat a SubBridge-dzsel">
-    <div class="bar"></div>
-    <span class="lbl l">EN</span><span class="lbl r">HU</span>
-    <input type="range" min="0" max="100" value="50" aria-label="before/after">
+  <h2 data-hu>Amit még tud.</h2><h2 data-en>What else it does.</h2>
+  <p class="sub" data-hu>Minden a gépeden fut, ingyen.</p>
+  <p class="sub" data-en>Everything runs on your PC, for free.</p>
+  <div class="feats">
+    <div class="feat"><h3 data-hu>Kész GTA VI fordítás</h3><h3 data-en>Ready GTA VI translation</h3>
+      <p data-hu>Több mint 15 000 párbeszédsor előre, egyenként lefordítva – azonnal megjelenik.</p><p data-en>More than 15,000 dialogue lines translated one by one in advance – shown instantly.</p></div>
+    <div class="feat"><h3 data-hu>Telefonon is</h3><h3 data-en>On your phone too</h3>
+      <p data-hu>Olvasd vissza, amit lekéstél – ki beszél, mit mond, színekkel.</p><p data-en>Read back what you missed – who speaks and what they say, colour-coded.</p></div>
+    <div class="feat"><h3 data-hu>A játékbeli telefon</h3><h3 data-en>The in-game phone</h3>
+      <p data-hu>Üzenetek, posztok és hírek a játék telefonján – magyarul.</p><p data-en>Messages, posts and news on the in-game phone – translated.</p></div>
+    <div class="feat"><h3 data-hu>Streameléshez</h3><h3 data-en>For streaming</h3>
+      <p data-hu>OBS-be egy átlátszó feliratoldal – csak a magyar felirat.</p><p data-en>A transparent subtitle page for OBS – just the translation.</p></div>
+    <div class="feat"><h3 data-hu>Simább kép</h3><h3 data-en>Smoother picture</h3>
+      <p data-hu>Capture cardnál 30 helyett 60 fps képkocka-generálással, 4K-ra élesítve.</p><p data-en>With a capture card: 60 fps instead of 30 with frame generation, sharpened up to 4K.</p></div>
+    <div class="feat"><h3 data-hu>Offline és ingyenes</h3><h3 data-en>Offline and free</h3>
+      <p data-hu>Nincs regisztráció, nincs előfizetés. A fordítás internet nélkül is megy.</p><p data-en>No sign-up, no subscription. Translation works without internet too.</p></div>
   </div>
 </div></section>
 
-<section id="real" class="alt"><div class="wrap">
-  <span class="eyebrow" data-hu>Valódi felvétel</span><span class="eyebrow" data-en>Real footage</span>
-  <h2 data-hu>Nem látványterv. Ez a program.</h2><h2 data-en>Not a mock-up. This is the app.</h2>
-  <p class="sub" data-hu>Linux, Remote Play (chiaki-ng), PS5 – játék közben rögzítve. Minden kép és videó a program valódi működését mutatja.</p>
-  <p class="sub" data-en>Linux, Remote Play (chiaki-ng), PS5 – recorded while playing. Every picture and clip shows the app actually running.</p>
-  <div class="gallery">
-    <figure class="reveal"><video src="img/demo3.mp4" poster="img/demo3-poster.jpg" autoplay muted loop playsinline preload="none"></video><figcaption data-hu>Autózás közbeni párbeszéd</figcaption><figcaption data-en>Dialogue while driving</figcaption></figure>
-    <figure class="reveal"><video src="img/demo4.mp4" poster="img/demo4-poster.jpg" autoplay muted loop playsinline preload="none"></video><figcaption data-hu>Több beszélő</figcaption><figcaption data-en>Several speakers</figcaption></figure>
-    <figure class="reveal"><video src="img/demo2.mp4" poster="img/demo2-poster.jpg" autoplay muted loop playsinline preload="none"></video><figcaption data-hu>Átvezető jelenet</figcaption><figcaption data-en>Cutscene</figcaption></figure>
-  </div>
-</div></section>
-
-<section><div class="wrap split rev">
-  <div class="phones reveal">
-    <img src="img/phone-web-chat.png" alt="">
-    <img src="img/phone-web.png" alt="">
-  </div>
-  <div>
-    <span class="eyebrow" data-hu>A telefonodon</span><span class="eyebrow" data-en>On your phone</span>
-    <h2 data-hu>Az egész beszélgetés, követhetően.</h2><h2 data-en>The whole conversation, easy to follow.</h2>
-    <p class="sub" data-hu>Olvasd be a QR-kódot – app nélkül, böngészőben fut iPhone-on és Androidon is.</p>
-    <p class="sub" data-en>Scan the QR code – runs in the browser on iPhone and Android, no app needed.</p>
-    <ul class="checks">
-      <li data-hu><b>Minden beszélőnek saját színe</b>, a legújabb sor nagy</li><li data-en><b>A colour per speaker</b>, the newest line large</li>
-      <li data-hu><b>Játékbeli telefon</b>: üzenetek, posztok, válaszgombok fordítása</li><li data-en><b>In-game phone</b>: messages, posts and reply buttons translated</li>
-      <li data-hu><b>Felolvasás</b> kérésre</li><li data-en><b>Read aloud</b> on request</li>
-    </ul>
-  </div>
-</div></section>
-
-<section id="features" class="alt"><div class="wrap">
-  <div class="center">
-    <span class="eyebrow" data-hu>Funkciók</span><span class="eyebrow" data-en>Features</span>
-    <h2 data-hu>Profi eszköz, egyperces beállítás.</h2><h2 data-en>A pro tool, set up in a minute.</h2>
-    <p class="sub" data-hu>Egy háromlépéses varázsló végigvezet; a haladó beállítások el vannak rejtve, amíg nem kellenek.</p>
-    <p class="sub" data-en>A three-step wizard guides you; advanced settings stay hidden until you need them.</p>
-  </div>
-  <div class="grid">
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></div>
-      <h3 data-hu>Felirat a játék képén</h3><h3 data-en>Subtitles on the game</h3>
-      <p data-hu>Az eredeti doboz helyén – vagy saját dobozban, ha a játékban nincs háttér.</p><p data-en>In place of the original box – or in its own box when the game has no background.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div>
-      <h3 data-hu>Mozgásálló olvasás <span class="tag">új</span></h3><h3 data-en>Motion-proof reading <span class="tag">new</span></h3>
-      <p data-hu>Autózás, gyors kameramozgás, részeg-effekt: a mozgó háttér kiszűrve, a GPS-szöveg kihagyva.</p><p data-en>Driving, fast camera, drunk effect: the moving background is filtered out, GPS text skipped.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 12h3l2-4 3 8 2-4h6"/><circle cx="12" cy="12" r="10"/></svg></div>
-      <h3 data-hu>Simított mozgás 30 → 60 <span class="tag">új</span></h3><h3 data-en>Smooth motion 30 → 60 <span class="tag">new</span></h3>
-      <p data-hu>Capture cardos Játéknézet a videokártyán: AMD Fluid Motion Frames, NVIDIA Smooth Motion vagy Lossless Scaling.</p><p data-en>Capture card Game View on the GPU: AMD Fluid Motion Frames, NVIDIA Smooth Motion or Lossless Scaling.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 7h6M9 11h4"/></svg></div>
-      <h3 data-hu>Játékbeli telefon</h3><h3 data-en>In-game phone</h3>
-      <p data-hu>Chatek, posztok, hírek és válaszgombok fordítása.</p><p data-en>Chats, posts, news and reply buttons translated.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3"/></svg></div>
-      <h3 data-hu>Capture card</h3><h3 data-en>Capture cards</h3>
-      <p data-hu>Bármilyen USB-s HDMI-rögzítő, Játéknézet hanggal, ha nincs passthrough.</p><p data-en>Any USB HDMI capture device, Game View with sound when there is no passthrough.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
-      <h3 data-hu>Fordítási zónák</h3><h3 data-en>Translation zones</h3>
-      <p data-hu>Súgódobozok, feladatok, értesítések – külön területként.</p><p data-en>Help boxes, objectives, notifications – each its own area.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></div>
-      <h3 data-hu>Offline és ingyenes</h3><h3 data-en>Offline and free</h3>
-      <p data-hu>Letölthető pontos fordítómodell, minden a gépeden. DeepL, Google, LibreTranslate opcionális.</p><p data-en>Downloadable precise translation model, everything on your PC. DeepL, Google, LibreTranslate optional.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
-      <h3 data-hu>Feliratnapló és javítás</h3><h3 data-en>Subtitle history and fixes</h3>
-      <p data-hu>Olvasd vissza, amit lekéstél; a rossz fordítást kijavíthatod – legközelebb már úgy jelenik meg.</p><p data-en>Read back what you missed; fix a wrong translation – next time it shows your way.</p></div>
-    <div class="card reveal"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 21V4m0 0h12l-2 4 2 4H4"/></svg></div>
-      <h3 data-hu>Egykattintásos hibajelentés</h3><h3 data-en>One-click bug reports</h3>
-      <p data-hu>Ha valami nem jó, a zászló gombbal elküldöd – kulcsok és jelszavak nélkül –, és gyorsan javítjuk.</p><p data-en>If something's off, send it with the flag button – without keys or passwords – and it gets fixed fast.</p></div>
-  </div>
-</div></section>
-
-<section id="setups"><div class="wrap">
-  <span class="eyebrow" data-hu>Felállások</span><span class="eyebrow" data-en>Setups</span>
-  <h2 data-hu>Ahogy neked kényelmes.</h2><h2 data-en>Whatever suits you.</h2>
-  <p class="sub" data-hu>Három bevált felállás – a programban részletes súgó vezet végig mindegyiken.</p>
-  <p class="sub" data-en>Three proven setups – the built-in help walks you through each.</p>
-  <div class="setups">
-    <div class="card reveal"><h3 data-hu>Gép + telefon</h3><h3 data-en>PC + phone</h3>
-      <p data-hu>A gépen játszol Remote Playjel, a magyar felirat a játék képén van, és közben a telefonon is követheted.</p>
-      <p data-en>Play on the PC with Remote Play: the translation is on the game picture, and you can follow it on your phone too.</p></div>
-    <div class="card reveal"><h3 data-hu>Gépen, Remote Playjel</h3><h3 data-en>On the PC with Remote Play</h3>
-      <p data-hu>A Remote Play ablakban a felirat helyén a fordítás jelenik meg. Nem kell extra hardver.</p>
-      <p data-en>The translation replaces the subtitle inside the Remote Play window. No extra hardware needed.</p></div>
-    <div class="card reveal"><h3 data-hu>Capture carddal</h3><h3 data-en>With a capture card</h3>
-      <p data-hu>HDMI-rögzítővel bármilyen konzolhoz. Passthrough nélküli kártyánál a beépített Játéknézetben játszol – hanggal, 60 fps-re simítva.</p>
-      <p data-en>An HDMI capture device works with any console. Without passthrough you play in the built-in Game View – with sound, smoothed to 60 fps.</p></div>
-  </div>
-  <div style="height:48px"></div>
-  <div class="tut reveal" id="tutorial"><video src="img/tutorial.mp4" poster="img/tutorial-poster.jpg" controls playsinline preload="none"></video></div>
-</div></section>
-
-<section id="faq" class="alt"><div class="wrap">
-  <span class="eyebrow" data-hu>GYIK</span><span class="eyebrow" data-en>FAQ</span>
-  <h2 data-hu>Gyakori kérdések</h2><h2 data-en>Frequently asked questions</h2>
-  <div class="faqtop">
-    <div class="card"><h3 data-hu>Tévén</h3><h3 data-en>On a TV</h3>
-      <p data-hu>Közvetlenül a konzol tévéképén nem tud feliratot cserélni – a SubBridge a gépen fut. Kösd a gépet a tévére, és ott játszd a Remote Playt; vagy capture card + HDMI-elosztó, ilyenkor a fordítás a telefonon jelenik meg (ez utóbbi még nincs tesztelve).</p>
-      <p data-en>It can't replace subtitles on the console's own TV picture – SubBridge runs on the PC. Connect the PC to the TV and play Remote Play there; or capture card + HDMI splitter, with the translation on your phone (not tested yet).</p></div>
-    <div class="card"><h3 data-hu>Xbox, Switch, PC</h3><h3 data-en>Xbox, Switch, PC</h3>
-      <p data-hu>Bármilyen ablakot vagy képernyőt tud olvasni: Xbox app, Greenlight, Cloud Gaming böngészőben, Switch capture carddal, PC-s játékok, Steam Link, Moonlight. Kipróbálva: PS5 + chiaki-ng.</p>
-      <p data-en>It reads any window or screen: Xbox app, Greenlight, Cloud Gaming in a browser, Switch via a capture card, PC games, Steam Link, Moonlight. Tested: PS5 + chiaki-ng.</p></div>
-    <div class="card"><h3 data-hu>Melyik játékkal?</h3><h3 data-en>Which games?</h3>
-      <p data-hu>Ami feliratot mutat. Dobozos (Solid) feliratnál azonnal, pontosan letakar; háttér nélküli feliratot is felismer, és saját dobozba írja a fordítást. Bármilyen betűméret jó.</p>
-      <p data-en>Any game that shows subtitles. Boxed (Solid) subtitles are covered instantly and exactly; box-less ones are recognised too, with the translation in its own box. Any text size works.</p></div>
-  </div>
-  <div class="qa">
-    <details open><summary><span data-hu>Hogyan állítsam be a feliratot a játékban?</span><span data-en>How should I set up subtitles in the game?</span></summary>
-      <div data-hu><p>Beállítások › UI › Subtitles &amp; Captions (vagy hasonló menü):</p><ul class="set"><li><b>Subtitles (Felirat):</b> On – a legteljesebb fokozat (3/3): így a járókelők és NPC-k beszéde is feliratot kap, és azt is fordítja</li><li><b>Closed Captions:</b> Off</li><li><b>Size (Méret):</b> bármelyik – a Medium a legkényelmesebb</li><li><b>Speaker Names (Beszélőnevek):</b> On</li><li><b>Background (Háttér):</b> Solid ajánlott – az egyszínű dobozt azonnal, pontosan letakarja. Háttér nélkül (None) is működik: ilyenkor a SubBridge rajzol saját dobozt a fordításnak.</li></ul></div><div data-en><p>Settings › UI › Subtitles &amp; Captions (or similar):</p><ul class="set"><li><b>Subtitles:</b> On – the fullest level (3/3): ambient and NPC speech get subtitles too, so they are translated as well</li><li><b>Closed Captions:</b> Off</li><li><b>Size:</b> any – Medium is the most comfortable</li><li><b>Speaker Names:</b> On</li><li><b>Background:</b> Solid recommended – the plain box is covered instantly and exactly. No background (None) works too: SubBridge then draws its own box for the translation.</li></ul></div></details>
-    <details><summary><span data-hu>Ingyenes?</span><span data-en>Is it free?</span></summary>
-      <p data-hu>Igen, teljesen. Nyílt forráskódú (MIT), nincs reklám, nincs előfizetés, nincs fiók. Ha a DeepL fordítót szeretnéd, ahhoz saját (ingyenes DeepL Free) kulcs kell – de alapból offline, ingyen fordít.</p><p data-en>Yes. Open source (MIT), no ads, no subscription, no account. DeepL is optional with your own (free DeepL Free) key – by default it translates offline for free.</p></details>
-    <details><summary><span data-hu>Kitilthatnak miatta? Biztonságos?</span><span data-en>Can I get banned? Is it safe?</span></summary>
-      <p data-hu>A SubBridge csak a gépeden lévő képet olvassa – nem nyúl a konzolhoz, a játékhoz vagy a Remote Play programhoz, semmit nem módosít és nem küld a játéknak. Olyan, mintha valaki a képernyőt nézné.</p><p data-en>SubBridge only reads the picture on your PC – it doesn't touch the console, the game or the Remote Play app, and sends nothing to the game. It's like someone watching your screen.</p></details>
-    <details><summary><span data-hu>Kell hozzá PS Plus?</span><span data-en>Do I need PS Plus?</span></summary>
-      <p data-hu>Nem. A PS5 Remote Play PS Plus nélkül is működik, a SubBridge-nek pedig semmilyen előfizetés nem kell.</p><p data-en>No. PS5 Remote Play works without PS Plus, and SubBridge needs no subscription.</p></details>
-    <details><summary><span data-hu>Kell internet?</span><span data-en>Does it need internet?</span></summary>
-      <p data-hu>Nem. Az alap fordító a gépeden fut, offline. Internet csak akkor kell, ha DeepL-t vagy más online fordítót választasz, illetve a hírekhez és az új szlengszótárakhoz.</p><p data-en>No. The default translator runs offline on your PC. Internet is only used if you pick DeepL or another online service, and for news and slang updates.</p></details>
-    <details><summary><span data-hu>Milyen gyors?</span><span data-en>How fast is it?</span></summary>
-      <p data-hu>A felirat megjelenésétől jellemzően 0,2–0,4 másodperc. Dobozos feliratnál az angolt azonnal letakarja, a magyar szöveg rögtön utána jelenik meg. Doboz nélküli feliratnál a SubBridge kétszer is elolvassa a sort, mielőtt kiírja – így nem villognak félkész mondatok.</p><p data-en>Typically 0.2–0.4 s from the subtitle appearing. With boxed subtitles the original is covered at once and the translation follows right after. With box-less subtitles SubBridge reads the line twice before showing it – so half-finished sentences never flicker.</p></details>
-    <details><summary><span data-hu>Milyen gép kell?</span><span data-en>What PC do I need?</span></summary>
-      <p data-hu>Nem kell erős gép: a szövegfelismerés és a fordítás a processzoron fut, videokártya nem kell hozzá. Ha a Remote Play rendesen megy a gépeden, a SubBridge is.</p><p data-en>Nothing special: OCR and translation run on the CPU, no graphics card needed. If Remote Play runs well on your PC, SubBridge will too.</p></details>
-    <details><summary><span data-hu>Windows, Linux, Mac, iPhone?</span><span data-en>Windows, Linux, Mac, iPhone?</span></summary>
-      <p data-hu>Windowsra (10/11) és Linuxra (Mint/Ubuntu/Debian) is letölthető. Mac-re egyelőre nincs. A telefonon nem kell app: iPhone-on és Androidon is böngészőben fut a QR-kód beolvasása után (Androidra van külön app is).</p><p data-en>Available for Windows (10/11) and Linux (Mint/Ubuntu/Debian). No Mac version yet. Phones need no app: iPhone and Android run it in the browser after scanning the QR code (there's also an Android app).</p></details>
-    <details><summary><span data-hu>Melyik Remote Play programmal megy?</span><span data-en>Which Remote Play app?</span></summary>
-      <p data-hu>Linuxon a chiaki-ng-vel teszteltük (PS5). Windowson a hivatalos PS Remote Play alkalmazással és a chiaki-ng-vel is várhatóan megy, mert a SubBridge bármelyik ablakot tudja olvasni. PS4-gyel elvben ugyanígy.</p><p data-en>Tested with chiaki-ng on Linux (PS5). On Windows the official PS Remote Play app and chiaki-ng should work too, since SubBridge can read any window. PS4 should work the same way.</p></details>
-    <details><summary><span data-hu>Autózás, gyors mozgás, részeg-effekt közben is megy?</span><span data-en>Does it work while driving, with fast camera moves or a drunk effect?</span></summary>
-      <p data-hu>Igen. A felirat ilyenkor is egy helyben áll, csak mögötte mozog a kép – a SubBridge az egymás utáni képkockákat összeveti, és csak azt tekinti betűnek, ami nem mozdult. A GPS-navigáció szövegét („Turn Left 100 ft”) felismeri és kihagyja.</p><p data-en>Yes. The subtitle stays still while the picture moves behind it – SubBridge compares consecutive frames and only treats what didn't move as text. GPS directions ("Turn Left 100 ft") are recognised and skipped.</p></details>
-    <details><summary><span data-hu>Mi az a simított mozgás (30 → 60 fps)?</span><span data-en>What is smooth motion (30 → 60 fps)?</span></summary>
-      <p data-hu>A capture cardos Játéknézet a videokártyán fut, és a köztes képeket a kártyád saját technológiája számolja: <b>Windowson AMD-n a Fluid Motion Frames</b>, <b>NVIDIA RTX 40/50-en a Smooth Motion</b>; Linuxon kísérletileg a Lossless Scaling (lsfg-vk). A SubBridge kiszűri a kártya dupla képkockáit, így a 30 fps-es játékból valódi 60 fps lesz. A frame gen kb. egy képkockányi késést ad – akciónál kapcsold ki. Olcsó kártyáknál a „Legkisebb késés” mód a 60 fps-es módot választja, és kis pufferrel játssza a hangot. Beállítás: Beállítások › Capture card.</p><p data-en>The capture card Game View runs on the graphics card and the in-between frames come from your card's own technology: <b>Fluid Motion Frames on AMD</b> and <b>Smooth Motion on NVIDIA RTX 40/50</b> under Windows; experimentally Lossless Scaling (lsfg-vk) on Linux. SubBridge drops the card's repeated frames, so a 30 fps game becomes real 60 fps. Frame generation adds about one frame of delay – switch it off for action. On cheap cards "Lowest latency" picks the 60 fps mode and plays sound with small buffers. Settings › Capture card.</p></details>
-    <details><summary><span data-hu>A beszédet is fordítja?</span><span data-en>Does it translate speech?</span></summary>
-      <p data-hu>Nem, a képen megjelenő feliratot fordítja. Kapcsold be a játékban a feliratot (és ha van, a feliratdobozt/hátteret – azzal megy a legjobban).</p><p data-en>No, it translates the subtitles shown on screen. Turn subtitles on in the game (with a background box if available – that works best).</p></details>
-    <details><summary><span data-hu>Csak magyarra fordít?</span><span data-en>Only into Hungarian?</span></summary>
-      <p data-hu>Alapból angolról magyarra, ehhez van szlengszótár és tegeződés-javítás is. A beállításokban más célnyelv is választható.</p><p data-en>By default English to Hungarian, with slang dictionaries and Hungarian-specific fixes. Other target languages can be set in the settings.</p></details>
-    <details><summary><span data-hu>Rossz egy fordítás – mit tehetek?</span><span data-en>A translation is wrong – what can I do?</span></summary>
-      <p data-hu>A szószedetben megadhatod a neveket és kifejezéseket, ahogy szeretnéd. DeepL-lel még természetesebb a szöveg. A szlengszótár frissítés nélkül, automatikusan bővül.</p><p data-en>Add names and phrases to the glossary. DeepL gives more natural text. The slang dictionary updates automatically without an app update.</p></details>
-    <details><summary><span data-hu>Windowson nem jelenik meg a magyar felirat a játékon</span><span data-en>On Windows the translation doesn't appear over the game</span></summary>
-      <p data-hu><b>Windowson a chiaki-ng-t F11-es teljes képernyőn kell használni.</b> Frissíts a legújabb verzióra – így nem kell a chiaki ablakába kattintani, a magyar felirat magától megjelenik, amíg a játék képe látszik. Ha más program takarja (pl. Alt+Tab után a böngésző), arra nem rajzol.</p>
-      <p data-en><b>On Windows, use chiaki-ng in F11 fullscreen.</b> Update to the latest version – then you don't need to click into the chiaki window: the translation shows as long as the game picture is visible. Nothing is drawn over other programs covering it.</p></details>
-    <details><summary><span data-hu>Ultrawide (21:9) monitorom van – jó így?</span><span data-en>I have an ultrawide (21:9) monitor – does it work?</span></summary>
-      <p data-hu>Igen. A konzol 16:9-es képet küld, ezt a chiaki-ng fekete sávokkal mutatja két oldalt – a SubBridge ezt magától felismeri. <b>Ne nyújtsd ki és ne nagyítsd rá a képet</b> (Stretch/Zoom), mert akkor a felirat is torzul, és pontatlanabbul olvassa.</p>
-      <p data-en>Yes. The console sends a 16:9 picture, chiaki-ng shows it with black bars at the sides – SubBridge detects this on its own. <b>Don't stretch or zoom the picture</b>, it distorts the subtitles and makes reading less accurate.</p></details>
-    <details><summary><span data-hu>Lehet még pontosabb a fordítás?</span><span data-en>Can translations be more accurate?</span></summary>
-      <p data-hu>Igen. A program jobb oldalán, a Fordító résznél kattints a <b>Pontos fordító letöltése</b> gombra (kb. 200 MB, egyszer kell). Ez egy sokkal jobb offline modell, ugyanúgy ingyenes, és minden a gépeden marad. Ha egy mondat így is rossz, a <b>Feliratnaplóban</b> dupla kattintással kijavíthatod – nálad onnantól így jelenik meg, és a javítás (ha engeded) nekem is megérkezik, hogy mindenkinél jobb legyen.</p>
-      <p data-en>Yes. In the Translator panel click <b>Get precise translator</b> (about 200 MB, once). It's a much better offline model, still free, everything stays on your PC. If a sentence is still wrong, double-click it in the <b>Subtitle history</b> to fix it – it shows your way from then on, and (if you allow it) the fix reaches the developer too.</p></details>
-    <details><summary><span data-hu>Angolul is szeretnék tanulni közben – lehet?</span><span data-en>Can I learn English while playing?</span></summary>
-      <p data-hu>Igen: kapcsold be a <b>Tanuló módot</b> (az Utolsó felirat kártya alján). Ekkor a játék képén a magyar fordítás alatt kicsiben az angol eredeti is látszik.</p>
-      <p data-en>Yes: turn on <b>Learning mode</b> (bottom of the Last subtitle card). The original then shows small under the translation on the game picture.</p></details>
-    <details><summary><span data-hu>Hol jelezhetek hibát?</span><span data-en>Where can I report a bug?</span></summary>
-      <p data-hu><b>A legegyszerűbb az appból:</b> felül a zászló gomb (Hibajelentés). Írd le pár szóban, mi a gond, és egy kattintással elküldi a fejlesztőnek a szükséges adatokat (kulcsok és jelszavak nélkül), hogy gyorsan javítható legyen. A program alatt egy pötty mutatja, látja-e a feliratot – ha nem, azt is kiírja, miért. GitHubon is jelezheted: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a>.</p><p data-en><b>Easiest from the app:</b> the flag button at the top (Bug report). Describe the problem in a few words and one click sends the developer what's needed (without keys or passwords). A dot under the preview shows whether the subtitle is seen – and if not, why. You can also use GitHub: <a href="https://github.com/rolandhrvth0/subbridge/issues">github.com/rolandhrvth0/subbridge/issues</a>.</p></details>
-  </div>
-
-</div></section>
-
-<section id="download"><div class="wrap">
-  <div class="center">
-    <span class="eyebrow" data-hu>Letöltés</span><span class="eyebrow" data-en>Download</span>
-    <h2 data-hu>Ingyenes. Most is, később is.</h2><h2 data-en>Free. Now and later.</h2>
-    <p class="sub" data-hu>Nyílt forrású (MIT). A telefonra nem kell app: olvasd be a QR-kódot. Ellenőrzőösszegek: <a href="dl/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
-    <p class="sub" data-en>Open source (MIT). Phones need no app: just scan the QR code. Checksums: <a href="dl/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
-  </div>
+<section id="download" style="background:#fff"><div class="wrap">
+  <h2 data-hu>Letöltés</h2><h2 data-en>Download</h2>
+  <p class="sub" data-hu>Ingyenes. A program magától frissül.</p>
+  <p class="sub" data-en>Free. The app updates itself.</p>
   <div class="dl">
-    <div class="card"><h3><svg viewBox="0 0 24 24"><path d="M3 5.5 10.5 4.5v7H3v-6Zm8.5-1.1L21 3v8.5h-9.5V4.4ZM3 12.5h7.5v7L3 18.5v-6Zm8.5 0H21V21l-9.5-1.4v-7.1Z"/></svg>Windows</h3><p class="soon" data-hu>Windows 10/11, telepítő · chiaki-ng: F11 teljes képernyő</p><p class="soon" data-en>Windows 10/11 installer · chiaki-ng: F11 fullscreen</p>
-      <a class="btn primary dl-link" data-file="windows" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
-    <div class="card"><h3><svg viewBox="0 0 24 24"><path d="M12 2c-2.2 0-3.5 1.9-3.5 4.6 0 1.4.4 2.4.3 3.4-.2 1.4-2.6 3.3-3.5 6-.4 1.3-.2 2.4.6 2.9.6.4 1.5.2 2.3.7.9.5 1.6 1.4 3.8 1.4s2.9-.9 3.8-1.4c.8-.5 1.7-.3 2.3-.7.8-.5 1-1.6.6-2.9-.9-2.7-3.3-4.6-3.5-6-.1-1 .3-2 .3-3.4C15.5 3.9 14.2 2 12 2Z"/></svg>Linux</h3><p class="soon" data-hu>Linux Mint, Ubuntu, Debian (.deb)</p><p class="soon" data-en>Linux Mint, Ubuntu, Debian (.deb)</p>
-      <a class="btn primary dl-link" data-file="linux" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
-    <div class="card"><h3><svg viewBox="0 0 24 24"><path d="M17.6 9.5 19.4 6.4a.4.4 0 0 0-.7-.4l-1.8 3.2a11 11 0 0 0-9.8 0L5.3 6a.4.4 0 0 0-.7.4l1.8 3.1A10.2 10.2 0 0 0 1 18h22a10.2 10.2 0 0 0-5.4-8.5ZM7 15.3a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm10 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>Android</h3><p class="soon" data-hu>Android 8+ (APK) – vagy app nélkül, böngészőből</p><p class="soon" data-en>Android 8+ (APK) – or no app, in the browser</p>
-      <a class="btn primary dl-link" data-file="android" href="#download"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
+    <div class="card" style="background:var(--bg)"><h3>Windows</h3><p class="soon" data-hu>Windows 10 és 11</p><p class="soon" data-en>Windows 10 and 11</p>
+      <a class="btn primary dl-link" data-file="windows"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
+    <div class="card" style="background:var(--bg)"><h3>Linux</h3><p class="soon" data-hu>Ubuntu, Linux Mint és mások</p><p class="soon" data-en>Ubuntu, Linux Mint and others</p>
+      <a class="btn primary dl-link" data-file="linux"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
+    <div class="card" style="background:var(--bg)"><h3>Android</h3><p class="soon" data-hu>Telefonos app (nem kötelező – böngészőben is megy)</p><p class="soon" data-en>Phone app (optional – works in the browser too)</p>
+      <a class="btn primary dl-link" data-file="android"><span data-hu>Letöltés</span><span data-en>Download</span></a></div>
   </div>
 </div></section>
 
-<section class="privacy"><div class="wrap row">
-  <div>
-    <span class="eyebrow" data-hu>Adatvédelem</span><span class="eyebrow" data-en>Privacy</span>
-    <h2 data-hu>Minden a gépeden marad.</h2><h2 data-en>Everything stays on your computer.</h2>
-    <p class="sub" data-hu>Nincs fiók, nincs felhő, nincs telemetria. A képernyőkép soha nem hagyja el a gépet; online fordító választásakor csak a felirat szövege megy a választott szolgáltatáshoz, a saját kulcsoddal.</p>
-    <p class="sub" data-en>No account, no cloud, no telemetry. Screen images never leave your PC; with an online translator only the subtitle text goes to that service, with your own key.</p>
+<section id="faq"><div class="wrap">
+  <h2 data-hu>Gyakori kérdések</h2><h2 data-en>Questions</h2>
+  <div class="faq" style="margin-top:40px">
+    <details><summary data-hu>Látom a magyar feliratot a tévén, a PS5 képén?</summary><summary data-en>Will I see the translation on the TV, on the PS5 picture?</summary>
+      <p data-hu>Nem. A SubBridge a számítógépen fut, ezért a gépen (a Remote Play ablakban vagy a capture card képén) és a telefonon mutatja a feliratot. Ha tévén szeretnéd, kösd a gépet a tévére.</p>
+      <p data-en>No. SubBridge runs on the computer, so it shows the translation there (in the Remote Play window or on the capture card picture) and on your phone. For the TV, connect the PC to it.</p></details>
+    <details><summary data-hu>Más játékkal is működik?</summary><summary data-en>Does it work with other games?</summary>
+      <p data-hu>A kész, előre lefordított párbeszédek egyelőre csak a GTA VI-hoz vannak. Más feliratos játékkal is elindul, de ott gépi fordítás megy, ami kevésbé pontos.</p>
+      <p data-en>The ready, pre-translated dialogue is for GTA VI only for now. Other games with subtitles work too, but with machine translation, which is less accurate.</p></details>
+    <details><summary data-hu>Mit kell beállítani a játékban?</summary><summary data-en>What do I set in the game?</summary>
+      <p data-hu>Kapcsold be az angol feliratot. A legjobb a háttérrel („Solid”) megjelenő felirat, de háttér nélkül is felismeri. A program a pontos lépéseket is megmutatja.</p>
+      <p data-en>Turn on English subtitles. Subtitles with a background ("Solid") work best, but it recognises them without one too. The app shows the exact steps.</p></details>
+    <details><summary data-hu>Kell hozzá internet vagy fiók?</summary><summary data-en>Do I need internet or an account?</summary>
+      <p data-hu>Fiók nem kell. Internet csak az első letöltéskor és a frissítésekhez kell, a fordítás offline is működik.</p>
+      <p data-en>No account. Internet is only needed for the first download and updates – translation works offline.</p></details>
+    <details><summary data-hu>Melyik capture card jó?</summary><summary data-en>Which capture card works?</summary>
+      <p data-hu>Bármelyik USB-s HDMI-rögzítő, amit a gép webkameraként lát. Kipróbálva: j5create JVA11 (1440p 60 fps). A PS5-ön kapcsold ki a HDR-t és a HDCP-t.</p>
+      <p data-en>Any USB HDMI capture device the PC sees as a webcam. Tested: j5create JVA11 (1440p 60 fps). Turn off HDR and HDCP on the PS5.</p></details>
+    <details><summary data-hu>Biztonságos? Mit küld el?</summary><summary data-en>Is it safe? What does it send?</summary>
+      <p data-hu>A kép a gépeden marad. Csak akkor megy ki adat, ha online fordítót választasz (pl. DeepL), vagy ha hibajelentést küldesz.</p>
+      <p data-en>The picture stays on your PC. Data only leaves it if you choose an online translator (e.g. DeepL) or send a bug report.</p></details>
   </div>
-  <ul class="checks">
-    <li data-hu><b>Offline fordító</b> – internet nélkül is megy</li><li data-en><b>Offline translator</b> – works without internet</li>
-    <li data-hu><b>Nyílt forráskód</b> – bárki megnézheti</li><li data-en><b>Open source</b> – anyone can check</li>
-    <li data-hu><b>Hibajelentés csak kérésre</b>, kulcsok nélkül</li><li data-en><b>Bug reports only when you send one</b>, without keys</li>
-  </ul>
 </div></section>
 
 <footer><div class="wrap">
-  <span>SubBridge 1.2 · <span data-hu>Készítette</span><span data-en>Made by</span> Roland Horváth · <a href="https://rolandhrvth.hu">rolandhrvth.hu</a></span>
-  <span data-hu>Független, nem hivatalos program; nem áll kapcsolatban a Rockstar Games-szel és a Take-Two Interactive-val, és nem is támogatják. A „Grand Theft Auto” és a „GTA” a Take-Two Interactive védjegyei, itt csak a játék megnevezésére szolgálnak.</span>
-  <span data-en>An independent, unofficial program; not affiliated with or endorsed by Rockstar Games or Take-Two Interactive. "Grand Theft Auto" and "GTA" are trademarks of Take-Two Interactive, used here only to name the game.</span>
+  <span data-hu>A SubBridge független, nem hivatalos program, nincs kapcsolatban a Rockstar Games-szel vagy a Take-Two-val. A „GTA VI” név csak azt jelzi, melyik játékhoz készült. Fotó: Pexels.</span>
+  <span data-en>SubBridge is an independent, unofficial app, not affiliated with Rockstar Games or Take-Two. "GTA VI" only names the game it is made for. Photo: Pexels.</span>
   <span class="r"><a href="https://github.com/rolandhrvth0/subbridge">GitHub</a> · MIT</span>
 </div></footer>
 
@@ -515,26 +285,17 @@ html[lang="en"] [data-hu] { display: none !important; }
     }
     a.href = d.url; a.setAttribute("download", "");
     const n = document.createElement("p"); n.className = "soon"; n.textContent = d.note;
-    a.before(n);
+    a.after(n);
     if (d.alt) {
       const x = document.createElement("a"); x.href = d.alt[0]; x.textContent = d.alt[1]; x.className = "soon"; x.setAttribute("download", "");
-      a.after(x);
+      n.after(x);
     }
-  });
-  const ba = document.getElementById("ba"), range = ba.querySelector("input");
-  range.addEventListener("input", () => {
-    ba.querySelector(".after").style.clipPath = `inset(0 0 0 ${range.value}%)`;
-    ba.querySelector(".bar").style.left = range.value + "%";
   });
   const btn = document.getElementById("lang");
   const set = l => { document.documentElement.lang = l; btn.textContent = l === "hu" ? "EN" : "HU"; try { localStorage.setItem("sb.lang", l); } catch {} };
   btn.onclick = () => set(document.documentElement.lang === "hu" ? "en" : "hu");
   let saved = null; try { saved = localStorage.getItem("sb.lang"); } catch {}
   set(saved || ((navigator.language || "hu").startsWith("hu") ? "hu" : "en"));
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
-    document.querySelectorAll(".reveal").forEach(el => io.observe(el));
-  } else document.querySelectorAll(".reveal").forEach(el => el.classList.add("in"));
 </script>
 </body>
 </html>
