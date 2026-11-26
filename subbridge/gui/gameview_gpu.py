@@ -29,13 +29,8 @@ def prepare_graphics(mode: str, low_latency: bool = True, multiplier: int = 2) -
     mode = fi.resolve(mode)
     if not _API_SET:
         _API_SET = True
-        if low_latency and mode != "lsfg":
-            # do not wait for the screen refresh before showing a new picture (Vulkan: mailbox where the
-            # driver has it – no tearing; lsfg-vk paces its own frames, so it keeps the default)
-            from PySide6.QtGui import QSurfaceFormat
-            f = QSurfaceFormat.defaultFormat()
-            f.setSwapInterval(0)
-            QSurfaceFormat.setDefaultFormat(f)
+        # vsync stays on (1.3.0): presenting without it looked uneven next to a video player (the frame shown
+        # whenever it arrived, not on the screen's refresh); at 60–180 Hz the wait is only a few ms
         if sys.platform.startswith("linux"):
             # MangoHud (often enabled for every Vulkan program via MANGOHUD=1) crashes when a Qt Quick Vulkan
             # window is destroyed – that would take SubBridge down when the Game View closes
