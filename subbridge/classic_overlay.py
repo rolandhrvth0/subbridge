@@ -108,6 +108,15 @@ def _sig_diff(a, b) -> float:
     return float(np.abs(a - b).mean())
 
 
+def _shares_line(a, b) -> bool:
+    """Do two entries show (nearly) the same subtitle line?"""
+    for _s1, t1 in a.lines:
+        for _s2, t2 in b.lines:
+            if len(t1) >= 8 and len(t2) >= 8 and similarity(t1, t2) >= 0.85:
+                return True
+    return False
+
+
 @dataclass
 class Entry:
     rect: tuple
@@ -423,9 +432,11 @@ class ClassicOverlay:
         keep = []
         active_entries = [x for x in self.entries if id(x) in used]
         for e in self.entries:
-            # an old translation must not cover another box that is on screen now
-            if id(e) not in used and not e.textless and any(min(e.rect[3], u.rect[3]) - max(e.rect[1], u.rect[1]) > 0
-                                                            for u in active_entries):
+            # an old translation must not cover another box that is on screen now, nor repeat a line that
+            # a box on screen now shows (two speakers: the game re-stacks its lines – no line twice)
+            if id(e) not in used and not e.textless and (
+                    any(min(e.rect[3], u.rect[3]) - max(e.rect[1], u.rect[1]) > 0 for u in active_entries)
+                    or any(_shares_line(e, u) for u in active_entries)):
                 e.alive = False
                 changed = True
                 continue
@@ -488,7 +499,9 @@ class ClassicOverlay:
                 if similarity(text, x.en) >= 0.6 or (len(nt) >= 6 and (nt in nx or nx in nt)):
                     e = x
                     break
-            confirmed = any(similarity(text, q) >= 0.85 for q, _b in pend)
+            same = [t0 for q, _b, t0 in pend if similarity(text, q) >= 0.85]
+            confirmed = bool(same)
+            first_t = min(same) if same else now
             if e is not None:
                 seen.add(id(e))
                 e.last_seen = now
@@ -506,14 +519,15 @@ class ClassicOverlay:
                     e.requested = e.gen
                     self.pool.submit(self._translate_entry, e, e.gen, lines, list(self.ctx[-3:]))
                 elif len(nt) > len(nx) + 6:
-                    self._txt_pending.append((text, box))
+                    self._txt_pending.append((text, box, first_t))
                 continue
             if not confirmed:
-                self._txt_pending.append((text, box))
+                self._txt_pending.append((text, box, first_t))
                 continue
-            # a typing-in fragment ("Itt van a"): game subtitles end with punctuation
-            if not re.search(r"[.!?…,\"')\]]$", text) and len(text.split()) < 7:
-                self._txt_pending.append((text, box))
+            # a typing-in fragment ("Itt van a"): game subtitles end with punctuation – but a line that has
+            # stayed the same for 0.6 s is finished even without it ("Get in the car")
+            if not re.search(r"[.!?…,\"')\]]$", text) and len(text.split()) < 7 and now - first_t < 0.6:
+                self._txt_pending.append((text, box, first_t))
                 continue
             # another reading at the place of a subtitle that only just appeared: a misread of it
             if any(x.textless and x.alive and now - (x.shown_at or now) < 1.2
@@ -538,7 +552,8 @@ class ClassicOverlay:
         keep = []
         for e in self.entries:
             newer = any(o is not e and o.textless and o.hu and o.shown_at > e.shown_at
-                        and min(e.rect[3], o.rect[3]) - max(e.rect[1], o.rect[1]) > 0 for o in self.entries)
+                        and min(e.rect[3], o.rect[3]) - max(e.rect[1], o.rect[1]) > 0 for o in self.entries) \
+                or (id(e) not in seen and any(id(o) in seen and o is not e and _shares_line(e, o) for o in self.entries))
             hold, min_show = (HOLD_TXT, MIN_SHOW_TXT) if e.textless else (HOLD, MIN_SHOW)
             if not newer and (id(e) in seen or now - e.last_seen <= hold or now - e.shown_at <= min_show):
                 keep.append(e)
@@ -548,7 +563,7 @@ class ClassicOverlay:
         self.entries = keep
         if _DEBUG_TXT:
             log.warning("txt entries=%s pend=%s", [(x.en[:30], bool(x.hu), x.textless, x.alive) for x in self.entries],
-                        [q[:30] for q, _b in self._txt_pending])
+                        [q[:30] for q, _b, _t in self._txt_pending])
         if changed:
             self._emit()
 
@@ -711,13 +726,21 @@ class ClassicOverlay:
 
     # ------------------------------------------------------------------ output
     def _steady_px(self, px: int) -> int:
-        """The game uses one subtitle size: a box measured badly (cut off, two lines read as one) must not
-        give giant or tiny text. Keep within ±20 % of the recent median."""
+        """The game uses ONE subtitle size: once a few boxes were measured, every subtitle gets that size
+        (the median), so the text never jumps between big and small. Only when the measurements keep
+        disagreeing (another resolution / zoom) does the size follow them."""
         hist = self.px_hist
         if len(hist) >= 3:
             med = float(np.median(hist))
-            px = int(min(max(px, med * 0.8), med * 1.2))
-        self.px_hist = (hist + [px])[-12:]
+            if abs(px - med) <= med * 0.3:
+                self._px_off = 0
+                self.px_hist = (hist + [px])[-15:]
+                return int(round(med))
+            self._px_off = getattr(self, "_px_off", 0) + 1
+            if self._px_off < 6:                     # a bad measurement: keep the size
+                return int(round(med))
+            self.px_hist, self._px_off = [], 0       # six in a row: the size really changed
+        self.px_hist = (self.px_hist + [px])[-15:]
         return px
 
     @staticmethod
@@ -739,7 +762,7 @@ class ClassicOverlay:
             x0, y0, x1, y1 = e.rect
             out.append({"slot": e.slot, "rect": (gx + x0, gy + y0, gx + x1, gy + y1),
                         "bg": tuple(int(v) for v in self.color) if self.color is not None else (24, 24, 30),
-                        "name": e.name_rgb, "px": e.px or self._px(y1 - y0, one),
+                        "name": e.name_rgb, "px": e.px or self._steady_px(self._px(y1 - y0, one)),
                         "lines": [(sp, t) for sp, t in e.hu] or [(None, "")],
                         "en": [t for _sp, t in e.lines] if learn and e.hu else [],
                         # the game wraps long subtitles: about half the picture width at most

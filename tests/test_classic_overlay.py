@@ -216,3 +216,35 @@ def test_health_states(overlay):
     assert ov.health() == "reading"
     ov._t["cover"] = now
     assert ov.health() == "ok"
+
+
+def test_font_size_is_one_size(overlay):
+    ov, _out, _mp = overlay
+    for px in (30, 33, 29, 31):
+        ov._steady_px(px)
+    sizes = {ov._steady_px(px) for px in (28, 34, 30, 36, 27)}
+    assert len(sizes) <= 2                        # the same size for every subtitle (median may move by 1)
+
+
+def test_size_follows_a_real_change(overlay):
+    ov, _out, _mp = overlay
+    for px in (30, 30, 30, 30):
+        ov._steady_px(px)
+    for _ in range(6):
+        last = ov._steady_px(60)
+    assert last == 60                             # another resolution: six measurements in a row win
+
+
+def test_two_speakers_restacked_no_line_twice(overlay):
+    """The game shows 'Guard: … / Rosebud: …' in one box, then only Rosebud's line in a box lower down:
+    the held old box must not keep showing Rosebud's line above the new one."""
+    ov, out, mp = overlay
+    two = [("Security Guard", "I'm talking! You didn't even ask me anything!"),
+           ("Rosebud", "It's okay. It will all be over soon.")]
+    _frame(ov, mp, [(300, 60, 700, 120)], two)
+    ov.entries[0].hu = [("Biztonsági őr", "Beszélek!"), ("Rosebud", "Semmi baj.")]
+    _frame(ov, mp, [(350, 130, 650, 160)], [two[1]])          # only Rosebud, in a new place
+    shown = [b for b in out[-1] if any(t for _s, t in b["lines"])] if out[-1] else []
+    texts = [t for b in out[-1] for _s, t in b["lines"]]
+    assert len(ov.entries) == 1, [x.lines for x in ov.entries]
+    assert "Semmi baj." not in texts or len(shown) <= 1
