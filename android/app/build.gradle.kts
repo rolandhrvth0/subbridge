@@ -11,8 +11,8 @@ android {
         applicationId = "hu.rolandhrvth.subbridge"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.3.3"
+        versionCode = 4
+        versionName = "1.3.4"
     }
     signingConfigs {
         // CI passes a real keystore through env vars; local builds fall back to the debug key
