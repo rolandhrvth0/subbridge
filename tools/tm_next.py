@@ -50,6 +50,29 @@ def translated() -> dict[str, str]:
     return out
 
 
+def with_sentences(done: dict[str, str]) -> dict[str, str]:
+    """The pack plus a key for each sentence of a translated multi-sentence line (live reads often hold only one
+    of them, or one glued to another line); a real translated line always wins over such a part."""
+    from subbridge.translate.memory import sentence_keys
+    en = {}
+    keep = json.loads((TM / "keep.json").read_text())
+    for e in keep:
+        k = tm_key(e["en"])
+        if k:
+            en.setdefault(k, e["en"])
+    for f in glob.glob(str(TM / "batchk" / "*.tsv")):
+        for ln in open(f, encoding="utf-8"):
+            if "\t" in ln:
+                k, t = ln.rstrip("\n").split("\t", 1)
+                en.setdefault(k, t)
+    out = dict(done)
+    for k, hu in done.items():
+        if k in en:
+            for sk, sh in sentence_keys(en[k], hu).items():
+                out.setdefault(sk, sh)
+    return out
+
+
 def skipped() -> set[str]:
     out = set()
     for f in glob.glob(str(TM / "huk" / "*.tsv")) + glob.glob(str(TM / "batchk" / "*.tsv")):
@@ -126,7 +149,7 @@ def main():
                 "lang": "hu",
                 "about": "Előre lefordított GTA VI párbeszédsorok (SubBridge fordítási memória). Kulcs: az angol sor OCR-tűrő hash-e, "
                          "a játék szövegét nem tartalmazza.",
-                "lines": dict(sorted(done.items()))}
+                "lines": dict(sorted(with_sentences(done).items()))}
         (ROOT / "subbridge/assets/packs/lines-hu.json").write_text(
             json.dumps(pack, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         print("pack v%d: %d lines" % (pack["version"], len(done)))

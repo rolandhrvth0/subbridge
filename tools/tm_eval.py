@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "tools"))
 from tm_build import build  # noqa: E402
-from subbridge.translate.memory import tm_key  # noqa: E402
+from subbridge.translate.memory import lookup, tm_key  # noqa: E402
 
 ap = argparse.ArgumentParser()
 ap.add_argument("src")
@@ -27,10 +27,12 @@ if a.only_v12:
             if "\t" in ln:
                 keys.add(tm_key(keep[int(ln.split("\t", 1)[0])]["en"]))
 else:
-    keys = set(json.loads((ROOT / "subbridge/assets/packs/lines-hu.json").read_text())["lines"])
+    keys = json.loads((ROOT / "subbridge/assets/packs/lines-hu.json").read_text())["lines"]
 subs = [e for e in build([a.src]) if e["n"] >= 2]
-hit = sum(e["key"] in keys for e in subs)
+table = keys if isinstance(keys, dict) else {k: "x" for k in keys}
+ok = [e["key"] in table or lookup(e["en"], table) is not None for e in subs]
+hit = sum(ok)
 reads = sum(e["n"] for e in subs)
-rhit = sum(e["n"] for e in subs if e["key"] in keys)
+rhit = sum(e["n"] for e, o in zip(subs, ok) if o)
 print(f"subtitles {len(subs)}  covered {hit} ({hit / max(1, len(subs)) * 100:.1f}%)  "
       f"weighted by screen time {rhit / max(1, reads) * 100:.1f}%")
