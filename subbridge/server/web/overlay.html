@@ -9,7 +9,7 @@
   @font-face { font-family: "Inter"; src: url("/static/fonts/inter-latin.woff2") format("woff2"); font-weight: 100 900; }
   :root { --size: 44px; --bg: rgba(10, 10, 14, .62); --pad: .28em .6em; --gap: .3em; --bottom: 7vh; }
   html, body { margin: 0; height: 100%; background: transparent !important; overflow: hidden; }
-  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; user-select: none; }
   #stack { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center;
            gap: var(--gap); padding: 0 6vw; }
   body.bottom #stack { bottom: var(--bottom); }
@@ -25,15 +25,27 @@
   .orig { display: block; font-size: .5em; font-weight: 500; opacity: .72; margin-top: .15em; }
   body.noorig .orig { display: none; }
   body.nobg .line { background: none; text-shadow: 0 0 .12em #000, 0 0 .3em #000, 0 .05em .1em #000; }
+  /* "in place": the translation covers the original subtitle box, like SubBridge's own overlay */
+  #boxes { position: absolute; inset: 0; }
+  .box { position: absolute; transform: translateX(-50%); box-sizing: border-box; display: flex; flex-direction: column;
+         justify-content: center; padding: .05em .55em; color: #fff; font-weight: 500; line-height: 1.08;
+         text-align: center; max-width: 62vw; transition: opacity .1s linear; }
+  .box .bo { display: block; font-size: .62em; color: #c9ced8; font-weight: 400; margin-top: .1em; }
+  body.game #stack { display: none; }
+  body:not(.game) #boxes { display: none; }
 </style>
 </head>
 <body class="bottom noorig">
 <div id="stack"></div>
+<div id="boxes"></div>
 <script>
 (() => {
   // URL settings (all optional): k=<token> (another PC), size=44, pos=bottom|top|middle, bg=0..1, orig=1,
   // offset=7 (vh from the edge), names=0 (hide speaker names)
-  const q = new URLSearchParams(location.search);
+  // layout=line: the old bottom strip; default "game": in place of the original subtitle when SubBridge knows
+  // where it is (window / capture card sources), else the strip. scale=1.0 text size factor in that layout.
+  // A second "?" typed into the address (".../overlay?size=56?pos=top") is read like "&".
+  const q = new URLSearchParams(location.search.replace(/^\?/, "").replace(/\?/g, "&"));
   const root = document.documentElement.style, body = document.body;
   if (q.get("size")) root.setProperty("--size", Math.max(12, Math.min(160, +q.get("size"))) + "px");
   if (q.get("offset")) root.setProperty("--bottom", Math.max(0, Math.min(45, +q.get("offset"))) + "vh");
@@ -42,6 +54,33 @@
   body.classList.remove("bottom"); body.classList.add(["top", "middle"].includes(q.get("pos")) ? q.get("pos") : "bottom");
   if (q.get("orig") === "1") body.classList.remove("noorig");
   const names = q.get("names") !== "0";
+  const layoutLine = q.get("layout") === "line";
+  const scale = q.get("scale") ? Math.max(0.5, Math.min(2.5, +q.get("scale"))) : 1;
+  const boxesEl = document.getElementById("boxes");
+  let lastBoxes = 0;
+  function renderBoxes(list) {
+    lastBoxes = list.length ? Date.now() : lastBoxes;
+    if (layoutLine) return;
+    body.classList.toggle("game", list.length > 0 || Date.now() - lastBoxes < 60000);
+    boxesEl.innerHTML = "";
+    for (const b of list) {
+      const [x0, y0, x1, y1] = b.r;
+      const el = document.createElement("div");
+      el.className = "box";
+      el.style.left = ((x0 + x1) / 2 * 100) + "%";
+      el.style.bottom = ((1 - y1) * 100) + "%";
+      el.style.minWidth = ((x1 - x0) * 100) + "%";
+      el.style.minHeight = ((y1 - y0) * 100) + "%";
+      el.style.fontSize = (b.px * 100 * scale) + "vh";
+      el.style.background = bg === 0 ? "none" : `rgb(${b.bg.join(",")})`;
+      if (bg === 0) el.style.textShadow = "0 0 .12em #000, 0 0 .3em #000";
+      const nc = b.name ? `rgb(${b.name.join(",")})` : "#f4d35e";
+      el.innerHTML = "<div>" + b.lines.filter(l => l[1]).map(([sp, t]) =>
+        (names && sp ? `<span style="color:${nc}">${esc(sp)}:</span> ` : "") + esc(t)).join("<br>") + "</div>"
+        + (q.get("orig") === "1" && b.en ? `<span class="bo">${b.en.map(esc).join("<br>")}</span>` : "");
+      boxesEl.appendChild(el);
+    }
+  }
 
   const PALETTE = ["#ff8a4c", "#5fd3ff", "#ffd166", "#b28dff", "#7ee8a1", "#ff6f9f", "#9ad0ff", "#ffb4a2"];
   const colours = {};
@@ -83,8 +122,9 @@
       else if (m.type === "history") { (m.items || []).forEach(x => lines.set(x.id, x)); visible = m.visible || []; render(); }
       else if (m.type === "line") { lines.set(m.id, m); if (lines.size > 120) lines.delete(lines.keys().next().value); render(); }
       else if (m.type === "visible") { visible = m.ids || []; render(); }
+      else if (m.type === "boxes") renderBoxes(m.boxes || []);
     };
-    ws.onclose = () => { visible = []; render(); setTimeout(connect, 1500); };
+    ws.onclose = () => { visible = []; render(); renderBoxes([]); setTimeout(connect, 1500); };
   }
   connect();
 })();

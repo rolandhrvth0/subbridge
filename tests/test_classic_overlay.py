@@ -259,3 +259,18 @@ def test_box_growing_upwards_is_covered_at_once(overlay):
     _frame(ov, mp, [(380, 62, 620, 140)], [])        # grew upwards, unreadable this frame
     rects = [b["rect"] for b in out[-1]]
     assert any(r[1] <= 62 and r[3] >= 140 for r in rects), rects
+
+
+def test_obs_gets_boxes_relative_to_the_picture(overlay):
+    """The OBS page draws the translation in place: boxes go out as 0..1 of the source picture."""
+    ov, out, mp = overlay
+    got = []
+    ov.eng = type("E", (), {"publish_boxes": lambda self, b: got.append(b)})()
+    ov._src_wh = (1000, 500)
+    _frame(ov, mp, [(400, 100, 600, 140)], [("Lucia", "Hey.")])      # band starts at y=0 in _frame
+    ov._band = (0, 300, 1000, 200)                                     # the band read was y 300..500
+    ov.entries[0].hu = [("Lucia", "Hé.")]
+    ov._emit()
+    b = got[-1][0]
+    assert b["r"] == [0.4, 0.8, 0.6, 0.88]
+    assert b["lines"] == [["Lucia", "Hé."]]

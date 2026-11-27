@@ -42,6 +42,9 @@ class Profile:
     glossary: list[dict] = field(default_factory=list)
     # in-game overlay: cover the original subtitle box with the translation (window sources only)
     overlay: bool = True
+    # the OBS page can draw the translation exactly where the original subtitle is (like the on-screen
+    # overlay): the subtitle boxes are worked out even in streamer mode (overlay off)
+    obs_game: bool = True
     # extra translation zones: [{"name", "kind": help|objective|notice|other, "region": [x,y,w,h], "on": bool}]
     zones: list[dict] = field(default_factory=list)
     game_phone: bool = True              # translate the in-game phone (chats, posts, news, replies)
@@ -78,6 +81,8 @@ class AppSettings:
     pin: str = field(default_factory=lambda: f"{secrets.randbelow(10**6):06d}")
     token: str = field(default_factory=lambda: secrets.token_urlsafe(12))
     require_pin: bool = True
+    obs_orig: bool = False               # OBS page: the English original small under the translation
+    obs_nobg: bool = False               # OBS page: no box behind the text (outlined text)
     https: bool = False
     active_profile: str = "Alap"
     deepl_key: str = ""

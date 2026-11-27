@@ -229,6 +229,7 @@ class Engine:
         self._ov_sent = None
         self._zone_geom: list[dict] = []
         self._classic_boxes: list[dict] = []        # PC overlay boxes from ClassicOverlay
+        self._empty_since: dict = {}                # zone/track cover rect -> when it was first shown empty
         self._quick: dict[str, tuple] = {}         # first-read translations for the overlay (norm -> (src, speaker, hu))
         self._ov_px: list[int] = []          # recent text heights: the game's font size is constant
 
@@ -422,6 +423,17 @@ class Engine:
                         v = (None, None, "")                     # translation on its way: cover the original now
                     if v is not None:
                         lines.append((v[1], v[2]))
+                if lines and not any(t for _s, t in lines):
+                    # an empty cover hides the original only until its translation comes; one that never
+                    # gets a translation (a menu, a label nobody translates) must not stay a black box
+                    k = tuple(g["rect"])
+                    if len(self._empty_since) > 200:
+                        self._empty_since.clear()
+                    first = self._empty_since.setdefault(k, time.time())
+                    if time.time() - first > 2.0:
+                        continue
+                elif lines:
+                    self._empty_since.pop(tuple(g["rect"]), None)
                 if lines:
                     out.append({"rect": g["rect"], "bg": g["bg"], "name": g["name"], "px": g["px"],
                                 "max_w": g["max_w"], "lines": lines, "slot": 10 + len(out)})
@@ -553,6 +565,15 @@ class Engine:
             version = e.version
         self._pool.submit(self._publish_entry, e, action, version, t_seen)
 
+    def publish_boxes(self, boxes: list[dict]):
+        """Where the subtitles are, for the OBS page's "in place" layout (rects as 0..1 of the source picture)."""
+        if boxes != getattr(self, "_boxes_sent", None):
+            self._boxes_sent = boxes
+            try:
+                self.cb.subtitle({"type": "boxes", "boxes": boxes})
+            except Exception:  # noqa: BLE001
+                log.exception("boxes publish failed")
+
     def _publish_visible(self, track_ids: list[int]):
         ids = sorted({self._track_to_entry[t] for t in track_ids if t in self._track_to_entry})
         if ids != self._visible:
@@ -589,7 +610,7 @@ class Engine:
         last_sig, last_ocr = None, 0.0
         tick = max(p.interval_ms, 150) / 1000         # phone feed; the PC overlay has its own 70 ms loop
         # screen capture would read our own overlay; devices draw it in the Game View
-        overlay_ok = p.overlay and p.source_kind in ("window", "device")
+        overlay_ok = (p.overlay or getattr(p, "obs_game", True)) and p.source_kind in ("window", "device")
         classic = None
         if overlay_ok:
             # the PC overlay runs its own light loop (old translator's design); this loop only feeds
@@ -699,6 +720,8 @@ class Engine:
         self.cb.status("stopped")
 
     def _set_classic(self, boxes: list[dict]):
+        if not self.profile.overlay:
+            boxes = []                              # streamer mode: nothing on this screen (the OBS page gets them)
         with self._lock:
             self._classic_boxes = boxes
             self._ov_sent = None                    # always forward ClassicOverlay updates

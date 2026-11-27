@@ -404,6 +404,12 @@ class MainWindow(QMainWindow):
         obr.addWidget(self.btn_obs_copy)
         obr.addStretch(1)
         ol.addLayout(obr)
+        self.chk_obs_place = QCheckBox(tr("obs_place"))
+        self.chk_obs_place.setToolTip(tr("obs_place_tip"))
+        self.chk_obs_orig = QCheckBox(tr("obs_orig"))
+        self.chk_obs_nobg = QCheckBox(tr("obs_nobg"))
+        for w in (self.chk_obs_place, self.chk_obs_orig, self.chk_obs_nobg):
+            ol.addWidget(w)
         ol.addWidget(QLabel(tr("obs_params"), objectName="small", wordWrap=True, textFormat=Qt.RichText))
         obs.lay.addLayout(ol)
         pl2.addWidget(obs)
@@ -489,7 +495,24 @@ class MainWindow(QMainWindow):
 
     def obs_url(self) -> str:
         proto = "https" if self.settings.https else "http"
-        return f"{proto}://127.0.0.1:{self.settings.port}/overlay"
+        q = []
+        if not getattr(self.profile, "obs_game", True):
+            q.append("layout=line")
+        if self.settings.obs_orig:
+            q.append("orig=1")
+        if self.settings.obs_nobg:
+            q.append("bg=0")
+        return f"{proto}://127.0.0.1:{self.settings.port}/overlay" + ("?" + "&".join(q) if q else "")
+
+    def _obs_options(self, *_):
+        restart = self.profile.obs_game != self.chk_obs_place.isChecked() and self.engine.running
+        self.profile.obs_game = self.chk_obs_place.isChecked()
+        self.settings.obs_orig = self.chk_obs_orig.isChecked()
+        self.settings.obs_nobg = self.chk_obs_nobg.isChecked()
+        self._save_profile()
+        self.lbl_obs.setText(self.obs_url())
+        if restart:                      # the loop reads the flag at start
+            self.engine.start(self.engine.window_id)
 
     def _copy_obs(self):
         QGuiApplication.clipboard().setText(self.obs_url())
@@ -550,6 +573,8 @@ class MainWindow(QMainWindow):
         self.btn_game_go.clicked.connect(self._choose_game)
         self.tile_gta.clicked.connect(lambda: self.tile_gta.setChecked(True))
         self.btn_obs_copy.clicked.connect(self._copy_obs)
+        for w in (self.chk_obs_place, self.chk_obs_orig, self.chk_obs_nobg):
+            w.toggled.connect(self._obs_options)
         self.row_phone.clicked.connect(lambda: self.show_page("phone"))
         self.row_obs.clicked.connect(lambda: self.show_page("phone"))
         # streamer mode = the on-screen translation off: English stays on your screen, viewers get the OBS page
@@ -1255,6 +1280,11 @@ class MainWindow(QMainWindow):
         self.qr.set_data(f"{url}?k={self.settings.token}")
         self.lbl_url.setText(url.rstrip("/"))
         self.lbl_pin.setText(f"{self.settings.pin[:3]} {self.settings.pin[3:]}")
+        for w, v in ((self.chk_obs_place, getattr(self.profile, "obs_game", True)),
+                     (self.chk_obs_orig, self.settings.obs_orig), (self.chk_obs_nobg, self.settings.obs_nobg)):
+            w.blockSignals(True)
+            w.setChecked(v)
+            w.blockSignals(False)
         self.lbl_obs.setText(self.obs_url())
 
     def _copy_url(self):

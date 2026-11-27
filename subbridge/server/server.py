@@ -161,6 +161,8 @@ class SubtitleServer:
                                 "visible": self.visible})
             if self.phone:
                 await ws.send_json(self.phone)
+            if getattr(self, "boxes", None):
+                await ws.send_json(self.boxes)
             self._clients[ws] = {"ip": ip, "name": name, "since": time.time()}
             self._notify_clients()
             async for msg in ws:
@@ -205,6 +207,8 @@ class SubtitleServer:
             self.status = msg
         elif t == "settings":
             self.client_settings = msg.get("settings", {})
+        elif t == "boxes":
+            self.boxes = msg
         if self._loop:
             asyncio.run_coroutine_threadsafe(self._broadcast(msg), self._loop)
 

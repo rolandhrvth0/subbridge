@@ -203,6 +203,7 @@ class ClassicOverlay:
                         continue
                     self._t["front"] = now
                     sw, sh = eng.capture.source_size(kind, ident)
+                    self._src_wh = (sw, sh)
                     _fx, fy, _fw, fh = p.region
                     band = (0, int(fy * sh), sw, max(8, int(fh * sh)))           # full width: never cut a subtitle
                     sw_strip = max(40, int(sw * 0.06))
@@ -257,6 +258,7 @@ class ClassicOverlay:
         pic_w = max((v for _t, v in self._pw_hist), default=source_w)
         if origin is not None:
             self._geo = (origin[0] + region[0], origin[1] + region[1], region[2], pic_w)
+        self._band = region
         if not active:
             if self.entries:
                 self.entries = []
@@ -750,6 +752,31 @@ class ClassicOverlay:
         font = max(16, box_h / lines * 0.64)
         return int(font / 1.08)                 # the overlay scales by 1.08
 
+    def _publish_norm(self, one):
+        """The same boxes for the OBS page, relative to the source picture (0..1): it draws them in place."""
+        pub = getattr(self.eng, "publish_boxes", None)
+        sw, sh = getattr(self, "_src_wh", (0, 0))
+        band = getattr(self, "_band", None)
+        if pub is None or not sw or not sh or band is None:
+            return
+        by = band[1]
+        out = []
+        for e in self.entries:
+            if not e.alive or not e.hu or not any(t for _s, t in e.hu):
+                continue
+            x0, y0, x1, y1 = e.rect
+            px = e.px or self._steady_px(self._px(y1 - y0, one))
+            out.append({"r": [round(x0 / sw, 4), round((by + y0) / sh, 4), round(x1 / sw, 4), round((by + y1) / sh, 4)],
+                        "px": round(px * 1.08 / sh, 4),
+                        "bg": [int(v) for v in self.color] if self.color is not None else [24, 24, 30],
+                        "name": list(e.name_rgb) if e.name_rgb else None,
+                        "lines": [[sp, t] for sp, t in e.hu],
+                        "en": [t for _sp, t in e.lines]})
+        try:
+            pub(out)
+        except Exception:  # noqa: BLE001
+            log.exception("publish boxes")
+
     def _emit(self):
         gx, gy, region_w, source_w = self._geo
         # font like the game's: one text line ≈ 0.55 of a one-line box (the old translator's rule)
@@ -767,6 +794,7 @@ class ClassicOverlay:
                         "en": [t for _sp, t in e.lines] if learn and e.hu else [],
                         # the game wraps long subtitles: about half the picture width at most
                         "max_w": int(source_w * 0.5 / 0.62)})
+        self._publish_norm(one)
         self.stats["emits"] += 1
         if any(t for o in out for _sp, t in o["lines"]):
             self._t["cover"] = time.time()
