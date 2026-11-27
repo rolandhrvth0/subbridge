@@ -27,7 +27,7 @@ from subbridge.translate.memory import tm_key  # noqa: E402
 
 TM = ROOT / "build" / "tm"
 SOURCES = ["build/corpus/v1/lines.jsonl", "build/corpus/v2/lines.jsonl", "build/tm/v3_lines.jsonl"] + [
-    f"build/corpus/{c}/lines.jsonl" for c in ("ch3", "ch4", "ch5", "ch1", "ch2", "v5")] + ["build/tm/v5_partial.jsonl"]  # partial: until v5/lines.jsonl exists   # v4_* = held-out test only
+    f"build/corpus/{c}/lines.jsonl" for c in ("ch3", "ch4", "ch5", "ch1", "ch2", "v5")]   # v4_* = held-out test only
 
 
 def translated() -> dict[str, str]:

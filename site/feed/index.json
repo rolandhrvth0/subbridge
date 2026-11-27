@@ -351,6 +351,10 @@
     "post": {
       "version": 3,
       "url": "packs/post.json"
+    },
+    "lines-hu": {
+      "version": 21,
+      "url": "packs/lines-hu.json"
     }
   },
   "latest": {
