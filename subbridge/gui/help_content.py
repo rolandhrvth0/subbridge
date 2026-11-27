@@ -55,6 +55,15 @@ HELP = {
 </ul>
 <p>Tipp: az automatikus képformátum (1440p vagy 1080p, 60 fps) a legjobb; a <i>Beállítások › Capture card</i> alatt kézzel is választhatsz.</p>
 """),
+("gameview", "Játéknézet: indító ablak, DLSS 5, frame gen, streamer mód", """
+<p><b>Indító ablak:</b> a Játéknézet minden megnyitásakor megkérdezi, hogyan induljon (kikapcsolható az ablak alján, vagy a <i>Beállítások</i> alatt).</p>
+<ul>
+<li><b>Képmód:</b> natív (a kártya képe változtatás nélkül) vagy DLSS 5 stílus (<i>Természetes</i>, <i>Filmes</i>, <i>Standard</i>). Az előnézet élőben mutatja, hogyan fog kinézni.</li>
+<li><b>Frame gen:</b> ki, 2× (60 fps), 3× (90 fps) vagy 4× (120 fps). Azt válaszd, amelyik mellé „illik a monitorodhoz” írást látsz – akkor a legegyenletesebb. A becsült plusz késleltetést is mutatja.</li>
+</ul>
+<p><b>DLSS 5 (kísérleti, Linux + AMD Radeon RX 9000):</b> a <i>Beállítások › Capture card</i> oldalon töltsd be a saját <code>nvngx_dlssnr.dll</code> fájlodat. A {app} ellenőrzi és kiolvassa belőle a modellt (a DLL-t nem futtatja), NVIDIA-fájlt nem tartalmaz.</p>
+<p><b>Streamer mód</b> (OBS csoport): a magyar felirat csak az OBS oldalon jelenik meg a nézőknek, a saját képernyődön az angol marad.</p>
+"""),
 ("minimized", "Az ablak le van kicsinyítve", """
 <p>Kicsinyített ablakot az operációs rendszer nem rajzol ki, így nincs mit kiolvasni. Állítsd vissza az ablakot – más ablakok mögött nyugodtan maradhat.</p>
 <p>Ha a chiaki-ng teljes képernyőn fut egy másik monitoron, az is jó.</p>
@@ -146,6 +155,15 @@ HELP = {
 <li>Play on the TV: put a cheap <b>HDMI splitter</b> (1 in, 2 out) between console and card: one output to the TV, the other to the card. SubBridge reads in the background and the translation shows on your phone.</li>
 </ul>
 <p>Tip: automatic format (1440p or 1080p, 60 fps) is best; you can pick one under <i>Settings › Capture card</i>.</p>
+"""),
+("gameview", "Game View: launcher, DLSS 5, frame generation, streamer mode", """
+<p><b>Launcher:</b> every time the Game View opens it asks how to start (can be switched off at the bottom of the window or under <i>Settings</i>).</p>
+<ul>
+<li><b>Picture mode:</b> native (the card's picture unchanged) or a DLSS 5 style (<i>Natural</i>, <i>Cinematic</i>, <i>Standard</i>), with a live preview.</li>
+<li><b>Frame generation:</b> off, 2× (60 fps), 3× (90 fps) or 4× (120 fps). Pick the one marked as matching your monitor – that is the smoothest. The estimated added latency is shown too.</li>
+</ul>
+<p><b>DLSS 5 (experimental, Linux + AMD Radeon RX 9000):</b> load your own <code>nvngx_dlssnr.dll</code> under <i>Settings › Capture card</i>. {app} verifies and extracts the model (the DLL is never run); no NVIDIA files are included.</p>
+<p><b>Streamer mode</b> (OBS group): the translation shows only on the OBS page for viewers; your own screen keeps the English.</p>
 """),
 ("minimized", "The window is minimised", """
 <p>The operating system doesn't draw minimised windows, so there's nothing to read. Restore it – it can stay behind other windows.</p>
