@@ -248,3 +248,14 @@ def test_two_speakers_restacked_no_line_twice(overlay):
     texts = [t for b in out[-1] for _s, t in b["lines"]]
     assert len(ov.entries) == 1, [x.lines for x in ov.entries]
     assert "Semmi baj." not in texts or len(shown) <= 1
+
+
+def test_box_growing_upwards_is_covered_at_once(overlay):
+    """A second line appears above (two-line subtitle): the cover must reach the new top at once."""
+    ov, out, mp = overlay
+    _frame(ov, mp, [(400, 100, 600, 140)], [(None, "Yeah, okay. Sounds good.")])
+    ov.entries[0].hu = [(None, "Igen, oké. Jól hangzik.")]
+    ov.entries[0].shown_at -= 5
+    _frame(ov, mp, [(380, 62, 620, 140)], [])        # grew upwards, unreadable this frame
+    rects = [b["rect"] for b in out[-1]]
+    assert any(r[1] <= 62 and r[3] >= 140 for r in rects), rects

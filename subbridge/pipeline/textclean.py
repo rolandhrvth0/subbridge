@@ -75,6 +75,7 @@ def clean(text: str) -> str:
     t = re.sub(r"(?<![A-Za-z])\|(?![A-Za-z])", "I", t)
     t = re.sub(r"^[^\w\"'(¿¡\[]+", "", t)                         # leading junk
     t = re.sub(r"\s+[^\w\s\"'.!?…)\]]{1,3}$", "", t)              # trailing junk symbols
+    t = re.sub(r"(?<=[\w.!?,…'\"])[*♪♫]+$", "", t)                 # song marker glued to the end: "pocket*"
     t = re.sub(r"\s+[^\w\s]{1,2}(?=\s)", "", t)                   # lone symbols mid-line
     t = re.sub(r"\s{2,}", " ", t)
     return t.strip()
